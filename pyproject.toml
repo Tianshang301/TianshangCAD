@@ -9,7 +9,7 @@ description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measu
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
-authors = [{ name = "Tianshang", email = "liuxu2006@outlook.com" }]
+authors = [{ name = "Tianshang301", email = "Tianshang301@outlook.com" }]
 keywords = ["cad", "mcp", "cli", "drawing", "geometry", "json"]
 classifiers = [
     "Development Status :: 3 - Alpha",
