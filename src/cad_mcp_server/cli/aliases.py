@@ -1,0 +1,27 @@
+"""Command alias mapping (AutoCAD-style short aliases)."""
+
+COMMAND_ALIASES: dict[str, str] = {
+    "l": "draw line",
+    "c": "draw circle",
+    "pl": "draw polyline",
+    "rec": "draw rectangle",
+    "co": "edit copy",
+    "m": "edit move",
+    "ro": "edit rotate",
+    "sc": "edit scale",
+    "e": "edit erase",
+    "mi": "edit mirror",
+    "ar": "edit array",
+    "o": "edit offset",
+    "f": "edit fillet",
+    "cha": "edit chamfer",
+    "la": "layer list",
+    "z": "view zoom",
+    "p": "view pan",
+    "di": "measure distance",
+    "aa": "measure area",
+    "li": "measure list",
+    "b": "block create",
+    "i": "block insert",
+    "reg": "edit regenerate",
+}

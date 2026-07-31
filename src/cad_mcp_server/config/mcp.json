@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "cad-server": {
+      "command": "python",
+      "args": ["-m", "cad_mcp_server"],
+      "env": {
+        "CAD_RUNTIME": "analytic",
+        "CAD_HEADLESS": "true",
+        "CAD_TEMP_DIR": "/tmp/cad"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "cad_object_read",
+        "cad_status_check",
+        "cad_status_file",
+        "cad_json_load",
+        "cad_json_validate",
+        "cad_validate_geometry",
+        "cad_metrics_get"
+      ]
+    }
+  }
+}

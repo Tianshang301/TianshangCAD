@@ -1,0 +1,53 @@
+"""CLI root command application."""
+
+from __future__ import annotations
+
+import sys
+
+import typer
+
+from cad_mcp_server.cli.aliases import COMMAND_ALIASES
+from cad_mcp_server.cli.commands import batch, block, draw, edit, file, layer, measure, render, view
+from cad_mcp_server.utils.logger import configure_logging
+
+app = typer.Typer(
+    name="cad-cli",
+    help="CAD CLI System - Command-line CAD operation tool",
+    no_args_is_help=True,
+    add_completion=False,
+)
+
+app.add_typer(file.app, name="file", help="File operations")
+app.add_typer(draw.app, name="draw", help="Drawing commands")
+app.add_typer(edit.app, name="edit", help="Editing commands")
+app.add_typer(view.app, name="view", help="View control")
+app.add_typer(measure.app, name="measure", help="Measurement tools")
+app.add_typer(layer.app, name="layer", help="Layer management")
+app.add_typer(block.app, name="block", help="Blocks and parametrics")
+app.add_typer(render.app, name="render", help="Rendering output")
+app.add_typer(batch.app, name="batch", help="Batch processing")
+
+
+@app.callback()
+def global_options(
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
+    config: str = typer.Option(
+        "~/.cad-cli/config.yaml", "--config", "-c", help="Config file path"
+    ),
+) -> None:
+    """Global options."""
+    if verbose:
+        configure_logging(level="DEBUG")
+
+
+def main() -> None:
+    """Entry point that expands short command aliases then runs the app."""
+    args = list(sys.argv[1:])
+    if args and args[0] in COMMAND_ALIASES:
+        args = COMMAND_ALIASES[args[0]].split() + args[1:]
+        sys.argv = [sys.argv[0], *args]
+    app()
+
+
+if __name__ == "__main__":
+    main()
