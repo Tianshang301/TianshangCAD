@@ -26,3 +26,8 @@ Thumbs.db
 *.tmp
 *.swp
 docs/_build/
+
+# Markdown files except README (kept only on GitHub for the README pages)
+*.md
+!README.md
+!readme/README.zh-CN.md
