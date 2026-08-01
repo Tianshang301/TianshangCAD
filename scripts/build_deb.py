@@ -35,6 +35,8 @@ def _current_version() -> str:
 
 VERSION = _current_version()
 MAINTAINER = "Tianshang301 <Tianshang301@outlook.com>"
+LICENSE_NAME = "Apache-2.0"
+COPYRIGHT = "Copyright 2026 Tianshang301"
 DESCRIPTION = (
     "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, "
     "measurement, JSON-driven)"
@@ -50,6 +52,8 @@ Priority: optional
 Architecture: all
 Maintainer: {MAINTAINER}
 Depends: python3 (>= 3.11), python3-pip
+Copyright: {COPYRIGHT}
+License: {LICENSE_NAME}
 Description: {DESCRIPTION}
  JSON-driven CAD operations via command line (cad-cli) and an MCP server
  (cad-mcp-server). Provides file, drawing, editing, measurement, layer and
@@ -132,6 +136,20 @@ def _build_data_tar_gz() -> tuple[bytes, list[tuple[str, str]]]:
             relative = source.relative_to(SRC)
             arcname = f"./{PREFIX}/src/cad_mcp_server/{relative.as_posix()}"
             add(arcname, source.read_bytes(), 0o644)
+        license_path = ROOT / "LICENSE"
+        if license_path.exists():
+            add(
+                "./usr/share/doc/cad-mcp-server/LICENSE",
+                license_path.read_bytes(),
+                0o644,
+            )
+        third_party = ROOT / "THIRD_PARTY_LICENSES.md"
+        if third_party.exists():
+            add(
+                "./usr/share/doc/cad-mcp-server/THIRD_PARTY_LICENSES.md",
+                third_party.read_bytes(),
+                0o644,
+            )
         add("./usr/bin/cad-cli", CLI_WRAPPER.encode(), 0o755)
         add("./usr/bin/cad-mcp-server", SERVER_WRAPPER.encode(), 0o755)
     return buffer.getvalue(), md5sums

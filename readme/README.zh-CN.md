@@ -212,3 +212,16 @@ tests/
 - `AGENTS.md` — 完整开发指南与路线图
 - `docs/architecture.md` — 系统架构设计
 - `README.md` — 英文 README（[../README.md](../README.md)）
+
+## 许可证
+
+本项目采用 **Apache License 2.0**，详见 [`LICENSE`](../LICENSE)。
+
+运行时第三方依赖全部为宽松许可（MIT / BSD / Apache-2.0 / ISC / PSF，
+`certifi` 为 MPL-2.0），完整清单见
+[`THIRD_PARTY_LICENSES.md`](../THIRD_PARTY_LICENSES.md)。
+
+可选后端：`cadquery`（Apache-2.0）兼容；FreeCAD / OpenCASCADE 可选后端为
+**LGPL-2.1** 且**不随包分发**，若启用需遵守 LGPL 义务（保留许可声明、
+保持库可重链接）。默认的 `AnalyticKernel` 为自研实现，完全采用
+Apache-2.0。

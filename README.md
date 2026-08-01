@@ -230,3 +230,17 @@ tests/
 - `AGENTS.md` — full development guide and roadmap
 - `docs/architecture.md` — system design
 - `readme/README.zh-CN.md` — Chinese README
+
+## License
+
+**Apache License 2.0** — see [`LICENSE`](LICENSE).
+
+Third-party runtime dependencies are all permissive-licensed (MIT / BSD /
+Apache-2.0 / ISC / PSF, plus MPL-2.0 for `certifi`); the full inventory is in
+[`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).
+
+Optional backends: `cadquery` (Apache-2.0) is compatible. The optional
+FreeCAD / OpenCASCADE backends are LGPL-2.1 and are **not** bundled; if you
+enable them you must comply with the LGPL (retain notices, keep the library
+re-linkable). The default `AnalyticKernel` is self-authored and fully
+Apache-2.0.

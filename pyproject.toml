@@ -8,7 +8,7 @@ version = "0.2.5"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "Apache-2.0"
 authors = [{ name = "Tianshang301", email = "Tianshang301@outlook.com" }]
 keywords = ["cad", "mcp", "cli", "drawing", "geometry", "json"]
 classifiers = [
@@ -54,7 +54,7 @@ dev = [
 cad-cli = "cad_mcp_server.cli.main:main"
 
 [project.urls]
-Homepage = "https://github.com/anomalyco/opencode"
+Homepage = "https://github.com/Tianshang301/TianshangCAD"
 
 [tool.setuptools.packages.find]
 where = ["src"]

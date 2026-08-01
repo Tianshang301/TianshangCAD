@@ -31,3 +31,4 @@ docs/_build/
 *.md
 !README.md
 !readme/README.zh-CN.md
+!THIRD_PARTY_LICENSES.md
