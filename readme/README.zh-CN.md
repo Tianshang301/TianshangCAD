@@ -5,7 +5,7 @@
 MCP 客户端（AI 智能体）直接调用。
 
 > **当前状态**：Phase 1（CLI + IO）、Phase 2（MCP Server）、Phase 3（批处理
-> 与自动化）与 Phase 4（高级功能）已完成。381 个测试通过，覆盖率 85%+，
+> 与自动化）与 Phase 4（高级功能）已完成。388 个测试通过，覆盖率 85%+，
 > `ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
@@ -51,6 +51,7 @@ pip install -e ".[occ]"
 ## CLI 用法
 
 ```bash
+cad-cli --version
 cad-cli file new design.json --unit mm
 cad-cli draw line 0,0 100,0
 cad-cli draw circle 50,50 --radius 25
@@ -61,6 +62,7 @@ cad-cli measure distance 0,0 100,100
 ```
 
 短命令别名会被自动展开：`cad-cli l 0,0 100,0` 等价于 `cad-cli draw line 0,0 100,0`。
+`cad-cli --version` 显示当前版本（例如 `cad-cli 0.2.5`）。
 
 ### 命令组
 

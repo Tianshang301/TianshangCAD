@@ -5,7 +5,7 @@ measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
 > **Status**: Phase 1 (CLI + IO), Phase 2 (MCP Server), Phase 3 (Batch &
-> Automation) and Phase 4 (Advanced Features) complete. 381 tests passing,
+> Automation) and Phase 4 (Advanced Features) complete. 388 tests passing,
 > 85%+ coverage, `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
@@ -57,6 +57,7 @@ pip install -e ".[occ]"
 ## CLI Usage
 
 ```bash
+cad-cli --version
 cad-cli file new design.json --unit mm
 cad-cli draw line 0,0 100,0
 cad-cli draw circle 50,50 --radius 25
@@ -68,6 +69,7 @@ cad-cli measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `cad-cli l 0,0 100,0` equals `cad-cli draw line 0,0 100,0`.
+`cad-cli --version` prints the current version (e.g. `cad-cli 0.2.5`).
 
 ### Command groups
 
