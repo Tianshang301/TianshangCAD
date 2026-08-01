@@ -62,7 +62,7 @@ cad-cli measure distance 0,0 100,100
 ```
 
 短命令别名会被自动展开：`cad-cli l 0,0 100,0` 等价于 `cad-cli draw line 0,0 100,0`。
-`cad-cli --version` 显示当前版本（例如 `cad-cli 0.2.5`）。
+`cad-cli --version` 显示当前版本（例如 `cad-cli 0.4.0`）。
 
 ### 命令组
 

@@ -79,6 +79,22 @@ class TestSaveOpenRoundtrip:
         assert data["format"] == "tianshang-cad-scene"
         assert len(data["entities"]) == 1
 
+    def test_view_persistence_roundtrip(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        document_manager.create("design.json")
+        doc = document_manager.get_current()
+        from cad_mcp_server.schemas.view3d import named_view
+
+        doc.views.create("iso", definition=named_view("iso"))
+        saved = document_manager.save(path=str(tmp_path / "design.json"))
+
+        doc_mgr2 = DocumentManager()
+        doc_mgr2.open(saved)
+        reopened = doc_mgr2.get_current()
+        assert reopened.views.count() == 1
+        assert reopened.views.get_by_name("iso") is not None
+
 
 class TestCloseAndList:
     """Close / list / info tests."""

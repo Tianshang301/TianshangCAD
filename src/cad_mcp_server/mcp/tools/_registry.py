@@ -21,9 +21,10 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         status,
         validate,
         versioning,
+        view3d,
     )
 
     tools: list[tuple[str, Any]] = []
-    for module in (crud, json_ops, status, validate, batch, render, versioning, nlp):
+    for module in (crud, json_ops, status, validate, batch, render, versioning, nlp, view3d):
         tools.extend(module.TOOLS)
     return dict(tools)

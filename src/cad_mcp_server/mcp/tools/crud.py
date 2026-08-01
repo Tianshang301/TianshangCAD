@@ -229,6 +229,9 @@ def cad_object_create(input: ObjectCreateInput) -> ObjectCreateOutput:
             layer=input.layer,
             properties=dict(input.properties or {}),
         )
+        from cad_mcp_server.utils.metrics import observe_entity
+
+        observe_entity(input.type.lower())
         bbox = doc.entities.get_bbox(object_id)
         return ObjectCreateOutput(object_id=object_id, bbox=bbox, status="success")
     except CADError as exc:

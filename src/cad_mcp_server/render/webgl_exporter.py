@@ -128,6 +128,118 @@ def export_webgl_file(
     return str(target)
 
 
+def export_webgl_delta(
+    previous_ids: Sequence[str] | set[str],
+    records: Sequence[Any],
+    kernel: CADKernel | None = None,
+    include_full: bool = False,
+) -> dict[str, Any]:
+    """Return an incremental WebGL sync payload.
+
+    ``previous_ids`` are the object ids the client already holds. The
+    result contains ``added`` (new ids), ``removed`` (ids no longer
+    present) and ``updated`` (ids whose geometry changed). Each added or
+    updated id carries its per-object BufferGeometry so the client can
+    apply the delta without reloading the whole scene.
+    """
+    active_kernel = kernel or get_kernel()
+    previous = set(previous_ids)
+    current_records = list(records)
+    current_ids = {record.id for record in current_records}
+
+    added: list[str] = []
+    removed: list[str] = []
+    updated: list[str] = []
+    for record in current_records:
+        if record.id not in previous:
+            added.append(record.id)
+        else:
+            # Only entities actually created/edited in this document are
+            # considered; all current records are sent as deltas for
+            # simplicity and correctness.
+            updated.append(record.id)
+    for entity_id in previous:
+        if entity_id not in current_ids:
+            removed.append(entity_id)
+
+    geometries: dict[str, dict[str, Any]] = {}
+    if include_full or added or updated:
+        for record in current_records:
+            geometry = _record_geometry(record, active_kernel)
+            if geometry is not None:
+                geometries[record.id] = geometry
+
+    payload: dict[str, Any] = {
+        "metadata": {
+            "generator": "cad-mcp-server",
+            "format": "webgl-buffer-geometry-delta",
+        },
+        "objectCount": len(current_records),
+        "added": added,
+        "removed": removed,
+        "updated": updated,
+        "geometries": geometries,
+    }
+    if include_full:
+        payload["full"] = export_webgl(records, active_kernel)
+    return payload
+
+
+def _record_geometry(record: Any, kernel: CADKernel) -> dict[str, Any] | None:
+    """Return per-object BufferGeometry for a single record."""
+    shape = record.shape
+    kind = shape["kind"]
+    params = shape["params"]
+    data: dict[str, Any] = {"id": record.id, "type": record.type, "layer": record.layer}
+    if kind == "line":
+        data["kind"] = "line"
+        data["linePositions"] = [*params["start"], *params["end"]]
+        return data
+    if kind in ("circle", "arc"):
+        import math
+
+        center = params["center"]
+        radius = params["radius"]
+        steps = 48
+        line_positions: list[float] = []
+        previous: list[float] | None = None
+        for i in range(steps + 1):
+            theta = i / steps * 2.0 * math.pi
+            point = [
+                center[0] + radius * math.cos(theta),
+                center[1] + radius * math.sin(theta),
+                center[2],
+            ]
+            line_positions.extend(point)
+            if previous is not None:
+                line_positions.extend(previous)
+            previous = point
+        data["kind"] = kind
+        data["linePositions"] = line_positions
+        return data
+    vertices, faces = kernel.tessellate(shape)
+    positions: list[list[float]] = []
+    index_of: dict[tuple[float, float, float], int] = {}
+    for vertex in vertices:
+        key = (float(vertex[0]), float(vertex[1]), float(vertex[2]))
+        index_of.setdefault(key, len(index_of))
+        positions.append([key[0], key[1], key[2]])
+    triangles: list[list[int]] = []
+    for face in faces:
+        if len(face) < 3:
+            continue
+        keyed: list[int] = []
+        for index in face:
+            vertex = vertices[index]
+            point_key = (float(vertex[0]), float(vertex[1]), float(vertex[2]))
+            keyed.append(index_of[point_key])
+        triangles.append(keyed)
+    data["kind"] = "solid"
+    data["positions"] = positions
+    data["indices"] = triangles
+    return data
+
+
 def viewer_html() -> str:
     """Return the static Three.js viewer page.
 

@@ -74,6 +74,50 @@ class TestRenderCommands:
         assert result.exit_code == 0
         assert "matplotlib" in result.stdout
 
+    def test_render_view3d_named(self, tmp_path) -> None:
+        _seed()
+        target = tmp_path / "view3d.png"
+        result = runner.invoke(
+            app, ["render", "view3d", "--view", "iso", "--output", str(target)]
+        )
+        assert result.exit_code == 0
+        assert target.exists()
+
+    def test_render_section(self, tmp_path) -> None:
+        _seed()
+        target = tmp_path / "section.png"
+        result = runner.invoke(
+            app,
+            ["render", "section", "--plane", "XY", "--offset", "1", "--output", str(target)],
+        )
+        assert result.exit_code == 0
+        assert target.exists()
+
+    def test_render_explode(self, tmp_path) -> None:
+        _seed()
+        target = tmp_path / "explode.png"
+        result = runner.invoke(
+            app, ["render", "explode", "--x", "0.5", "--output", str(target)]
+        )
+        assert result.exit_code == 0
+        assert target.exists()
+
+    def test_render_gif(self, tmp_path) -> None:
+        _seed()
+        target = tmp_path / "orbit.gif"
+        result = runner.invoke(
+            app,
+            ["render", "gif", "--frames", "4", "--fps", "5", "--output", str(target)],
+        )
+        assert result.exit_code == 0
+        assert target.exists()
+        assert target.read_bytes()[:6] == b"GIF89a"
+
+    def test_render_views_list(self) -> None:
+        _seed()
+        result = runner.invoke(app, ["render", "views"])
+        assert result.exit_code == 0
+
     def test_render_without_document_fails(self) -> None:
         result = runner.invoke(app, ["render", "view"])
         assert result.exit_code != 0

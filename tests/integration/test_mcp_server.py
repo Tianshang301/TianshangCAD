@@ -86,7 +86,9 @@ class TestMCPServer:
         assert "cad_version_save" in names
         assert "cad_version_restore" in names
         assert "cad_nlp_command" in names
-        assert len(names) == 47
+        assert "cad_view_3d_create" in names
+        assert "cad_webgl_sync" in names
+        assert len(names) == 57
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(

@@ -37,6 +37,9 @@ class Settings(BaseSettings):
     auto_approve: str = Field("", description="Comma separated auto-approved tool list")
     safe_mode: bool = Field(False, description="Safe mode disables destructive ops")
     api_key: str = Field("", description="API key for HTTP transport (optional)")
+    api_keys: str = Field("", description="Comma separated API keys for HTTP transport")
+    rate_limit_max: int = Field(100, description="Max HTTP requests per window")
+    rate_limit_window: int = Field(60, description="Rate limit window in seconds")
     debug: bool = Field(False, description="Debug mode")
 
     @property

@@ -57,3 +57,11 @@ class SchedulerError(CADError):
 
 class VersionError(CADError):
     """Raised for version snapshot / restore errors."""
+
+
+class ViewError(CADError):
+    """Raised for 3D view definition errors."""
+
+
+class RateLimitError(CADError):
+    """Raised when an HTTP client exceeds its request rate limit."""

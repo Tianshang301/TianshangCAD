@@ -17,6 +17,7 @@ from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.layer_manager import LayerManager
 from cad_mcp_server.core.session import SessionManager
 from cad_mcp_server.core.style_manager import StyleManager
+from cad_mcp_server.core.view_manager import ViewManager
 from cad_mcp_server.utils.errors import CADImportError, DocumentError
 from cad_mcp_server.utils.units import validate_unit
 
@@ -42,6 +43,7 @@ class DocumentState:
         self.entities = EntityManager()
         self.layers = LayerManager()
         self.styles = StyleManager()
+        self.views = ViewManager()
         self.created_at = datetime.now(UTC).isoformat()
         self.modified_at = self.created_at
         self.is_dirty = False
@@ -58,6 +60,7 @@ class DocumentState:
         self.entities = EntityManager()
         self.layers = LayerManager()
         self.styles = StyleManager()
+        self.views = ViewManager()
 
     @property
     def closed(self) -> bool:
@@ -76,6 +79,7 @@ class DocumentState:
             "modified_at": self.modified_at,
             "layers": [layer.to_dict() for layer in self.layers.list()],
             "styles": [style.to_dict() for style in self.styles.list()],
+            "views": [view.to_dict() for view in self.views.list()],
             "current_layer": self.layers.get_current().name,
             "entities": [record.to_dict() for record in self.entities.list()],
         }
@@ -100,6 +104,11 @@ class DocumentState:
             doc.layers.create(**layer_data)
         for style_data in data.get("styles", []):
             doc.styles.create(style_data["name"], style_data["type"], style_data.get("properties"))
+        for view_data in data.get("views", []):
+            from cad_mcp_server.schemas.view3d import View3DDefinition
+
+            view = View3DDefinition.model_validate(view_data)
+            doc.views._views[view.view_id] = view
         current_layer = data.get("current_layer", "0")
         if current_layer in doc.layers.snapshot()["layers"]:
             doc.layers.set_current(current_layer)

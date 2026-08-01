@@ -162,7 +162,7 @@ class LogsClearOutput(BaseModel):
 # Tool implementations
 # ---------------------------------------------------------------------------
 
-_SERVER_VERSION = "0.2.5"
+_SERVER_VERSION = "0.4.0"
 _start_time = time.monotonic()
 
 _LEVEL_ORDER = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
