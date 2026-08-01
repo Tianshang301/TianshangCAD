@@ -5,8 +5,9 @@
 MCP 客户端（AI 智能体）直接调用。
 
 > **当前状态**：Phase 1（CLI + IO）、Phase 2（MCP Server）、Phase 3（批处理
-> 与自动化）与 Phase 4（高级功能）已完成。388 个测试通过，覆盖率 85%+，
-> `ruff` 与 `mypy` 全部通过。
+> 与自动化）、Phase 4（高级功能）、Phase 5（3D 视图）与 Phase 6（Docker +
+> 生产加固）均已完成。451 个测试通过，覆盖率 85%+，`ruff` 与 `mypy`
+> 全部通过。
 
 **English**: [README.md](../README.md)
 
@@ -14,8 +15,12 @@ MCP 客户端（AI 智能体）直接调用。
 
 - **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer`、`batch`
   等命令组，支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
-- **MCP Server** — 47 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
+- **MCP Server** — 57 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
   传输方式，可供 Claude、Cursor 等 MCP 客户端调用
+- **3D 视图** — JSON 定义的 `View3DDefinition`，支持球面相机位姿、命名视图
+  （iso / top / front / side / back / bottom）、透视 / 正交投影、平面剖切
+  （XY / YZ / XZ）、爆炸视图与轨道 GIF 动画；支持面向浏览器客户端的增量
+  WebGL delta 同步
 - **批处理与自动化** — 一次性 / Cron / 依赖链任务调度、沙箱化 Python / SCR /
   batch 脚本执行、Webhook 通知、SQLite 持久化与可复用的 Jinja2 命令模板
 - **几何校验** — 自相交、退化面、非流形边检测，错误附带结构化的 `type` /
@@ -28,7 +33,10 @@ MCP 客户端（AI 智能体）直接调用。
   导入/导出往返
 - **可插拔内核** — 解析内核（默认，无原生依赖）/ OCC（`cadquery`）/ FreeCAD
 - **文件 IO** — JSON、DXF、STL（STEP 依赖 OCC 内核）
-- **质量门禁** — `mypy` 严格类型检查、`ruff` 代码规范、`pytest` 覆盖率不低于 80%
+- **生产加固** — Docker 镜像（含健康检查）、Prometheus 指标（`/metrics`）、
+  API Key 认证（401/403）、滑动窗口限流（429）与 `/health` 端点
+- **质量门禁** — `mypy` 严格类型检查、`ruff` 代码规范、`pytest` 覆盖率不低于
+  80%；GitHub Actions CI 在每次推送时运行 lint 与测试
 
 ## 安装
 
@@ -74,6 +82,7 @@ cad-cli measure distance 0,0 100,100
 | `view` | zoom、pan、list |
 | `measure` | distance、area、list |
 | `layer` | create、list、set、on、off、delete |
+| `render` | view、3d、webgl、view3d、section、explode、gif、views、status |
 | `batch` | schedule、run-script、list、status、cancel、templates、logs |
 
 ## MCP Server
@@ -92,9 +101,16 @@ python -m cad_mcp_server --transport stdio
 python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 ```
 
-服务器在 `http://127.0.0.1:8081/mcp` 提供 MCP 服务。
+服务器在 `http://127.0.0.1:8081/mcp` 提供 MCP 服务，并在 `/health` 暴露健康
+检查、在 `/metrics` 暴露 Prometheus 指标。
 
-### 工具列表（共 47 个）
+当通过环境变量 `CAD_API_KEYS`（逗号分隔）配置了 API Key 时，HTTP 请求必须以
+`x-api-key` 或 `Authorization: Bearer <key>` 携带密钥：缺失返回 `401`，无效
+返回 `403`。请求还受滑动窗口限流（默认 100 次 / 60 秒，可通过
+`CAD_RATE_LIMIT_MAX` 与 `CAD_RATE_LIMIT_WINDOW` 调整），超限返回 `429`。
+`/health` 与 `/metrics` 始终公开。stdio 模式不受影响。
+
+### 工具列表（共 57 个）
 
 | 分组 | 工具 |
 |------|------|
@@ -105,11 +121,12 @@ python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 | 状态 | `cad_status_check`、`cad_status_file`、`cad_status_object`、`cad_status_layer`、`cad_status_health`、`cad_logs_get`、`cad_logs_clear` |
 | 校验 | `cad_validate_geometry`、`cad_validate_interference`、`cad_validate_topology`、`cad_metrics_get` |
 | 渲染 | `cad_render_view` |
+| 3D 视图 | `cad_view_3d_create`、`cad_view_3d_read`、`cad_view_3d_list`、`cad_view_3d_update`、`cad_view_3d_delete`、`cad_view_3d_render`、`cad_view_section`、`cad_view_explode`、`cad_view_animation`、`cad_webgl_sync` |
 | 版本 | `cad_version_save`、`cad_version_list`、`cad_version_diff`、`cad_version_restore` |
 | 自然语言 | `cad_nlp_command` |
 | 批处理 | `cad_batch_execute`、`cad_batch_schedule`、`cad_batch_status`、`cad_batch_cancel`、`cad_batch_list`、`cad_batch_templates`、`cad_batch_run_script` |
 
-### 校验、渲染、版本与自然语言
+### 校验、渲染、3D 视图与自然语言
 
 ```text
 "new file design.dwg"            -> cad_file_create  {filename: design.dwg}
@@ -119,8 +136,25 @@ python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 "查看状态"                        -> cad_status_health
 ```
 
+```bash
+# 渲染 300 DPI 俯视图 PNG
+cad-cli render view --view top --dpi 300 --output preview.png
+cad-cli render 3d --output preview3d.png
+cad-cli render webgl --output viewer_data.json --viewer examples/threejs_viewer.html
+
+# 3D 视图
+cad-cli render view3d iso --output iso.png
+cad-cli render section XY --offset 0 --output section.png
+cad-cli render explode --scale 1.5 --output explode.png
+cad-cli render gif --frames 48 --output orbit.gif
+cad-cli render views
+```
+
 版本对比使用 `deepdiff`，返回变更字段、新增/删除项与原始结果；WebGL 导出
 生成 Three.js `BufferGeometry` JSON，可用 `examples/threejs_viewer.html` 预览。
+视图定义（相机位姿、投影、剖切/爆炸参数）随文档持久化，并同样以 MCP 工具
+（`cad_view_3d_*`、`cad_view_section`、`cad_view_explode`、
+`cad_view_animation`、`cad_webgl_sync`）暴露。
 
 ### 批处理与自动化
 
@@ -145,6 +179,19 @@ cad-cli batch logs --source batch --job-id <job_id>
 
 脚本在隔离子进程中运行（`python -I`），带有导入白名单（`os`、`subprocess`、
 `socket` 等被拦截）、运行时 `sys.modules` 防护与硬超时。
+
+## Docker
+
+`docker/` 提供了多阶段镜像（< 500 MB，`python:3.11-slim`），用于无头部署：
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+容器通过 streamable HTTP 在 `8081` 端口运行 MCP 服务器，并带 `/health`
+健康检查，挂载 `data/` 与 `config/` 数据卷。环境变量可覆盖：`CAD_RUNTIME`、
+`CAD_HEADLESS`、`CAD_TEMP_DIR`、`CAD_API_KEYS`、`CAD_LOG_LEVEL`、
+`CAD_RATE_LIMIT_MAX`、`CAD_RATE_LIMIT_WINDOW`。
 
 MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
 
@@ -190,30 +237,46 @@ pytest         # 测试（覆盖率门禁 >= 80%）
 src/cad_mcp_server/
 |-- cli/            # typer CLI：命令组 + 别名展开
 |-- mcp/            # MCP 服务器、传输层、安全与工具注册表
-|   |-- server.py       # MCPServer 装配（47 个工具）
-|   |-- transport.py    # stdio / streamable HTTP
+|   |-- server.py       # MCPServer 装配（57 个工具）
+|   |-- transport.py    # stdio / streamable HTTP（含认证、限流）
 |   |-- security.py     # 工具权限白名单
+|   |-- auth.py         # API Key 认证
+|   |-- rate_limit.py   # 滑动窗口限流器
 |   `-- tools/          # crud、json_ops、status、validate、batch、
-|                       # render、versioning、nlp
+|                       # render、versioning、nlp、view3d
 |-- core/           # document、entity、layer、kernel、session、history、
 |                   # scheduler、script_runner、batch_templates、validation、
-|                   # versioning
+|                   # versioning、view_manager
 |-- io/             # JSON / DXF / STL 导入导出
-|-- schemas/        # Pydantic 几何与场景 Schema
-|-- render/         # 2D / 3D PNG 渲染与 WebGL 导出
-`-- utils/          # logger、config、errors、validators、units
+|-- schemas/        # Pydantic 几何、场景与 view3d Schema
+|-- render/         # 2D / 3D PNG 渲染、WebGL 导出、剖切、爆炸、动画
+`-- utils/          # logger、config、errors、validators、units、metrics
 examples/
 `-- threejs_viewer.html  # 用于 WebGL 导出的浏览器查看器
+docker/
+|-- Dockerfile          # 多阶段镜像（python:3.11-slim）
+|-- docker-compose.yml  # 服务定义（含健康检查）
+`-- entrypoint.sh
 tests/
 |-- unit/           # CLI、core、IO、MCP 工具单元测试
-`-- integration/    # MCP 端到端、批处理与 JSON 工作流测试
+`-- integration/    # MCP 端到端、批处理、JSON 工作流与性能测试
 ```
 
 ## 文档
 
 - `AGENTS.md` — 完整开发指南与路线图
 - `docs/architecture.md` — 系统架构设计
+- `docs/roadmap_v0.2.5.md` — 未来开发路线图
+- `docs/development_plan_v0.3.0.md` — Phase 5/6 实施计划
 - `README.md` — 英文 README（[../README.md](../README.md)）
+
+## 持续集成
+
+`.github/workflows/ci.yml` 在每次推送 / PR 时运行 `ruff` + `mypy`，并在
+Python 3.11 与 3.12 上运行带 80% 覆盖率门禁的 `pytest`。推送 `v*` 标签会触发
+`.github/workflows/release.yml`，构建 Windows 可执行文件（`cad-cli.exe`、
+`cad-mcp-server.exe`，基于 PyInstaller）与 Debian 包（`build_deb.py`），并发布
+到 GitHub Release。
 
 ## 许可证
 

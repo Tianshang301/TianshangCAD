@@ -5,7 +5,8 @@ measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
 > **Status**: Phase 1 (CLI + IO), Phase 2 (MCP Server), Phase 3 (Batch &
-> Automation) and Phase 4 (Advanced Features) complete. 388 tests passing,
+> Automation), Phase 4 (Advanced Features), Phase 5 (3D Views) and
+> Phase 6 (Docker + Production Hardening) complete. 451 tests passing,
 > 85%+ coverage, `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
@@ -14,8 +15,12 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 47 JSON-RPC tools over stdio or streamable HTTP, callable
+- **MCP Server** — 57 JSON-RPC tools over stdio or streamable HTTP, callable
   from Claude, Cursor and other MCP clients
+- **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
+  named views (iso / top / front / side / back / bottom), perspective /
+  orthographic projection, plane sections (XY / YZ / XZ), exploded views and
+  orbit GIF animation; incremental WebGL delta sync for browser clients
 - **Batch automation** — schedule one-off / cron / dependency-chained jobs,
   sandboxed Python / SCR / batch script execution, webhook notifications,
   SQLite persistence and reusable Jinja2 command templates
@@ -33,8 +38,11 @@ command line and as standardized tools callable by any MCP client (AI agent).
 - **Pluggable kernel** — analytic (default, no native deps) / OCC
   (`cadquery`) / FreeCAD
 - **File IO** — JSON, DXF, STL (STEP via the OCC backend)
+- **Production hardening** — Docker image with healthcheck, Prometheus
+  metrics (`/metrics`), API-key authentication (401/403), sliding-window
+  rate limiting (429) and a `/health` endpoint
 - **Quality gates** — `mypy` strict typing, `ruff` linting, `pytest` with a
-  80% coverage floor
+  80% coverage floor; GitHub Actions CI runs lint + tests on every push
 
 ## Install
 
@@ -81,6 +89,7 @@ Short aliases are expanded automatically:
 | `view` | zoom, pan, list |
 | `measure` | distance, area, list |
 | `layer` | create, list, set, on, off, delete |
+| `render` | view, 3d, webgl, view3d, section, explode, gif, views, status |
 | `batch` | schedule, run-script, list, status, cancel, templates, logs |
 
 ## MCP Server
@@ -99,9 +108,17 @@ python -m cad_mcp_server --transport stdio
 python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 ```
 
-The server then serves MCP at `http://127.0.0.1:8081/mcp`.
+The server then serves MCP at `http://127.0.0.1:8081/mcp`, exposes a health
+check at `/health` and Prometheus metrics at `/metrics`.
 
-### Tools (47 total)
+When an API key is configured (via the `CAD_API_KEYS` env var, comma-separated),
+HTTP requests must send it as `x-api-key` or `Authorization: Bearer <key>`:
+missing keys get `401`, invalid keys get `403`. Requests are also subject to a
+sliding-window rate limit (default 100 requests / 60 s, configurable via
+`CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
+`/health` and `/metrics` are always public. stdio mode is unaffected.
+
+### Tools (57 total)
 
 | Group | Tools |
 |-------|-------|
@@ -112,20 +129,29 @@ The server then serves MCP at `http://127.0.0.1:8081/mcp`.
 | Status | `cad_status_check`, `cad_status_file`, `cad_status_object`, `cad_status_layer`, `cad_status_health`, `cad_logs_get`, `cad_logs_clear` |
 | Validation | `cad_validate_geometry`, `cad_validate_interference`, `cad_validate_topology`, `cad_metrics_get` |
 | Render | `cad_render_view` |
+| 3D Views | `cad_view_3d_create`, `cad_view_3d_read`, `cad_view_3d_list`, `cad_view_3d_update`, `cad_view_3d_delete`, `cad_view_3d_render`, `cad_view_section`, `cad_view_explode`, `cad_view_animation`, `cad_webgl_sync` |
 | Version | `cad_version_save`, `cad_version_list`, `cad_version_diff`, `cad_version_restore` |
 | NLP | `cad_nlp_command` |
 | Batch | `cad_batch_execute`, `cad_batch_schedule`, `cad_batch_status`, `cad_batch_cancel`, `cad_batch_list`, `cad_batch_templates`, `cad_batch_run_script` |
 
-### Validation, rendering, versioning & NLP
+### Validation, rendering, 3D views & NLP
 
 Validate geometry with structured diagnostics, render orthographic views, snapshot
-and restore document versions, and drive tools from natural language:
+and restore document versions, drive tools from natural language, and create
+named 3D views with camera, section, explode and animation:
 
 ```bash
 # Render a 300 DPI top view PNG
 cad-cli render view --view top --dpi 300 --output preview.png
 cad-cli render 3d --output preview3d.png
 cad-cli render webgl --output viewer_data.json --viewer examples/threejs_viewer.html
+
+# 3D views
+cad-cli render view3d iso --output iso.png
+cad-cli render section XY --offset 0 --output section.png
+cad-cli render explode --scale 1.5 --output explode.png
+cad-cli render gif --frames 48 --output orbit.gif
+cad-cli render views
 
 # NLP examples (via the MCP tool cad_nlp_command)
 "new file design.dwg"        -> cad_file_create  {filename: design.dwg}
@@ -136,7 +162,11 @@ cad-cli render webgl --output viewer_data.json --viewer examples/threejs_viewer.
 
 Version diffing uses `deepdiff` and reports changed fields, added/removed
 items and the raw result. The WebGL export writes Three.js `BufferGeometry`
-JSON consumable by `examples/threejs_viewer.html`.
+JSON consumable by `examples/threejs_viewer.html`. View definitions
+(camera pose, projection, section/explode parameters) are persisted with the
+document and are also exposed as MCP tools (`cad_view_3d_*`,
+`cad_view_section`, `cad_view_explode`, `cad_view_animation`,
+`cad_webgl_sync`).
 
 ### Batch & automation
 
@@ -163,6 +193,20 @@ cad-cli batch logs --source batch --job-id <job_id>
 Scripts run in an isolated subprocess (`python -I`) with an import whitelist
 (`os`, `subprocess`, `socket`, ... are blocked), a runtime `sys.modules`
 guard and a hard timeout.
+
+## Docker
+
+A multi-stage image (< 500 MB, `python:3.11-slim`) is provided in
+`docker/` for headless deployment:
+
+```bash
+docker compose -f docker/docker-compose.yml up -d
+```
+
+The container runs the MCP server over streamable HTTP on port `8081` with a
+`/health` healthcheck, and mounts `data/` + `config/` volumes. Environment
+overrides: `CAD_RUNTIME`, `CAD_HEADLESS`, `CAD_TEMP_DIR`, `CAD_API_KEYS`,
+`CAD_LOG_LEVEL`, `CAD_RATE_LIMIT_MAX`, `CAD_RATE_LIMIT_WINDOW`.
 
 Example MCP client configuration (Claude Desktop `~/.config/claude/mcp.json`):
 
@@ -208,30 +252,47 @@ pytest         # tests (coverage gate >= 80%)
 src/cad_mcp_server/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (47 tools)
-|   |-- transport.py    # stdio / streamable HTTP
+|   |-- server.py       # MCPServer wiring (57 tools)
+|   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
+|   |-- auth.py         # API-key authentication
+|   |-- rate_limit.py   # sliding-window rate limiter
 |   `-- tools/          # crud, json_ops, status, validate, batch,
-|                       # render, versioning, nlp
+|                       # render, versioning, nlp, view3d
 |-- core/           # document, entity, layer, kernel, session, history,
 |                   # scheduler, script_runner, batch_templates, validation,
-|                   # versioning
+|                   # versioning, view_manager
 |-- io/             # JSON / DXF / STL importers and exporters
-|-- schemas/        # Pydantic geometry and scene schemas
-|-- render/         # 2D / 3D PNG rendering and WebGL export
-`-- utils/          # logger, config, errors, validators, units
+|-- schemas/        # Pydantic geometry, scene and view3d schemas
+|-- render/         # 2D / 3D PNG rendering, WebGL export, section, explode,
+|                   # animation
+`-- utils/          # logger, config, errors, validators, units, metrics
 examples/
 `-- threejs_viewer.html  # browser viewer for WebGL exports
+docker/
+|-- Dockerfile          # multi-stage image (python:3.11-slim)
+|-- docker-compose.yml  # service definition with healthcheck
+`-- entrypoint.sh
 tests/
 |-- unit/           # CLI, core, IO, MCP tool unit tests
-`-- integration/    # MCP e2e, batch and JSON workflow tests
+`-- integration/    # MCP e2e, batch, JSON workflow and performance tests
 ```
 
 ## Documentation
 
 - `AGENTS.md` — full development guide and roadmap
 - `docs/architecture.md` — system design
+- `docs/roadmap_v0.2.5.md` — future development roadmap
+- `docs/development_plan_v0.3.0.md` — Phase 5/6 implementation plan
 - `readme/README.zh-CN.md` — Chinese README
+
+## Continuous Integration
+
+`.github/workflows/ci.yml` runs `ruff` + `mypy` on every push / PR, and
+`pytest` with the 80% coverage gate on Python 3.11 and 3.12. Pushing a `v*`
+tag triggers `.github/workflows/release.yml`, which builds the Windows
+executables (`cad-cli.exe`, `cad-mcp-server.exe` via PyInstaller) and the
+Debian package (`build_deb.py`) and publishes them to a GitHub Release.
 
 ## License
 
