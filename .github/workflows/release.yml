@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows executables
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]" pyinstaller
+      - name: Build cad-cli.exe
+        run: python -m PyInstaller --noconfirm --distpath dist/exe packaging/cad-cli.spec
+      - name: Build cad-mcp-server.exe
+        run: python -m PyInstaller --noconfirm --distpath dist/exe packaging/cad-mcp-server.spec
+      - name: Smoke test
+        run: dist\exe\cad-cli.exe --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: |
+            dist/exe/cad-cli.exe
+            dist/exe/cad-mcp-server.exe
+
+  build-deb:
+    name: Build Debian package
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Build .deb
+        run: python scripts/build_deb.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb-package
+          path: dist/*.deb
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-windows, build-deb]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Stage release assets
+        run: |
+          mkdir -p release
+          cp artifacts/windows-exe/* release/
+          cp artifacts/deb-package/* release/
+          ls -la release/
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          gh release create "$GITHUB_REF_NAME" \
+            release/* \
+            --title "$GITHUB_REF_NAME" \
+            --notes "Release $GITHUB_REF_NAME (version $VERSION). Built by GitHub Actions."
