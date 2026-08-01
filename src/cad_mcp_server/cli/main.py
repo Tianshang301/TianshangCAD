@@ -6,6 +6,7 @@ import sys
 
 import typer
 
+from cad_mcp_server import __version__
 from cad_mcp_server.cli.aliases import COMMAND_ALIASES
 from cad_mcp_server.cli.commands import batch, block, draw, edit, file, layer, measure, render, view
 from cad_mcp_server.utils.logger import configure_logging
@@ -30,12 +31,18 @@ app.add_typer(batch.app, name="batch", help="Batch processing")
 
 @app.callback()
 def global_options(
+    version: bool = typer.Option(
+        False, "--version", help="Show version and exit"
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
     config: str = typer.Option(
         "~/.cad-cli/config.yaml", "--config", "-c", help="Config file path"
     ),
 ) -> None:
     """Global options."""
+    if version:
+        typer.echo(f"cad-cli {__version__}")
+        raise typer.Exit()
     if verbose:
         configure_logging(level="DEBUG")
 
@@ -43,6 +50,9 @@ def global_options(
 def main() -> None:
     """Entry point that expands short command aliases then runs the app."""
     args = list(sys.argv[1:])
+    if args and args[0] == "--version":
+        typer.echo(f"cad-cli {__version__}")
+        raise SystemExit(0)
     if args and args[0] in COMMAND_ALIASES:
         args = COMMAND_ALIASES[args[0]].split() + args[1:]
         sys.argv = [sys.argv[0], *args]

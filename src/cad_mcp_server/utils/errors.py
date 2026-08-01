@@ -49,3 +49,11 @@ class CADValidationError(CADError):
 
 class CADNotImplementedError(CADError):
     """Raised when a backend does not support an operation."""
+
+
+class SchedulerError(CADError):
+    """Raised for batch scheduler / job management errors."""
+
+
+class VersionError(CADError):
+    """Raised for version snapshot / restore errors."""

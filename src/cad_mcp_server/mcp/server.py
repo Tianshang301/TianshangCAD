@@ -14,7 +14,7 @@ SERVER_DESCRIPTION = (
 )
 
 
-def build_server(version: str = "0.1.0") -> MCPServer:
+def build_server(version: str = "0.2.5") -> MCPServer:
     """Create an :class:`MCPServer` with every registered CAD tool."""
     server = MCPServer(
         name=SERVER_NAME,

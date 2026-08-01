@@ -125,6 +125,8 @@ class LogsGetInput(BaseModel):
 
     limit: int = Field(50, description="Maximum number of entries to return", ge=1, le=200)
     level: str | None = Field(None, description="Filter by minimum level (INFO/WARNING/ERROR)")
+    source: str | None = Field(None, description="Filter by log source, e.g. batch")
+    job_id: str | None = Field(None, description="Filter entries for a specific job id")
 
 
 class LogEntry(BaseModel):
@@ -134,6 +136,7 @@ class LogEntry(BaseModel):
     level: str = Field(..., description="Log level")
     source: str = Field(..., description="Log source")
     message: str = Field(..., description="Log message")
+    details: dict[str, Any] | None = Field(None, description="Structured log details")
 
 
 class LogsGetOutput(BaseModel):
@@ -159,7 +162,7 @@ class LogsClearOutput(BaseModel):
 # Tool implementations
 # ---------------------------------------------------------------------------
 
-_SERVER_VERSION = "0.1.0"
+_SERVER_VERSION = "0.2.5"
 _start_time = time.monotonic()
 
 _LEVEL_ORDER = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
@@ -271,6 +274,10 @@ def cad_logs_get(input: LogsGetInput) -> LogsGetOutput:
         entries = [
             entry for entry in entries if _LEVEL_ORDER.get(entry["level"], 0) >= minimum
         ]
+    if input.source is not None:
+        entries = [entry for entry in entries if entry.get("source") == input.source]
+    if input.job_id is not None:
+        entries = [entry for entry in entries if entry.get("job_id") == input.job_id]
     selected = entries[: input.limit]
     return LogsGetOutput(
         logs=[
@@ -279,6 +286,11 @@ def cad_logs_get(input: LogsGetInput) -> LogsGetOutput:
                 level=entry["level"],
                 source=entry["source"],
                 message=entry["message"],
+                details={
+                    key: value
+                    for key, value in entry.items()
+                    if key not in ("timestamp", "level", "source", "message")
+                },
             )
             for entry in selected
         ],

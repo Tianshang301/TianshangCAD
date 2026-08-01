@@ -12,9 +12,18 @@ def get_registry() -> dict[str, Callable[..., Any]]:
     Imports are deferred to avoid circular imports between this module and
     the tool modules that depend on it (e.g. ``batch``).
     """
-    from cad_mcp_server.mcp.tools import batch, crud, json_ops, status, validate
+    from cad_mcp_server.mcp.tools import (
+        batch,
+        crud,
+        json_ops,
+        nlp,
+        render,
+        status,
+        validate,
+        versioning,
+    )
 
     tools: list[tuple[str, Any]] = []
-    for module in (crud, json_ops, status, validate, batch):
+    for module in (crud, json_ops, status, validate, batch, render, versioning, nlp):
         tools.extend(module.TOOLS)
     return dict(tools)

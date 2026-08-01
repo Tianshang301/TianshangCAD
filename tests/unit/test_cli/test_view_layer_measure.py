@@ -118,3 +118,14 @@ class TestAliases:
         with pytest.raises(SystemExit) as exc_info:
             cli_main()
         assert exc_info.value.code != 0
+
+    def test_version_flag(self, monkeypatch, capsys) -> None:
+        """`--version` prints the version and exits with code 0."""
+        from cad_mcp_server import __version__
+        from cad_mcp_server.cli.main import main as cli_main
+
+        monkeypatch.setattr("sys.argv", ["cad-cli", "--version"])
+        with pytest.raises(SystemExit) as exc_info:
+            cli_main()
+        assert exc_info.value.code == 0
+        assert capsys.readouterr().out.strip() == f"cad-cli {__version__}"

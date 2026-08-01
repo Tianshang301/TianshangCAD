@@ -4,17 +4,26 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
-> **当前状态**：Phase 1（CLI + IO）与 Phase 2（MCP Server）已完成。
-> 241 个测试通过，覆盖率 82%+，`ruff` 与 `mypy` 全部通过。
+> **当前状态**：Phase 1（CLI + IO）、Phase 2（MCP Server）、Phase 3（批处理
+> 与自动化）与 Phase 4（高级功能）已完成。381 个测试通过，覆盖率 85%+，
+> `ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
 
 ## 功能特性
 
-- **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer` 等命令组，
-  支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
-- **MCP Server** — 39 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
+- **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer`、`batch`
+  等命令组，支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
+- **MCP Server** — 47 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
   传输方式，可供 Claude、Cursor 等 MCP 客户端调用
+- **批处理与自动化** — 一次性 / Cron / 依赖链任务调度、沙箱化 Python / SCR /
+  batch 脚本执行、Webhook 通知、SQLite 持久化与可复用的 Jinja2 命令模板
+- **几何校验** — 自相交、退化面、非流形边检测，错误附带结构化的 `type` /
+  `location` / `fix_suggestion`；box-box 干涉体积与拓扑统计
+- **渲染** — 2D 正交投影 PNG（俯视 / 前视 / 侧视，DPI 72–300）、3D 着色预览
+  与 Three.js WebGL 导出（含浏览器查看器）
+- **版本管理** — 基于 `deepdiff` 的文档快照 保存 / 列表 / 对比 / 恢复
+- **自然语言** — `cad_nlp_command` 将中英文请求映射为工具调用，并支持歧义澄清
 - **JSON 驱动** — 场景与几何对象通过 Pydantic Schema 定义和校验，支持完整的
   导入/导出往返
 - **可插拔内核** — 解析内核（默认，无原生依赖）/ OCC（`cadquery`）/ FreeCAD
@@ -63,6 +72,7 @@ cad-cli measure distance 0,0 100,100
 | `view` | zoom、pan、list |
 | `measure` | distance、area、list |
 | `layer` | create、list、set、on、off、delete |
+| `batch` | schedule、run-script、list、status、cancel、templates、logs |
 
 ## MCP Server
 
@@ -82,7 +92,7 @@ python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 
 服务器在 `http://127.0.0.1:8081/mcp` 提供 MCP 服务。
 
-### 工具列表（共 39 个）
+### 工具列表（共 47 个）
 
 | 分组 | 工具 |
 |------|------|
@@ -92,7 +102,47 @@ python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 | JSON | `cad_json_load`、`cad_json_parse`、`cad_json_validate`、`cad_json_import_geometry`、`cad_json_export_geometry`、`cad_json_import_scene`、`cad_json_export_scene`、`cad_json_save` |
 | 状态 | `cad_status_check`、`cad_status_file`、`cad_status_object`、`cad_status_layer`、`cad_status_health`、`cad_logs_get`、`cad_logs_clear` |
 | 校验 | `cad_validate_geometry`、`cad_validate_interference`、`cad_validate_topology`、`cad_metrics_get` |
-| 批处理 | `cad_batch_execute`、`cad_batch_schedule`、`cad_batch_status`、`cad_batch_cancel`、`cad_batch_list` |
+| 渲染 | `cad_render_view` |
+| 版本 | `cad_version_save`、`cad_version_list`、`cad_version_diff`、`cad_version_restore` |
+| 自然语言 | `cad_nlp_command` |
+| 批处理 | `cad_batch_execute`、`cad_batch_schedule`、`cad_batch_status`、`cad_batch_cancel`、`cad_batch_list`、`cad_batch_templates`、`cad_batch_run_script` |
+
+### 校验、渲染、版本与自然语言
+
+```text
+"new file design.dwg"            -> cad_file_create  {filename: design.dwg}
+"draw a line from 0,0 to 10,10"  -> cad_object_create（直线）
+"render the side view"           -> cad_render_view  {view: side}
+"save a version"                 -> cad_version_save
+"查看状态"                        -> cad_status_health
+```
+
+版本对比使用 `deepdiff`，返回变更字段、新增/删除项与原始结果；WebGL 导出
+生成 Three.js `BufferGeometry` JSON，可用 `examples/threejs_viewer.html` 预览。
+
+### 批处理与自动化
+
+支持标准 5 字段 Cron 表达式、依赖链与 Webhook 通知；通过沙箱脚本引擎执行
+脚本，并将任务状态持久化到 SQLite：
+
+```bash
+# 一次性任务
+cad-cli batch schedule commands.json --name report
+
+# Cron 任务（每天 02:00），使用内置模板
+cad-cli batch schedule commands.json --cron "0 2 * * *"
+
+# 运行沙箱化 Python 脚本
+cad-cli batch run-script script.py --type python --timeout 30
+
+# 查看结果
+cad-cli batch list
+cad-cli batch status <job_id>
+cad-cli batch logs --source batch --job-id <job_id>
+```
+
+脚本在隔离子进程中运行（`python -I`），带有导入白名单（`os`、`subprocess`、
+`socket` 等被拦截）、运行时 `sys.modules` 防护与硬超时。
 
 MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
 
@@ -138,15 +188,20 @@ pytest         # 测试（覆盖率门禁 >= 80%）
 src/cad_mcp_server/
 |-- cli/            # typer CLI：命令组 + 别名展开
 |-- mcp/            # MCP 服务器、传输层、安全与工具注册表
-|   |-- server.py       # MCPServer 装配（39 个工具）
+|   |-- server.py       # MCPServer 装配（47 个工具）
 |   |-- transport.py    # stdio / streamable HTTP
 |   |-- security.py     # 工具权限白名单
-|   `-- tools/          # crud、json_ops、status、validate、batch
-|-- core/           # document、entity、layer、kernel、session、history
+|   `-- tools/          # crud、json_ops、status、validate、batch、
+|                       # render、versioning、nlp
+|-- core/           # document、entity、layer、kernel、session、history、
+|                   # scheduler、script_runner、batch_templates、validation、
+|                   # versioning
 |-- io/             # JSON / DXF / STL 导入导出
 |-- schemas/        # Pydantic 几何与场景 Schema
-|-- render/         # 2D/3D 渲染（预留）
+|-- render/         # 2D / 3D PNG 渲染与 WebGL 导出
 `-- utils/          # logger、config、errors、validators、units
+examples/
+`-- threejs_viewer.html  # 用于 WebGL 导出的浏览器查看器
 tests/
 |-- unit/           # CLI、core、IO、MCP 工具单元测试
 `-- integration/    # MCP 端到端、批处理与 JSON 工作流测试

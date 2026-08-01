@@ -37,8 +37,14 @@ TOOL_PERMISSIONS: dict[str, PermissionLevel] = {
     "cad_json_export_geometry": PermissionLevel.READ_ONLY,
     "cad_json_export_scene": PermissionLevel.READ_ONLY,
     "cad_validate_geometry": PermissionLevel.READ_ONLY,
+    "cad_validate_interference": PermissionLevel.READ_ONLY,
     "cad_validate_topology": PermissionLevel.READ_ONLY,
     "cad_metrics_get": PermissionLevel.READ_ONLY,
+    "cad_batch_templates": PermissionLevel.READ_ONLY,
+    "cad_version_list": PermissionLevel.READ_ONLY,
+    "cad_version_diff": PermissionLevel.READ_ONLY,
+    "cad_nlp_command": PermissionLevel.READ_ONLY,
+    "cad_render_view": PermissionLevel.READ_ONLY,
     # Standard write tools - confirmation required
     "cad_file_create": PermissionLevel.STANDARD,
     "cad_file_open": PermissionLevel.STANDARD,
@@ -55,6 +61,7 @@ TOOL_PERMISSIONS: dict[str, PermissionLevel] = {
     "cad_json_import_params": PermissionLevel.STANDARD,
     "cad_json_save": PermissionLevel.STANDARD,
     "cad_batch_execute": PermissionLevel.STANDARD,
+    "cad_batch_run_script": PermissionLevel.STANDARD,
     # Destructive tools - must confirm
     "cad_file_delete": PermissionLevel.DESTRUCTIVE,
     "cad_object_delete": PermissionLevel.DESTRUCTIVE,

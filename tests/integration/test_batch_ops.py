@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 
 from cad_mcp_server.mcp.tools.batch import (
     BatchCommand,
@@ -16,10 +17,19 @@ from cad_mcp_server.mcp.tools.batch import (
 from cad_mcp_server.mcp.tools.crud import FileCreateInput, cad_file_create
 from cad_mcp_server.mcp.tools.json_ops import (
     JsonExportGeometryInput,
-    JsonImportGeometryInput,
     cad_json_export_geometry,
-    cad_json_import_geometry,
 )
+
+
+def _wait_for(job_id: str, states: set[str], timeout: float = 5.0) -> str:
+    """Poll ``cad_batch_status`` until ``job_id`` reaches one of ``states``."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        status = cad_batch_status(BatchStatusInput(job_id=job_id))
+        if status.state in states:
+            return status.state
+        time.sleep(0.02)
+    raise AssertionError(f"job {job_id} did not reach {states}; got {status.state}")
 
 
 class TestBatchOperations:
@@ -73,24 +83,9 @@ class TestBatchOperations:
             )
         )
         job_id = scheduled.job_id
-        status = cad_batch_status(BatchStatusInput(job_id=job_id))
-        assert status.state == "pending"
+        state = _wait_for(job_id, {"done", "error"})
+        assert state == "done"
 
-        cad_file_create(FileCreateInput(filename="report.json"))
-        cad_json_import_geometry(
-            JsonImportGeometryInput(
-                json_data=json.dumps(
-                    {
-                        "id": "l1",
-                        "type": "line",
-                        "layer": "0",
-                        "geometry": {"type": "line", "start": [0, 0, 0], "end": [1, 1, 0]},
-                    }
-                )
-            )
-        )
-        execute = cad_batch_execute(
-            BatchExecuteInput(commands=[BatchCommand(tool="cad_metrics_get", arguments={})])
-        )
-        assert execute.success_count == 1
-        assert execute.results[0].result["objects"] == 1
+        status = cad_batch_status(BatchStatusInput(job_id=job_id))
+        assert status.results is not None
+        assert status.results[0].success is True

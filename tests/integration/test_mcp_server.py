@@ -82,6 +82,11 @@ class TestMCPServer:
         assert "cad_batch_execute" in names
         assert "cad_metrics_get" in names
         assert "cad_status_health" in names
+        assert "cad_render_view" in names
+        assert "cad_version_save" in names
+        assert "cad_version_restore" in names
+        assert "cad_nlp_command" in names
+        assert len(names) == 47
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(

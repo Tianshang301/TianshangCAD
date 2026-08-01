@@ -21,7 +21,19 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src" / "cad_mcp_server"
 DIST = ROOT / "dist"
 PACKAGE = "cad-mcp-server"
-VERSION = "0.1.0"
+
+
+def _current_version() -> str:
+    """Read the package version from ``__init__.py``."""
+    init = SRC / "__init__.py"
+    text = init.read_text(encoding="utf-8")
+    for line in text.splitlines():
+        if line.startswith("__version__"):
+            return line.split("=", 1)[1].strip().strip('"').strip("'")
+    raise RuntimeError("version not found in __init__.py")
+
+
+VERSION = _current_version()
 MAINTAINER = "Tianshang301 <Tianshang301@outlook.com>"
 DESCRIPTION = (
     "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, "
@@ -70,7 +82,10 @@ def _source_files() -> list[Path]:
     for root, _dirs, names in os.walk(SRC):
         root_path = Path(root)
         for name in names:
-            if name.endswith(".py") or name in ("py.typed", "default.yaml", "mcp.json"):
+            if (
+                name.endswith((".py", ".j2"))
+                or name in ("py.typed", "default.yaml", "mcp.json")
+            ):
                 files.append(root_path / name)
     return sorted(files)
 

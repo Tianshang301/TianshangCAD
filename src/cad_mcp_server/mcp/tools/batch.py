@@ -1,31 +1,27 @@
-"""Batch processing tools: synchronous execution and job scheduling."""
+"""Batch processing tools: synchronous execution and job scheduling.
+
+Scheduled jobs are backed by :mod:`cad_mcp_server.core.scheduler`, which
+persists job state in SQLite (APScheduler ``SQLAlchemyJobStore``) so jobs
+survive server restarts. Script execution is sandboxed by
+:mod:`cad_mcp_server.core.script_runner`.
+"""
 
 from __future__ import annotations
 
 import inspect
+import time
 import uuid
 from datetime import UTC, datetime
 from typing import Any, get_type_hints
 
 from pydantic import BaseModel, Field
 
+from cad_mcp_server.core.batch_templates import list_templates
+from cad_mcp_server.core.scheduler import SchedulerService, get_scheduler
+from cad_mcp_server.core.script_runner import run_script
 from cad_mcp_server.mcp.tools._registry import get_registry
 from cad_mcp_server.mcp.tools.status import log_event
-
-# ---------------------------------------------------------------------------
-# Job store
-# ---------------------------------------------------------------------------
-
-_jobs: dict[str, dict[str, Any]] = {}
-
-
-def _new_job_id() -> str:
-    return f"job_{uuid.uuid4().hex[:8]}"
-
-
-def _now() -> str:
-    return datetime.now(UTC).isoformat()
-
+from cad_mcp_server.utils.errors import SchedulerError
 
 # ---------------------------------------------------------------------------
 # Input / output models
@@ -69,8 +65,28 @@ class BatchExecuteOutput(BaseModel):
 class BatchScheduleInput(BaseModel):
     """Input for scheduling a batch job."""
 
-    commands: list[BatchCommand] = Field(..., description="Commands to schedule")
+    commands: list[BatchCommand] = Field(
+        default_factory=list, description="Commands to schedule"
+    )
     name: str | None = Field(None, description="Job name")
+    cron_expression: str | None = Field(
+        None, description="Standard 5-field cron expression, e.g. '0 2 * * *'"
+    )
+    depends_on: list[str] | None = Field(
+        None, description="Job ids that must finish successfully before this one runs"
+    )
+    webhook_url: str | None = Field(
+        None, description="URL to POST a JSON notification on completion"
+    )
+    script: str | None = Field(None, description="Script content to run (python/scr/batch)")
+    script_type: str | None = Field(
+        None, description="Script type: python | scr | batch (default python)"
+    )
+    timeout: int = Field(60, description="Script timeout in seconds", ge=1, le=3600)
+    template: str | None = Field(None, description="Batch template name to render")
+    template_vars: dict[str, Any] = Field(
+        default_factory=dict, description="Variables for template rendering"
+    )
 
 
 class BatchScheduleOutput(BaseModel):
@@ -92,7 +108,9 @@ class BatchStatusOutput(BaseModel):
 
     job_id: str = Field(..., description="Job id")
     name: str | None = Field(None, description="Job name")
-    state: str = Field(..., description="Job state: pending / done / cancelled")
+    state: str = Field(
+        ..., description="Job state: pending / running / done / error / cancelled / blocked"
+    )
     created_at: str = Field(..., description="Creation timestamp")
     command_count: int = Field(..., description="Number of commands")
     results: list[BatchResult] | None = Field(None, description="Results when executed")
@@ -125,9 +143,64 @@ class BatchListOutput(BaseModel):
     status: str = Field(..., description="Operation status")
 
 
+class BatchTemplatesInput(BaseModel):
+    """Input for listing batch templates."""
+
+
+class BatchTemplatesOutput(BaseModel):
+    """Output for listing batch templates."""
+
+    templates: list[str] = Field(..., description="Available template names")
+    status: str = Field(..., description="Operation status")
+
+
+class BatchRunScriptInput(BaseModel):
+    """Input for running a sandboxed script."""
+
+    script: str = Field(..., description="Script content")
+    script_type: str = Field("python", description="Script type: python | scr | batch")
+    timeout: int = Field(60, description="Timeout in seconds", ge=1, le=3600)
+    args: list[str] = Field(default_factory=list, description="Arguments for python scripts")
+
+
+class BatchRunScriptOutput(BaseModel):
+    """Output for running a sandboxed script."""
+
+    ok: bool = Field(..., description="Whether the script completed successfully")
+    script_type: str = Field(..., description="Script type that ran")
+    results: list[BatchResult] | None = Field(None, description="Per-command results (scr/batch)")
+    success_count: int | None = Field(None, description="Successful commands (scr/batch)")
+    failed_count: int | None = Field(None, description="Failed commands (scr/batch)")
+    stdout: str | None = Field(None, description="Captured stdout (python)")
+    stderr: str | None = Field(None, description="Captured stderr (python)")
+    exit_code: int | None = Field(None, description="Process exit code (python)")
+    duration_ms: float = Field(..., description="Execution time in milliseconds")
+    timed_out: bool = Field(False, description="Whether execution hit the timeout")
+    blocked_imports: list[str] = Field(default_factory=list, description="Blocked imports (python)")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+
+def _new_job_id() -> str:
+    return f"job_{uuid.uuid4().hex[:8]}"
+
+
+def _now() -> str:
+    return datetime.now(UTC).isoformat()
+
+
+def _hash(arguments: dict[str, Any]) -> str:
+    """Return a stable fingerprint of command arguments."""
+    import hashlib
+    import json as _json
+
+    payload = _json.dumps(arguments, sort_keys=True, default=str)
+    return hashlib.md5(payload.encode("utf-8")).hexdigest()  # noqa: S324 - non-crypto fingerprint
 
 
 def _dispatch(tool_name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -154,15 +227,37 @@ def _run_commands(
 ) -> list[BatchResult]:
     results: list[BatchResult] = []
     for index, command in enumerate(commands):
+        started = time.perf_counter()
         try:
             output = _dispatch(command.tool, dict(command.arguments))
+            duration_ms = round((time.perf_counter() - started) * 1000, 3)
+            log_event(
+                "INFO",
+                "batch",
+                f"{command.tool} succeeded",
+                tool_name=command.tool,
+                duration_ms=duration_ms,
+                input_hash=_hash(dict(command.arguments)),
+                output_summary=_summarize(output),
+                timestamp=_now(),
+            )
             results.append(
                 BatchResult(
                     tool=command.tool, index=index, success=True, result=output
                 )
             )
         except Exception as exc:
-            log_event("ERROR", "batch", f"{command.tool} failed: {exc}")
+            duration_ms = round((time.perf_counter() - started) * 1000, 3)
+            log_event(
+                "ERROR",
+                "batch",
+                f"{command.tool} failed: {exc}",
+                tool_name=command.tool,
+                duration_ms=duration_ms,
+                input_hash=_hash(dict(command.arguments)),
+                output_summary="",
+                timestamp=_now(),
+            )
             results.append(
                 BatchResult(
                     tool=command.tool, index=index, success=False, error=str(exc)
@@ -171,6 +266,49 @@ def _run_commands(
             if stop_on_error:
                 break
     return results
+
+
+def _summarize(value: Any, limit: int = 200) -> str:
+    import json as _json
+
+    try:
+        return _json.dumps(value, default=str)[:limit]
+    except (TypeError, ValueError):  # pragma: no cover - defensive
+        return str(value)[:limit]
+
+
+def _scheduler() -> SchedulerService:
+    return get_scheduler()
+
+
+def _schedule_commands(
+    scheduler: SchedulerService,
+    input: BatchScheduleInput,
+) -> list[dict[str, Any]]:
+    """Build the command list for a scheduled job."""
+    commands: list[dict[str, Any]] = []
+    if input.template:
+        from cad_mcp_server.core.batch_templates import render_template
+
+        commands.extend(render_template(input.template, input.template_vars))
+    commands.extend(
+        {"tool": command.tool, "arguments": dict(command.arguments)}
+        for command in input.commands
+    )
+    if input.script:
+        commands.append(
+            {
+                "tool": "cad_batch_run_script",
+                "arguments": {
+                    "script": input.script,
+                    "script_type": input.script_type or "python",
+                    "timeout": input.timeout,
+                },
+            }
+        )
+    if not commands and input.cron_expression:
+        commands.append({"tool": "cad_status_health", "arguments": {}})
+    return commands
 
 
 # ---------------------------------------------------------------------------
@@ -195,36 +333,56 @@ def cad_batch_execute(input: BatchExecuteInput) -> BatchExecuteOutput:
 
 
 def cad_batch_schedule(input: BatchScheduleInput) -> BatchScheduleOutput:
-    """Schedule a batch job for later execution."""
+    """Schedule a batch job (cron, dependency chain, webhook or one-off).
+
+    Supports a standard 5-field ``cron_expression``. Without one the job
+    runs once as soon as its prerequisites (``depends_on``) allow.
+    """
     job_id = _new_job_id()
-    _jobs[job_id] = {
-        "job_id": job_id,
-        "name": input.name,
-        "state": "pending",
-        "created_at": _now(),
-        "commands": [command.model_dump() for command in input.commands],
-        "results": None,
-    }
-    return BatchScheduleOutput(
-        job_id=job_id, status="success", message="Job scheduled"
+    try:
+        commands = _schedule_commands(get_scheduler(), input)
+        get_scheduler().schedule(
+            job_id=job_id,
+            name=input.name,
+            commands=commands,
+            cron_expression=input.cron_expression,
+            depends_on=input.depends_on,
+            webhook_url=input.webhook_url,
+        )
+    except SchedulerError as exc:
+        return BatchScheduleOutput(
+            job_id="", status="error", message=f"Failed to schedule job: {exc}"
+        )
+    log_event(
+        "INFO",
+        "batch",
+        f"Job {job_id} scheduled",
+        cron=input.cron_expression,
+        depends_on=input.depends_on,
+        command_count=len(commands),
+        timestamp=_now(),
     )
+    message = "Job scheduled"
+    if input.cron_expression:
+        message += f" with cron '{input.cron_expression}'"
+    return BatchScheduleOutput(job_id=job_id, status="success", message=message)
 
 
 def cad_batch_status(input: BatchStatusInput) -> BatchStatusOutput:
     """Return the state of a scheduled batch job."""
-    job = _jobs.get(input.job_id)
-    if job is None:
+    record = get_scheduler().get_job(input.job_id)
+    if record is None:
         return BatchStatusOutput(
             job_id=input.job_id, name=None, state="unknown", created_at="",
             command_count=0, status="error", message=f"Job not found: {input.job_id}",
         )
-    results = job.get("results")
+    results = record.get("results")
     return BatchStatusOutput(
-        job_id=job["job_id"],
-        name=job["name"],
-        state=job["state"],
-        created_at=job["created_at"],
-        command_count=len(job["commands"]),
+        job_id=record["job_id"],
+        name=record["name"],
+        state=record["state"],
+        created_at=record["created_at"],
+        command_count=len(record.get("commands", [])),
         results=(
             [BatchResult.model_validate(item) for item in results] if results else None
         ),
@@ -233,37 +391,75 @@ def cad_batch_status(input: BatchStatusInput) -> BatchStatusOutput:
 
 
 def cad_batch_cancel(input: BatchCancelInput) -> BatchCancelOutput:
-    """Cancel a pending batch job."""
-    job = _jobs.get(input.job_id)
-    if job is None:
+    """Cancel a pending (or blocked) batch job."""
+    outcome = get_scheduler().cancel(input.job_id)
+    if outcome == "not_found":
         return BatchCancelOutput(
             job_id=input.job_id, status="error", message=f"Job not found: {input.job_id}"
         )
-    if job["state"] != "pending":
+    if outcome == "invalid_state":
         return BatchCancelOutput(
             job_id=input.job_id,
             status="error",
-            message=f"Cannot cancel job in state {job['state']}",
+            message="Cannot cancel job in its current state",
         )
-    job["state"] = "cancelled"
     return BatchCancelOutput(
         job_id=input.job_id, status="success", message="Job cancelled"
     )
 
 
 def cad_batch_list(input: BatchListInput) -> BatchListOutput:
-    """List all batch jobs."""
-    jobs = [
-        {
-            "job_id": job["job_id"],
-            "name": job["name"],
-            "state": job["state"],
-            "created_at": job["created_at"],
-            "command_count": len(job["commands"]),
-        }
-        for job in _jobs.values()
-    ]
-    return BatchListOutput(jobs=jobs, status="success")
+    """List all batch jobs (persisted across restarts)."""
+    return BatchListOutput(jobs=get_scheduler().list_jobs(), status="success")
+
+
+def cad_batch_templates(input: BatchTemplatesInput) -> BatchTemplatesOutput:
+    """List the available batch command templates."""
+    return BatchTemplatesOutput(templates=list_templates(), status="success")
+
+
+def cad_batch_run_script(input: BatchRunScriptInput) -> BatchRunScriptOutput:
+    """Run a sandboxed batch script (python / scr / batch)."""
+    try:
+        result = run_script(
+            script=input.script,
+            script_type=input.script_type,
+            timeout=input.timeout,
+            args=input.args,
+        )
+    except SchedulerError as exc:
+        return BatchRunScriptOutput(
+            ok=False,
+            script_type=input.script_type,
+            duration_ms=0.0,
+            status="error",
+            message=str(exc),
+        )
+    results = result.get("results")
+    status = "success" if result["ok"] else "error"
+    message = result.get("error")
+    if result["script_type"] == "python":
+        if result["timed_out"]:
+            message = result["stderr"]
+        elif not result["ok"] and not result.get("blocked_imports"):
+            message = result["stderr"] or "Script exited with a non-zero code"
+    return BatchRunScriptOutput(
+        ok=result["ok"],
+        script_type=result["script_type"],
+        results=(
+            [BatchResult.model_validate(item) for item in results] if results else None
+        ),
+        success_count=result.get("success_count"),
+        failed_count=result.get("failed_count"),
+        stdout=result.get("stdout"),
+        stderr=result.get("stderr"),
+        exit_code=result.get("exit_code"),
+        duration_ms=result.get("duration_ms", 0.0),
+        timed_out=result.get("timed_out", False),
+        blocked_imports=result.get("blocked_imports", []),
+        status=status,
+        message=message,
+    )
 
 
 TOOLS: list[tuple[str, Any]] = [
@@ -272,4 +468,6 @@ TOOLS: list[tuple[str, Any]] = [
     ("cad_batch_status", cad_batch_status),
     ("cad_batch_cancel", cad_batch_cancel),
     ("cad_batch_list", cad_batch_list),
+    ("cad_batch_templates", cad_batch_templates),
+    ("cad_batch_run_script", cad_batch_run_script),
 ]

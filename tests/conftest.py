@@ -7,7 +7,9 @@ import pytest
 from cad_mcp_server.core.document import DocumentManager
 from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.kernel import AnalyticKernel
+from cad_mcp_server.core.scheduler import get_scheduler
 from cad_mcp_server.core.session import SessionManager
+from cad_mcp_server.mcp.tools.status import _log_buffer
 
 
 @pytest.fixture(autouse=True)
@@ -16,6 +18,23 @@ def _clean_sessions() -> None:
     SessionManager().reset()
     yield
     SessionManager().reset()
+
+
+@pytest.fixture(autouse=True)
+def _clean_logs() -> None:
+    """Clear the in-memory log ring buffer before and after every test."""
+    _log_buffer.clear()
+    yield
+    _log_buffer.clear()
+
+
+@pytest.fixture(autouse=True)
+def _clean_scheduler() -> None:
+    """Force the batch scheduler into in-memory mode for every test."""
+    scheduler = get_scheduler()
+    scheduler.configure(jobstore_url=None)
+    yield
+    scheduler.configure(jobstore_url=None)
 
 
 @pytest.fixture

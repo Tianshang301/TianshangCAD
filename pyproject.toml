@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cad-mcp-server"
-version = "0.1.0"
+version = "0.2.5"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -29,6 +29,13 @@ dependencies = [
     "structlog>=24.1",
     "PyYAML>=6.0",
     "mcp>=2.0",
+    "apscheduler[sqlalchemy]>=3.10",
+    "matplotlib>=3.8",
+    "deepdiff>=7.0",
+    "prometheus-client>=0.20",
+    "imageio>=2.34",
+    "httpx>=0.27",
+    "jinja2>=3.1",
 ]
 
 [project.optional-dependencies]
@@ -53,7 +60,7 @@ Homepage = "https://github.com/anomalyco/opencode"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"cad_mcp_server" = ["config/*.yaml", "config/*.json", "py.typed"]
+"cad_mcp_server" = ["config/*.yaml", "config/*.json", "py.typed", "templates/*.j2"]
 
 [tool.ruff]
 line-length = 100
@@ -66,7 +73,7 @@ ignore = ["D203", "D213", "D415"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "D"]
-"src/cad_mcp_server/mcp/tools/**" = ["A002"]
+"src/cad_mcp_server/mcp/tools/**" = ["A002", "RUF001", "RUF002"]
 
 [tool.mypy]
 python_version = "3.12"

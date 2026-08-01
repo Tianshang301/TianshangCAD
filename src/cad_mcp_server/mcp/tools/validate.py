@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
@@ -13,6 +13,10 @@ from cad_mcp_server.utils.errors import CADError
 # Kinds that require an external backend (booleans / BREP) are skipped with
 # an informational note rather than an error.
 _BOOLEAN_REQUIRED = {"boolean_union", "boolean_subtract", "boolean_intersect"}
+
+if TYPE_CHECKING:
+    from cad_mcp_server.core.document import DocumentState
+    from cad_mcp_server.core.entity import EntityRecord
 
 
 class ValidateGeometryInput(BaseModel):
@@ -27,7 +31,14 @@ class GeometryIssue(BaseModel):
     """A single geometry issue."""
 
     object_id: str = Field(..., description="Object id")
+    type: str = Field(
+        ...,
+        description="Issue type: self_intersection / degenerate_face / "
+        "non_manifold_edge / invalid_bbox",
+    )
     issue: str = Field(..., description="Issue description")
+    location: list[float] | None = Field(None, description="Spatial location of the issue")
+    fix_suggestion: str = Field("", description="Suggested remediation")
 
 
 class ValidateGeometryOutput(BaseModel):
@@ -52,6 +63,7 @@ class InterferencePair(BaseModel):
     a: str = Field(..., description="First object id")
     b: str = Field(..., description="Second object id")
     overlap: dict[str, list[float]] = Field(..., description="Overlapping box: {min, max}")
+    volume: float = Field(0.0, description="Overlap volume in current document units")
 
 
 class ValidateInterferenceOutput(BaseModel):
@@ -59,6 +71,7 @@ class ValidateInterferenceOutput(BaseModel):
 
     interference_count: int = Field(..., description="Number of interfering pairs")
     pairs: list[InterferencePair] = Field(default_factory=list, description="Interfering pairs")
+    total_volume: float = Field(0.0, description="Sum of all overlap volumes")
     status: str = Field(..., description="Operation status")
     message: str | None = Field(None, description="Status description")
 
@@ -67,11 +80,26 @@ class ValidateTopologyInput(BaseModel):
     """Input for topology validation."""
 
 
+class TopologySummary(BaseModel):
+    """Topological statistics for a single object."""
+
+    object_id: str = Field(..., description="Object id")
+    kind: str = Field(..., description="Geometry kind")
+    vertices: int = Field(..., description="Vertex count")
+    edges: int = Field(..., description="Edge count")
+    faces: int = Field(..., description="Face count")
+    non_manifold_edges: int = Field(0, description="Edges shared by > 2 faces")
+    is_manifold: bool = Field(True, description="Whether the object is 2-manifold")
+
+
 class ValidateTopologyOutput(BaseModel):
     """Output for topology validation."""
 
     object_count: int = Field(..., description="Number of objects")
     kinds: dict[str, int] = Field(..., description="Object count by kind")
+    summaries: list[TopologySummary] = Field(
+        default_factory=list, description="Per-object topology"
+    )
     warnings: list[str] = Field(default_factory=list, description="Topology warnings")
     status: str = Field(..., description="Operation status")
 
@@ -113,8 +141,44 @@ def _bbox_overlap(
     return None
 
 
+def _entity_issues(
+    doc: DocumentState, record: EntityRecord
+) -> list[GeometryIssue]:
+    """Run structural validation on a single entity."""
+    from cad_mcp_server.core.validation import validate_entity
+
+    found = validate_entity(record.id, record.shape, doc.entities.kernel)
+    if found:
+        return [
+            GeometryIssue(
+                object_id=issue.object_id,
+                type=issue.issue_type,
+                issue=issue.message,
+                location=issue.location,
+                fix_suggestion=issue.fix_suggestion,
+            )
+            for issue in found
+        ]
+    bbox = doc.entities.get_bbox(record.id)
+    if not _finite_and_positive(bbox):
+        return [
+            GeometryIssue(
+                object_id=record.id,
+                type="invalid_bbox",
+                issue=f"Invalid bounding box: {bbox}",
+                fix_suggestion="Check for NaN / infinite coordinates in the shape",
+            )
+        ]
+    return []
+
+
 def cad_validate_geometry(input: ValidateGeometryInput) -> ValidateGeometryOutput:
-    """Validate that objects have finite, non-degenerate bounding boxes."""
+    """Validate objects for structural integrity and finite bounding boxes.
+
+    Detects self-intersecting outlines, degenerate faces and non-manifold
+    edges. Every issue includes a machine-readable ``type``, a ``location``
+    and a ``fix_suggestion``.
+    """
     try:
         doc = DocumentManager().get_current()
         records = (
@@ -124,11 +188,7 @@ def cad_validate_geometry(input: ValidateGeometryInput) -> ValidateGeometryOutpu
         )
         issues: list[GeometryIssue] = []
         for record in records:
-            bbox = doc.entities.get_bbox(record.id)
-            if not _finite_and_positive(bbox):
-                issues.append(
-                    GeometryIssue(object_id=record.id, issue=f"Invalid bounding box: {bbox}")
-                )
+            issues.extend(_entity_issues(doc, record))
         return ValidateGeometryOutput(
             valid=not issues,
             checked=len(records),
@@ -143,8 +203,14 @@ def cad_validate_geometry(input: ValidateGeometryInput) -> ValidateGeometryOutpu
 
 
 def cad_validate_interference(input: ValidateInterferenceInput) -> ValidateInterferenceOutput:
-    """Detect axis-aligned bounding box interferences between objects."""
+    """Detect axis-aligned bounding box interferences between objects.
+
+    Reports each interfering pair together with the overlap box and the
+    overlap volume in current document units.
+    """
     try:
+        from cad_mcp_server.core.validation import interference_volume
+
         doc = DocumentManager().get_current()
         records = (
             [doc.entities.read(object_id) for object_id in input.object_ids]
@@ -153,39 +219,72 @@ def cad_validate_interference(input: ValidateInterferenceInput) -> ValidateInter
         )
         bboxes = [(record.id, doc.entities.get_bbox(record.id)) for record in records]
         pairs: list[InterferencePair] = []
+        total_volume = 0.0
         for i in range(len(bboxes)):
             for j in range(i + 1, len(bboxes)):
                 overlap = _bbox_overlap(bboxes[i][1], bboxes[j][1])
-                if overlap is not None:
-                    pairs.append(
-                        InterferencePair(a=bboxes[i][0], b=bboxes[j][0], overlap=overlap)
+                if overlap is None:
+                    continue
+                volume = interference_volume(bboxes[i][1], bboxes[j][1])
+                total_volume += volume
+                pairs.append(
+                    InterferencePair(
+                        a=bboxes[i][0],
+                        b=bboxes[j][0],
+                        overlap=overlap,
+                        volume=volume,
                     )
+                )
         return ValidateInterferenceOutput(
-            interference_count=len(pairs), pairs=pairs, status="success"
+            interference_count=len(pairs),
+            pairs=pairs,
+            total_volume=total_volume,
+            status="success",
         )
     except CADError as exc:
         return ValidateInterferenceOutput(
-            interference_count=0, pairs=[], status="error", message=str(exc)
+            interference_count=0, pairs=[], total_volume=0.0, status="error", message=str(exc)
         )
 
 
 def cad_validate_topology(input: ValidateTopologyInput) -> ValidateTopologyOutput:
-    """Summarize object topology, noting kinds that need a BREP backend."""
+    """Summarize object topology and detect non-manifold edges."""
     try:
+        from cad_mcp_server.core.validation import topology_stats
+
         doc = DocumentManager().get_current()
         records = doc.entities.list()
         kinds: dict[str, int] = {}
+        summaries: list[TopologySummary] = []
+        warnings: list[str] = []
         for record in records:
             kinds[record.type] = kinds.get(record.type, 0) + 1
+            stats = topology_stats(record.shape)
+            summaries.append(
+                TopologySummary(
+                    object_id=record.id,
+                    kind=record.type,
+                    vertices=stats["vertices"],
+                    edges=stats["edges"],
+                    faces=stats["faces"],
+                    non_manifold_edges=stats.get("non_manifold_edges", 0),
+                    is_manifold=stats.get("is_manifold", True),
+                )
+            )
+            if stats.get("non_manifold_edges", 0):
+                warnings.append(
+                    f"{record.id} has {stats['non_manifold_edges']} non-manifold edge(s)"
+                )
         return ValidateTopologyOutput(
             object_count=len(records),
             kinds=kinds,
-            warnings=[],
+            summaries=summaries,
+            warnings=warnings,
             status="success",
         )
     except CADError:
         return ValidateTopologyOutput(
-            object_count=0, kinds={}, warnings=[], status="error"
+            object_count=0, kinds={}, summaries=[], warnings=[], status="error"
         )
 
 
