@@ -1,4 +1,4 @@
-"""Editing commands: move, copy, rotate, scale, erase, list, undo, redo, boolean."""
+"""Editing commands: move, copy, rotate, scale, erase, list, undo, redo, boolean, param."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from cad_mcp_server.cli.utils import (
 )
 from cad_mcp_server.core.session import SessionManager
 from cad_mcp_server.core.transform import rotation_around_point_z, scale_around_point, translation
+from cad_mcp_server.utils.errors import VariableError
 
 app = typer.Typer(help="Editing commands")
 
@@ -182,3 +183,56 @@ def cmd_intersect(
     push_undo()
     result_id = doc.entities.boolean("intersect", target, tool, object_id=new_id)
     typer.echo(f"Intersect {target} & {tool} -> {result_id}")
+
+
+@app.command("param-set")
+@catch_errors
+def cmd_param_set(
+    name: str = typer.Argument(..., help="Variable name"),
+    value: float | None = typer.Argument(None, help="Numeric value (omit with --expr)"),
+    unit: str = typer.Option("", "--unit", "-u", help="Unit suffix (e.g. mm)"),
+    expr: str | None = typer.Option(None, "--expr", "-e", help="Arithmetic expression"),
+) -> None:
+    """Set a parametric variable (``{name}`` is interpolated in draw args)."""
+    doc = get_document()
+    push_undo()
+    try:
+        record = doc.variables.set(name, value=value, unit=unit, expr=expr)
+    except VariableError as exc:
+        typer.echo(f"Error: {exc.message}", err=True)
+        raise typer.Exit(code=1) from exc
+    value_text = str(int(record.value)) if record.value.is_integer() else str(record.value)
+    typer.echo(f"Set {name} = {value_text}{record.unit or ''}")
+
+
+@app.command("param-list")
+@catch_errors
+def cmd_param_list() -> None:
+    """List parametric variables."""
+    doc = get_document()
+    records = doc.variables.list()
+    if not records:
+        typer.echo("No variables")
+        return
+    for record in records:
+        value_text = str(int(record.value)) if record.value.is_integer() else str(record.value)
+        typer.echo(
+            f"{record.name} = {value_text}{record.unit or ''}"
+            + (f"  (expr: {record.expr})" if record.expr else "")
+        )
+
+
+@app.command("param-delete")
+@catch_errors
+def cmd_param_delete(
+    name: str = typer.Argument(..., help="Variable name"),
+) -> None:
+    """Delete a parametric variable."""
+    doc = get_document()
+    push_undo()
+    try:
+        doc.variables.delete(name)
+    except VariableError as exc:
+        typer.echo(f"Error: {exc.message}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"Deleted {name}")

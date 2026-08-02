@@ -93,7 +93,10 @@ class TestMCPServer:
         assert "cad_boolean_intersect" in names
         assert "cad_file_export" in names
         assert "cad_file_import" in names
-        assert len(names) == 62
+        assert "cad_variable_set" in names
+        assert "cad_variable_list" in names
+        assert "cad_object_boolean" in names
+        assert len(names) == 65
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(

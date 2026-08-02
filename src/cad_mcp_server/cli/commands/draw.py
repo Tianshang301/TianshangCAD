@@ -6,7 +6,15 @@ from typing import Any
 
 import typer
 
-from cad_mcp_server.cli.utils import catch_errors, get_document, parse_point
+from cad_mcp_server.cli.utils import (
+    catch_errors,
+    get_document,
+    interpolate,
+    parse_float,
+    parse_int,
+    parse_point,
+    parse_point_list,
+)
 
 app = typer.Typer(help="Drawing commands")
 
@@ -34,13 +42,13 @@ def cmd_line(
 @catch_errors
 def cmd_circle(
     center: str = typer.Argument(..., help="Center point x,y[,z]"),
-    radius: float = typer.Option(..., "--radius", "-r", help="Radius"),
+    radius: str = typer.Option(..., "--radius", "-r", help="Radius"),
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
     """Draw a circle."""
     doc = get_document()
     entity_id = doc.entities.create(
-        "circle", {"center": parse_point(center), "radius": radius}, layer=layer
+        "circle", {"center": parse_point(center), "radius": parse_float(radius)}, layer=layer
     )
     _echo_created(entity_id)
 
@@ -49,9 +57,9 @@ def cmd_circle(
 @catch_errors
 def cmd_arc(
     center: str = typer.Argument(..., help="Center point x,y[,z]"),
-    radius: float = typer.Option(..., "--radius", "-r", help="Radius"),
-    start_angle: float = typer.Option(0.0, "--start-angle", help="Start angle (degrees)"),
-    end_angle: float = typer.Option(180.0, "--end-angle", help="End angle (degrees)"),
+    radius: str = typer.Option(..., "--radius", "-r", help="Radius"),
+    start_angle: str = typer.Option("0", "--start-angle", help="Start angle (degrees)"),
+    end_angle: str = typer.Option("180", "--end-angle", help="End angle (degrees)"),
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
     """Draw a circular arc."""
@@ -60,9 +68,9 @@ def cmd_arc(
         "arc",
         {
             "center": parse_point(center),
-            "radius": radius,
-            "start_angle": start_angle,
-            "end_angle": end_angle,
+            "radius": parse_float(radius),
+            "start_angle": parse_float(start_angle),
+            "end_angle": parse_float(end_angle),
         },
         layer=layer,
     )
@@ -73,9 +81,9 @@ def cmd_arc(
 @catch_errors
 def cmd_rectangle(
     origin: str = typer.Argument(..., help="Origin corner x,y[,z]"),
-    width: float = typer.Option(..., "--width", "-w", help="Width"),
-    height: float = typer.Option(..., "--height", "-h", help="Height"),
-    rotation: float = typer.Option(0.0, "--rotation", help="Rotation (degrees)"),
+    width: str = typer.Option(..., "--width", "-w", help="Width"),
+    height: str = typer.Option(..., "--height", "-h", help="Height"),
+    rotation: str = typer.Option("0", "--rotation", help="Rotation (degrees)"),
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
     """Draw a rectangle."""
@@ -84,9 +92,9 @@ def cmd_rectangle(
         "rectangle",
         {
             "origin": parse_point(origin),
-            "width": width,
-            "height": height,
-            "rotation": rotation,
+            "width": parse_float(width),
+            "height": parse_float(height),
+            "rotation": parse_float(rotation),
         },
         layer=layer,
     )
@@ -97,9 +105,9 @@ def cmd_rectangle(
 @catch_errors
 def cmd_polygon(
     center: str = typer.Argument(..., help="Center point x,y[,z]"),
-    radius: float = typer.Option(..., "--radius", "-r", help="Circumradius"),
-    sides: int = typer.Option(..., "--sides", "-s", help="Number of sides"),
-    rotation: float = typer.Option(0.0, "--rotation", help="Rotation (degrees)"),
+    radius: str = typer.Option(..., "--radius", "-r", help="Circumradius"),
+    sides: str = typer.Option(..., "--sides", "-s", help="Number of sides"),
+    rotation: str = typer.Option("0", "--rotation", help="Rotation (degrees)"),
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
     """Draw a regular polygon."""
@@ -108,9 +116,9 @@ def cmd_polygon(
         "polygon",
         {
             "center": parse_point(center),
-            "radius": radius,
-            "sides": sides,
-            "rotation": rotation,
+            "radius": parse_float(radius),
+            "sides": parse_int(sides),
+            "rotation": parse_float(rotation),
         },
         layer=layer,
     )
@@ -125,8 +133,6 @@ def cmd_polyline(
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
     """Draw a polyline through the given points."""
-    from cad_mcp_server.utils.validators import parse_point_list
-
     doc = get_document()
     entity_id = doc.entities.create(
         "polyline", {"points": parse_point_list(points), "closed": closed}, layer=layer
@@ -148,10 +154,10 @@ def cmd_box(
     doc = get_document()
     params: dict[str, Any] = {
         "origin": parse_point(origin),
-        "dimensions": parse_dims(dimensions),
+        "dimensions": parse_dims(interpolate(dimensions)),
     }
     if rotation is not None:
-        params["rotation"] = parse_dims(rotation)
+        params["rotation"] = parse_dims(interpolate(rotation))
     entity_id = doc.entities.create("box", params, layer=layer)
     _echo_created(entity_id)
 
@@ -160,8 +166,8 @@ def cmd_box(
 @catch_errors
 def cmd_cylinder(
     origin: str = typer.Argument(..., help="Base centre x,y,z"),
-    radius: float = typer.Option(..., "--radius", "-r", help="Radius"),
-    height: float = typer.Option(..., "--height", "-h", help="Height"),
+    radius: str = typer.Option(..., "--radius", "-r", help="Radius"),
+    height: str = typer.Option(..., "--height", "-h", help="Height"),
     axis: str = typer.Option("0,0,1", "--axis", help="Axis x,y,z"),
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
@@ -171,25 +177,24 @@ def cmd_cylinder(
         "cylinder",
         {
             "origin": parse_point(origin),
-            "radius": radius,
-            "height": height,
+            "radius": parse_float(radius),
+            "height": parse_float(height),
             "axis": parse_point(axis),
         },
         layer=layer,
     )
     _echo_created(entity_id)
 
-
 @app.command("sphere")
 @catch_errors
 def cmd_sphere(
     center: str = typer.Argument(..., help="Centre point x,y,z"),
-    radius: float = typer.Option(..., "--radius", "-r", help="Radius"),
+    radius: str = typer.Option(..., "--radius", "-r", help="Radius"),
     layer: str = typer.Option("0", "--layer", "-l", help="Target layer"),
 ) -> None:
     """Draw a sphere."""
     doc = get_document()
     entity_id = doc.entities.create(
-        "sphere", {"center": parse_point(center), "radius": radius}, layer=layer
+        "sphere", {"center": parse_point(center), "radius": parse_float(radius)}, layer=layer
     )
     _echo_created(entity_id)

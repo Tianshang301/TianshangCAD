@@ -104,3 +104,106 @@ class TestBooleanCommands:
         result = runner.invoke(app, ["edit", "intersect", a, b])
         assert result.exit_code == 0
         assert f"Intersect {a} & {b}" in result.stdout
+
+
+class TestParamCommands:
+    """`cad-cli edit param-*` command tests."""
+
+    def _new_file(self) -> None:
+        runner.invoke(app, ["file", "new", "params.json"])
+
+    def test_param_set(self) -> None:
+        self._new_file()
+        result = runner.invoke(app, ["edit", "param-set", "width", "50", "--unit", "mm"])
+        assert result.exit_code == 0
+        assert "Set width = 50mm" in result.stdout
+
+    def test_param_set_expression(self) -> None:
+        self._new_file()
+        runner.invoke(app, ["edit", "param-set", "w", "50"])
+        result = runner.invoke(app, ["edit", "param-set", "depth", "--expr", "w * 2"])
+        assert result.exit_code == 0
+        assert "Set depth = 100" in result.stdout
+
+    def test_param_list(self) -> None:
+        self._new_file()
+        runner.invoke(app, ["edit", "param-set", "width", "50"])
+        runner.invoke(app, ["edit", "param-set", "depth", "--expr", "width * 2"])
+        result = runner.invoke(app, ["edit", "param-list"])
+        assert "width = 50" in result.stdout
+        assert "depth = 100" in result.stdout
+        assert "expr: width * 2" in result.stdout
+
+    def test_param_list_empty(self) -> None:
+        self._new_file()
+        result = runner.invoke(app, ["edit", "param-list"])
+        assert "No variables" in result.stdout
+
+    def test_param_delete(self) -> None:
+        self._new_file()
+        runner.invoke(app, ["edit", "param-set", "width", "50"])
+        result = runner.invoke(app, ["edit", "param-delete", "width"])
+        assert result.exit_code == 0
+        assert "Deleted width" in result.stdout
+        assert "No variables" in runner.invoke(app, ["edit", "param-list"]).stdout
+
+    def test_param_set_undefined_variable(self) -> None:
+        self._new_file()
+        result = runner.invoke(app, ["edit", "param-set", "a", "--expr", "missing + 1"])
+        assert result.exit_code == 1
+        assert "Undefined variable" in result.output
+
+    def test_param_set_no_value_no_expr(self) -> None:
+        self._new_file()
+        result = runner.invoke(app, ["edit", "param-set", "a"])
+        assert result.exit_code == 1
+        assert "requires a value or an expression" in result.output
+
+    def test_param_undo_restores_variables(self) -> None:
+        self._new_file()
+        runner.invoke(app, ["edit", "param-set", "width", "50"])
+        runner.invoke(app, ["edit", "param-set", "width", "80"])
+        result = runner.invoke(app, ["edit", "undo"])
+        assert "Undone" in result.stdout
+        assert "width = 50" in runner.invoke(app, ["edit", "param-list"]).stdout
+
+
+class TestDrawInterpolation:
+    """`{name}` brace interpolation in draw arguments."""
+
+    def _setup(self) -> None:
+        runner.invoke(app, ["file", "new", "interp.json"])
+        runner.invoke(app, ["edit", "param-set", "width", "100"])
+        runner.invoke(app, ["edit", "param-set", "height", "50"])
+
+    def test_interpolate_point(self) -> None:
+        self._setup()
+        result = runner.invoke(app, ["draw", "line", "0,0", "{width},{height}"])
+        assert result.exit_code == 0
+        assert "Created" in result.stdout
+
+    def test_interpolate_numeric_option(self) -> None:
+        self._setup()
+        result = runner.invoke(app, ["draw", "circle", "0,0", "--radius", "{width}"])
+        assert result.exit_code == 0
+        assert "Created" in result.stdout
+
+    def test_interpolate_rectangle_dimensions(self) -> None:
+        self._setup()
+        result = runner.invoke(app, [
+            "draw", "rectangle", "0,0", "--width", "{width}", "--height", "{height}",
+        ])
+        assert result.exit_code == 0
+        assert "Created" in result.stdout
+
+    def test_interpolate_box_dimensions(self) -> None:
+        self._setup()
+        result = runner.invoke(app, ["draw", "box", "0,0,0", "--dimensions", "{width},{height},10"])
+        assert result.exit_code == 0
+        assert "Created" in result.stdout
+
+    def test_interpolate_undefined_raises(self) -> None:
+        self._setup()
+        result = runner.invoke(app, ["draw", "line", "0,0", "{nope},0"])
+        assert result.exit_code == 1
+        assert "Variable not found" in result.output

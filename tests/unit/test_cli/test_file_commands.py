@@ -72,6 +72,40 @@ class TestFileCommands:
         assert "File does not exist" in result.output
 
 
+class TestDxfDataParity:
+    """DXF export data parity tests."""
+
+    def test_dxf_export_matches_entities(self, tmp_path) -> None:
+        import ezdxf
+
+        dxf_path = tmp_path / "parity.dxf"
+        runner.invoke(app, ["file", "new", "parity.json"])
+        runner.invoke(app, ["draw", "line", "0,0", "100,0"])
+        runner.invoke(app, ["draw", "circle", "50,50", "--radius", "25"])
+        result = runner.invoke(
+            app, ["file", "export", "--format", "dxf", "--output", str(dxf_path)]
+        )
+        assert result.exit_code == 0
+        assert dxf_path.exists()
+        doc = ezdxf.readfile(str(dxf_path))
+        msp = doc.modelspace()
+        lines = [e for e in msp if e.dxftype() == "LINE"]
+        circles = [e for e in msp if e.dxftype() == "CIRCLE"]
+        assert len(lines) == 1
+        assert len(circles) == 1
+        assert tuple(circles[0].dxf.center) == (50.0, 50.0, 0.0)
+        assert circles[0].dxf.radius == 25.0
+
+    def test_dxf_export_empty_geometry(self, tmp_path) -> None:
+        dxf_path = tmp_path / "empty.dxf"
+        runner.invoke(app, ["file", "new", "empty.json"])
+        result = runner.invoke(
+            app, ["file", "export", "--format", "dxf", "--output", str(dxf_path)]
+        )
+        assert result.exit_code == 0
+        assert dxf_path.exists()
+
+
 class TestStepExportImport:
     """`cad-cli file` STEP export/import tests."""
 
@@ -113,3 +147,50 @@ class TestStepExportImport:
         result = runner.invoke(app, ["file", "import", str(bogus)])
         assert result.exit_code == 1
         assert "Unsupported import format" in result.output
+
+    def test_step_export_reimport_preserves_geometry(self, tmp_path) -> None:
+        """STEP export -> reimport must preserve the solid's extent."""
+        step_path = tmp_path / "roundtrip.step"
+        runner.invoke(app, ["file", "new", "roundtrip.json"])
+        result = runner.invoke(
+            app, ["draw", "box", "0,0,0", "--dimensions", "10,20,30"]
+        )
+        assert result.exit_code == 0
+        exported = runner.invoke(
+            app, ["file", "export", "--format", "step", "--output", str(step_path)]
+        )
+        assert exported.exit_code == 0
+        imported = runner.invoke(app, ["file", "import", str(step_path)])
+        assert imported.exit_code == 0
+        info = runner.invoke(app, ["file", "info"])
+        assert info.exit_code == 0
+        assert "min=[0.0, 0.0, 0.0]" in info.stdout
+        assert "max=[10.0, 20.0, 30.0]" in info.stdout
+
+    def test_step_export_multi_entity(self, tmp_path) -> None:
+        """STEP export must include every solid entity."""
+        step_path = tmp_path / "multi.step"
+        runner.invoke(app, ["file", "new", "multi.json"])
+        runner.invoke(app, ["draw", "box", "0,0,0", "--dimensions", "10,10,10"])
+        runner.invoke(app, ["draw", "sphere", "20,0,0", "--radius", "5"])
+        exported = runner.invoke(
+            app, ["file", "export", "--format", "step", "--output", str(step_path)]
+        )
+        assert exported.exit_code == 0
+        text = step_path.read_text(encoding="utf-8")
+        assert text.count("MANIFOLD_SOLID_BREP") >= 2
+        imported = runner.invoke(app, ["file", "import", str(step_path)])
+        assert imported.exit_code == 0
+        assert "2 objects" in imported.stdout
+
+    def test_step_export_default_format(self, tmp_path) -> None:
+        """STEP is the recommended default export format."""
+        step_path = tmp_path / "default.step"
+        runner.invoke(app, ["file", "new", "default.json"])
+        runner.invoke(app, ["draw", "box", "0,0,0", "--dimensions", "1,1,1"])
+        exported = runner.invoke(
+            app, ["file", "export", "--output", str(step_path)]
+        )
+        assert exported.exit_code == 0
+        assert step_path.exists()
+        assert step_path.read_text(encoding="utf-8").startswith("ISO-10303-21;")

@@ -17,6 +17,7 @@ from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.layer_manager import LayerManager
 from cad_mcp_server.core.session import SessionManager
 from cad_mcp_server.core.style_manager import StyleManager
+from cad_mcp_server.core.variables import VariableManager
 from cad_mcp_server.core.view_manager import ViewManager
 from cad_mcp_server.utils.errors import CADImportError, DocumentError
 from cad_mcp_server.utils.units import validate_unit
@@ -44,6 +45,7 @@ class DocumentState:
         self.layers = LayerManager()
         self.styles = StyleManager()
         self.views = ViewManager()
+        self.variables = VariableManager()
         self.created_at = datetime.now(UTC).isoformat()
         self.modified_at = self.created_at
         self.is_dirty = False
@@ -61,6 +63,7 @@ class DocumentState:
         self.layers = LayerManager()
         self.styles = StyleManager()
         self.views = ViewManager()
+        self.variables = VariableManager()
 
     @property
     def closed(self) -> bool:
@@ -81,6 +84,7 @@ class DocumentState:
             "styles": [style.to_dict() for style in self.styles.list()],
             "views": [view.to_dict() for view in self.views.list()],
             "current_layer": self.layers.get_current().name,
+            "variables": [var.to_dict() for var in self.variables.list()],
             "entities": [record.to_dict() for record in self.entities.list()],
         }
 
@@ -112,11 +116,16 @@ class DocumentState:
         current_layer = data.get("current_layer", "0")
         if current_layer in doc.layers.snapshot()["layers"]:
             doc.layers.set_current(current_layer)
+        for var_data in data.get("variables", []):
+            from cad_mcp_server.core.variables import VariableRecord
+
+            var_record = VariableRecord.from_dict(var_data)
+            doc.variables._variables[var_record.name] = var_record
         for entity_data in data.get("entities", []):
             from cad_mcp_server.core.entity import EntityRecord
 
-            record = EntityRecord.from_dict(entity_data)
-            doc.entities._entities[record.id] = record
+            entity_record = EntityRecord.from_dict(entity_data)
+            doc.entities._entities[entity_record.id] = entity_record
         doc.is_dirty = False
         return doc
 

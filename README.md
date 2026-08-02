@@ -4,10 +4,9 @@ A modern **CAD CLI + MCP Server** system. 2D/3D drawing, editing,
 measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
-> **Status**: Phase 1 (CLI + IO), Phase 2 (MCP Server), Phase 3 (Batch &
-> Automation), Phase 4 (Advanced Features), Phase 5 (3D Views) and
-> Phase 6 (Docker + Production Hardening) complete. 451 tests passing,
-> 85%+ coverage, `ruff` and `mypy` clean.
+> **Status**: Phases 1–6 complete, plus the v0.6.0 sprint (parametric
+> variables, mesh boolean ops, pure-Python STEP + DWG bridge). 545 tests
+> passing, 85%+ coverage, `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
 
@@ -15,7 +14,7 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 57 JSON-RPC tools over stdio or streamable HTTP, callable
+- **MCP Server** — 65 JSON-RPC tools over stdio or streamable HTTP, callable
   from Claude, Cursor and other MCP clients
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
   named views (iso / top / front / side / back / bottom), perspective /
@@ -77,7 +76,7 @@ cad-cli measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `cad-cli l 0,0 100,0` equals `cad-cli draw line 0,0 100,0`.
-`cad-cli --version` prints the current version (e.g. `cad-cli 0.5.0`).
+`cad-cli --version` prints the current version (e.g. `cad-cli 0.6.0`).
 
 ### Command groups
 
@@ -118,12 +117,14 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (57 total)
+### Tools (65 total)
 
 | Group | Tools |
 |-------|-------|
-| Files | `cad_file_create`, `cad_file_open`, `cad_file_save`, `cad_file_close`, `cad_file_list` |
+| Files | `cad_file_create`, `cad_file_open`, `cad_file_save`, `cad_file_close`, `cad_file_list`, `cad_file_export`, `cad_file_import` |
 | Objects | `cad_object_create`, `cad_object_read`, `cad_object_update`, `cad_object_delete`, `cad_object_list` |
+| Boolean | `cad_boolean_union`, `cad_boolean_subtract`, `cad_boolean_intersect`, `cad_object_boolean` |
+| Variables | `cad_variable_set`, `cad_variable_list` |
 | Layers | `cad_layer_create`, `cad_layer_read`, `cad_layer_update`, `cad_layer_delete`, `cad_layer_list` |
 | JSON | `cad_json_load`, `cad_json_parse`, `cad_json_validate`, `cad_json_import_geometry`, `cad_json_export_geometry`, `cad_json_import_scene`, `cad_json_export_scene`, `cad_json_save` |
 | Status | `cad_status_check`, `cad_status_file`, `cad_status_object`, `cad_status_layer`, `cad_status_health`, `cad_logs_get`, `cad_logs_clear` |
@@ -252,16 +253,16 @@ pytest         # tests (coverage gate >= 80%)
 src/cad_mcp_server/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (57 tools)
+|   |-- server.py       # MCPServer wiring (65 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication
 |   |-- rate_limit.py   # sliding-window rate limiter
-|   `-- tools/          # crud, json_ops, status, validate, batch,
-|                       # render, versioning, nlp, view3d
+|   `-- tools/          # crud, json_ops, status, validate, batch, boolean,
+|                       # file_io, variables, render, versioning, nlp, view3d
 |-- core/           # document, entity, layer, kernel, session, history,
-|                   # scheduler, script_runner, batch_templates, validation,
-|                   # versioning, view_manager
+|                   # variables, scheduler, script_runner, batch_templates,
+|                   # validation, versioning, view_manager
 |-- io/             # JSON / DXF / STL importers and exporters
 |-- schemas/        # Pydantic geometry, scene and view3d schemas
 |-- render/         # 2D / 3D PNG rendering, WebGL export, section, explode,
