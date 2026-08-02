@@ -65,3 +65,7 @@ class ViewError(CADError):
 
 class RateLimitError(CADError):
     """Raised when an HTTP client exceeds its request rate limit."""
+
+
+class VariableError(CADError):
+    """Raised for parametric variable / expression errors."""

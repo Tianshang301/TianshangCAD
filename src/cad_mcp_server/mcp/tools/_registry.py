@@ -22,6 +22,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         render,
         status,
         validate,
+        variables,
         versioning,
         view3d,
     )
@@ -39,6 +40,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         view3d,
         boolean,
         file_io,
+        variables,
     ):
         tools.extend(module.TOOLS)
     return dict(tools)
