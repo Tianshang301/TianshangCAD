@@ -457,7 +457,36 @@ class AnalyticKernel(CADKernel):
             raise CADNotImplementedError(
                 f"boolean {operation} failed: {exc}", code="unsupported_boolean"
             ) from exc
+        self._validate_boolean_result(result, operation)
         return self._mesh_shape(result.vertices.tolist(), result.faces.tolist())
+
+    @staticmethod
+    def _validate_boolean_result(result: Any, operation: str) -> None:
+        """Reject empty / degenerate boolean results with a friendly error.
+
+        Checks that the boolean engine produced a closed, positive-volume
+        mesh. Tangential contacts, full containment and overlapping-but-void
+        inputs typically yield an empty or zero-volume result here.
+        """
+        if result is None or len(getattr(result, "vertices", ())) == 0 or len(
+            getattr(result, "faces", ())
+        ) == 0:
+            raise CADNotImplementedError(
+                f"boolean {operation} produced an empty result "
+                "(shapes may only touch tangentially or not overlap)",
+                code="degenerate_boolean",
+            )
+        if not result.is_watertight:
+            raise CADNotImplementedError(
+                f"boolean {operation} produced a non-manifold mesh",
+                code="non_manifold_boolean",
+            )
+        volume = float(result.volume)
+        if volume <= 0.0:
+            raise CADNotImplementedError(
+                f"boolean {operation} produced a zero-volume result",
+                code="degenerate_boolean",
+            )
 
     @staticmethod
     def _mesh_shape(vertices: list[list[float]], faces: list[list[int]]) -> Shape:
