@@ -14,7 +14,9 @@ def get_registry() -> dict[str, Callable[..., Any]]:
     """
     from cad_mcp_server.mcp.tools import (
         batch,
+        boolean,
         crud,
+        file_io,
         json_ops,
         nlp,
         render,
@@ -25,6 +27,18 @@ def get_registry() -> dict[str, Callable[..., Any]]:
     )
 
     tools: list[tuple[str, Any]] = []
-    for module in (crud, json_ops, status, validate, batch, render, versioning, nlp, view3d):
+    for module in (
+        crud,
+        json_ops,
+        status,
+        validate,
+        batch,
+        render,
+        versioning,
+        nlp,
+        view3d,
+        boolean,
+        file_io,
+    ):
         tools.extend(module.TOOLS)
     return dict(tools)

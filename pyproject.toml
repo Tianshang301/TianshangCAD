@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cad-mcp-server"
-version = "0.4.0"
+version = "0.5.0"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -41,6 +41,7 @@ dependencies = [
 [project.optional-dependencies]
 occ = ["cadquery>=2.4"]
 freecad = []
+boolean = ["trimesh>=4.0", "manifold3d>=2.0"]
 dev = [
     "pytest>=8.0",
     "pytest-cov>=5.0",

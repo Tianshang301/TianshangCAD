@@ -93,10 +93,15 @@ def cmd_info() -> None:
 @app.command("export")
 @catch_errors
 def cmd_export(
-    fmt: str = typer.Option("dxf", "--format", "-f", help="Output format: dxf / stl / json"),
+    fmt: str = typer.Option(
+        "dxf",
+        "--format",
+        "-f",
+        help="Output format: dxf / stl / json / step / dwg",
+    ),
     output: str = typer.Option(..., "--output", "-o", help="Output file path"),
 ) -> None:
-    """Export the current file (dxf / stl / json)."""
+    """Export the current file (dxf / stl / json / step / dwg)."""
     doc = get_document()
     if fmt == "dxf":
         from cad_mcp_server.io.exporters.dxf import DXFExporter
@@ -114,6 +119,10 @@ def cmd_export(
         from cad_mcp_server.io.exporters.step import STEPExporter
 
         STEPExporter().export_document(doc, output)
+    elif fmt == "dwg":
+        from cad_mcp_server.io.exporters.dwg import DWGExporter
+
+        DWGExporter().export_document(doc, output)
     else:
         from cad_mcp_server.cli.utils import fail
 
@@ -126,7 +135,7 @@ def cmd_export(
 def cmd_import(
     filepath: str = typer.Argument(..., help="File path to import"),
 ) -> None:
-    """Import a file (json / dxf) as a new document."""
+    """Import a file (json / dxf / step / dwg) as a new document."""
     from pathlib import Path
 
     from cad_mcp_server.cli.utils import fail
@@ -142,6 +151,14 @@ def cmd_import(
         from cad_mcp_server.io.importers.dxf import DXFImporter
 
         doc = DXFImporter().import_file(filepath)
+    elif suffix == ".step":
+        from cad_mcp_server.io.importers.step import STEPImporter
+
+        doc = STEPImporter().import_file(filepath)
+    elif suffix == ".dwg":
+        from cad_mcp_server.io.importers.dwg import DWGImporter
+
+        doc = DWGImporter().import_file(filepath)
     else:
         fail(f"Unsupported import format: {suffix}")
     session = SessionManager().current_session

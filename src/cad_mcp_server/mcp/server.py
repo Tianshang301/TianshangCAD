@@ -30,7 +30,7 @@ def _instrumented(fn: Callable[..., Any], name: str) -> Callable[..., Any]:
     return wrapper
 
 
-def build_server(version: str = "0.4.0") -> MCPServer:
+def build_server(version: str = "0.5.0") -> MCPServer:
     """Create an :class:`MCPServer` with every registered CAD tool."""
     server = MCPServer(
         name=SERVER_NAME,

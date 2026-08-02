@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     api_keys: str = Field("", description="Comma separated API keys for HTTP transport")
     rate_limit_max: int = Field(100, description="Max HTTP requests per window")
     rate_limit_window: int = Field(60, description="Rate limit window in seconds")
+    odafc_path: str = Field(
+        "", description="Path to the ODA File Converter executable (DWG support)"
+    )
     debug: bool = Field(False, description="Debug mode")
 
     @property

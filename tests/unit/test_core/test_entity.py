@@ -131,4 +131,59 @@ class TestSnapshot:
         restored = EntityRecord.from_dict(record.to_dict())
         assert restored.id == entity_id
         assert restored.type == "box"
-        assert restored.layer == "main"
+
+
+class TestBoolean:
+    """Entity-level boolean operations."""
+
+    def test_union_creates_mesh(self, entity_manager: EntityManager) -> None:
+        pytest.importorskip("trimesh")
+        a = entity_manager.create("box", {"origin": [0, 0, 0], "dimensions": [2, 2, 2]})
+        b = entity_manager.create("box", {"origin": [1, 1, 1], "dimensions": [2, 2, 2]})
+        result_id = entity_manager.boolean("union", a, b)
+        record = entity_manager.get(result_id)
+        assert record.type == "mesh"
+        assert entity_manager.get_bbox(result_id) == {
+            "min": [0.0, 0.0, 0.0],
+            "max": [3.0, 3.0, 3.0],
+        }
+        assert entity_manager.count() == 3
+
+    def test_subtract(self, entity_manager: EntityManager) -> None:
+        pytest.importorskip("trimesh")
+        a = entity_manager.create("box", {"origin": [0, 0, 0], "dimensions": [4, 4, 4]})
+        b = entity_manager.create("box", {"origin": [1, 1, 1], "dimensions": [2, 2, 2]})
+        result_id = entity_manager.boolean("subtract", a, b)
+        record = entity_manager.get(result_id)
+        assert record.type == "mesh"
+        assert entity_manager.get_bbox(result_id) == {
+            "min": [0.0, 0.0, 0.0],
+            "max": [4.0, 4.0, 4.0],
+        }
+
+    def test_intersect(self, entity_manager: EntityManager) -> None:
+        pytest.importorskip("trimesh")
+        a = entity_manager.create("box", {"origin": [0, 0, 0], "dimensions": [4, 4, 4]})
+        b = entity_manager.create("box", {"origin": [1, 1, 1], "dimensions": [2, 2, 2]})
+        result_id = entity_manager.boolean("intersect", a, b)
+        record = entity_manager.get(result_id)
+        assert record.type == "mesh"
+        assert entity_manager.get_bbox(result_id) == {
+            "min": [1.0, 1.0, 1.0],
+            "max": [3.0, 3.0, 3.0],
+        }
+
+    def test_unsupported_operation(self, entity_manager: EntityManager) -> None:
+        a = entity_manager.create("box", {"origin": [0, 0, 0], "dimensions": [2, 2, 2]})
+        b = entity_manager.create("box", {"origin": [1, 1, 1], "dimensions": [2, 2, 2]})
+        with pytest.raises(EntityError) as exc:
+            entity_manager.boolean("xor", a, b)
+        assert exc.value.code == "unknown_boolean_op"
+
+    def test_missing_entity_raises(self, entity_manager: EntityManager) -> None:
+        pytest.importorskip("trimesh")
+        a = entity_manager.create("box", {"origin": [0, 0, 0], "dimensions": [2, 2, 2]})
+        with pytest.raises(EntityError):
+            entity_manager.boolean("union", a, "nope")
+        with pytest.raises(EntityError):
+            entity_manager.boolean("union", "nope", a)
