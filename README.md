@@ -77,7 +77,7 @@ cad-cli measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `cad-cli l 0,0 100,0` equals `cad-cli draw line 0,0 100,0`.
-`cad-cli --version` prints the current version (e.g. `cad-cli 0.4.0`).
+`cad-cli --version` prints the current version (e.g. `cad-cli 0.5.0`).
 
 ### Command groups
 

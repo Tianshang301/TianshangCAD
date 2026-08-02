@@ -6,7 +6,7 @@ import struct
 
 import pytest
 
-from cad_mcp_server.core.document import DocumentManager
+from cad_mcp_server.core.document import DocumentManager, DocumentState
 from cad_mcp_server.io.exporters.step import STEPExporter
 from cad_mcp_server.io.exporters.stl import STLExporter
 from cad_mcp_server.io.importers.step import STEPImporter
@@ -56,17 +56,85 @@ class TestSTLExporter:
 
 
 class TestSTEP:
-    """STEP backend-gated tests."""
+    """Pure-Python AP203 STEP round-trip tests."""
 
-    def test_export_requires_occ(self, document_manager: DocumentManager) -> None:
+    def _export_and_import(
+        self, document_manager: DocumentManager, tmp_path, *shapes: tuple[str, dict]
+    ) -> DocumentState:
         doc_mgr = document_manager
-        doc_mgr.create("a.json")
-        with pytest.raises(CADExportError):
-            STEPExporter().export_document(doc_mgr.get_current(), "out.step")
+        doc_mgr.create("part.json")
+        doc = doc_mgr.get_current()
+        for obj_type, params in shapes:
+            doc.entities.create(obj_type, params)
+        target = tmp_path / "out.step"
+        STEPExporter().export_document(doc, str(target))
+        return STEPImporter().import_file(str(target))
 
-    def test_import_requires_occ(self) -> None:
+    def test_export_box_roundtrip(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        imported = self._export_and_import(
+            document_manager,
+            tmp_path,
+            ("box", {"origin": [0, 0, 0], "dimensions": [10, 10, 10]}),
+        )
+        record = imported.entities.list()[0]
+        assert record.type == "mesh"
+        assert len(record.shape["params"]["vertices"]) == 8
+        assert len(record.shape["params"]["faces"]) == 12
+        assert imported.entities.get_bbox(record.id) == {
+            "min": [0.0, 0.0, 0.0],
+            "max": [10.0, 10.0, 10.0],
+        }
+
+    def test_export_cylinder_sphere_roundtrip(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        imported = self._export_and_import(
+            document_manager,
+            tmp_path,
+            ("cylinder", {"origin": [0, 0, 0], "radius": 5, "height": 10, "axis": [0, 0, 1]}),
+            ("sphere", {"center": [10, 10, 10], "radius": 3}),
+        )
+        records = imported.entities.list()
+        assert len(records) == 2
+        for record in records:
+            assert record.type == "mesh"
+            assert len(record.shape["params"]["faces"]) > 10
+
+    def test_export_skips_2d_entities(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        doc_mgr = document_manager
+        doc_mgr.create("mixed.json")
+        doc = doc_mgr.get_current()
+        doc.entities.create("line", {"start": [0, 0, 0], "end": [1, 0, 0]})
+        doc.entities.create("box", {"origin": [0, 0, 0], "dimensions": [2, 2, 2]})
+        target = tmp_path / "mixed.step"
+        STEPExporter().export_document(doc, str(target))
+        imported = STEPImporter().import_file(str(target))
+        assert len(imported.entities.list()) == 1
+
+    def test_export_no_solid_raises(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        doc_mgr = document_manager
+        doc_mgr.create("empty.json")
+        doc = doc_mgr.get_current()
+        doc.entities.create("line", {"start": [0, 0, 0], "end": [1, 0, 0]})
+        with pytest.raises(CADExportError):
+            STEPExporter().export_document(doc, str(tmp_path / "out.step"))
+
+    def test_import_missing_file(self, tmp_path) -> None:
+        with pytest.raises(CADImportError) as exc:
+            STEPImporter().import_file(str(tmp_path / "nope.step"))
+        assert exc.value.code == "file_not_found"
+
+    def test_import_garbage_raises(self, tmp_path) -> None:
+        target = tmp_path / "garbage.step"
+        target.write_text("not a step file", encoding="utf-8")
         with pytest.raises(CADImportError):
-            STEPImporter().import_file("in.step")
+            STEPImporter().import_file(str(target))
 
 
 class TestSTLImport:

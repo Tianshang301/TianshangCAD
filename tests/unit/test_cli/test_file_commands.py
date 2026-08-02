@@ -70,3 +70,46 @@ class TestFileCommands:
         result = runner.invoke(app, ["file", "open", "/nope/scene.json"])
         assert result.exit_code == 1
         assert "File does not exist" in result.output
+
+
+class TestStepExportImport:
+    """`cad-cli file` STEP export/import tests."""
+
+    def test_export_import_step(self, tmp_path) -> None:
+        step_path = tmp_path / "out.step"
+        runner.invoke(app, ["file", "new", "part.json"])
+        result = runner.invoke(
+            app, ["draw", "box", "0,0,0", "--dimensions", "10,10,10"]
+        )
+        assert result.exit_code == 0
+        exported = runner.invoke(
+            app, ["file", "export", "--format", "step", "--output", str(step_path)]
+        )
+        assert exported.exit_code == 0
+        assert "Exported" in exported.stdout
+        assert step_path.exists()
+
+        imported = runner.invoke(app, ["file", "import", str(step_path)])
+        assert imported.exit_code == 0
+        assert "Imported" in imported.stdout
+        assert "1 objects" in imported.stdout
+
+    def test_import_missing_step(self, tmp_path) -> None:
+        result = runner.invoke(app, ["file", "import", str(tmp_path / "nope.step")])
+        assert result.exit_code == 1
+        assert "File does not exist" in result.output
+
+    def test_export_unsupported_format(self, tmp_path) -> None:
+        runner.invoke(app, ["file", "new", "part.json"])
+        result = runner.invoke(
+            app, ["file", "export", "--format", "bogus", "--output", str(tmp_path / "x.foo")]
+        )
+        assert result.exit_code == 1
+        assert "Unsupported export format" in result.output
+
+    def test_import_unsupported_suffix(self, tmp_path) -> None:
+        bogus = tmp_path / "file.xyz"
+        bogus.write_text("data", encoding="utf-8")
+        result = runner.invoke(app, ["file", "import", str(bogus)])
+        assert result.exit_code == 1
+        assert "Unsupported import format" in result.output
