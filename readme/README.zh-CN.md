@@ -4,10 +4,9 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
-> **当前状态**：Phase 1（CLI + IO）、Phase 2（MCP Server）、Phase 3（批处理
-> 与自动化）、Phase 4（高级功能）、Phase 5（3D 视图）与 Phase 6（Docker +
-> 生产加固）均已完成。451 个测试通过，覆盖率 85%+，`ruff` 与 `mypy`
-> 全部通过。
+> **当前状态**：Phase 1–6 全部完成，并完成 v0.6.0 冲刺（参数化变量、网格布尔
+> 运算、纯 Python STEP + DWG 桥接）。545 个测试通过，覆盖率 85%+，`ruff` 与
+> `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
 
@@ -15,7 +14,7 @@ MCP 客户端（AI 智能体）直接调用。
 
 - **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer`、`batch`
   等命令组，支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
-- **MCP Server** — 57 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
+- **MCP Server** — 65 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
   传输方式，可供 Claude、Cursor 等 MCP 客户端调用
 - **3D 视图** — JSON 定义的 `View3DDefinition`，支持球面相机位姿、命名视图
   （iso / top / front / side / back / bottom）、透视 / 正交投影、平面剖切
@@ -110,12 +109,14 @@ python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 `CAD_RATE_LIMIT_MAX` 与 `CAD_RATE_LIMIT_WINDOW` 调整），超限返回 `429`。
 `/health` 与 `/metrics` 始终公开。stdio 模式不受影响。
 
-### 工具列表（共 57 个）
+### 工具列表（共 65 个）
 
 | 分组 | 工具 |
 |------|------|
-| 文件 | `cad_file_create`、`cad_file_open`、`cad_file_save`、`cad_file_close`、`cad_file_list` |
+| 文件 | `cad_file_create`、`cad_file_open`、`cad_file_save`、`cad_file_close`、`cad_file_list`、`cad_file_export`、`cad_file_import` |
 | 对象 | `cad_object_create`、`cad_object_read`、`cad_object_update`、`cad_object_delete`、`cad_object_list` |
+| 布尔 | `cad_boolean_union`、`cad_boolean_subtract`、`cad_boolean_intersect`、`cad_object_boolean` |
+| 参数 | `cad_variable_set`、`cad_variable_list` |
 | 图层 | `cad_layer_create`、`cad_layer_read`、`cad_layer_update`、`cad_layer_delete`、`cad_layer_list` |
 | JSON | `cad_json_load`、`cad_json_parse`、`cad_json_validate`、`cad_json_import_geometry`、`cad_json_export_geometry`、`cad_json_import_scene`、`cad_json_export_scene`、`cad_json_save` |
 | 状态 | `cad_status_check`、`cad_status_file`、`cad_status_object`、`cad_status_layer`、`cad_status_health`、`cad_logs_get`、`cad_logs_clear` |
