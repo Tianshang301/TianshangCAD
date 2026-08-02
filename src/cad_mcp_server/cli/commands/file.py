@@ -94,14 +94,14 @@ def cmd_info() -> None:
 @catch_errors
 def cmd_export(
     fmt: str = typer.Option(
-        "dxf",
+        "step",
         "--format",
         "-f",
-        help="Output format: dxf / stl / json / step / dwg",
+        help="Output format: step (recommended) / dxf / stl / json / dwg",
     ),
     output: str = typer.Option(..., "--output", "-o", help="Output file path"),
 ) -> None:
-    """Export the current file (dxf / stl / json / step / dwg)."""
+    """Export the current file (step / dxf / stl / json / dwg)."""
     doc = get_document()
     if fmt == "dxf":
         from cad_mcp_server.io.exporters.dxf import DXFExporter

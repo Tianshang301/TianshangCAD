@@ -44,6 +44,7 @@ class DWGExporter:
         if not odafc.is_installed():  # type: ignore[attr-defined]
             raise CADExportError(
                 "DWG export requires the ODA File Converter; "
-                "install it and set the ODAFC_PATH environment variable",
+                "install it and set ODAFC_PATH (or CAD_ODAFC_PATH in the "
+                "cad_mcp_server config) to the converter executable",
                 code="requires_odafc",
             )

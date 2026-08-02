@@ -15,7 +15,9 @@ class FileExportInput(BaseModel):
 
     format: str = Field(
         ...,
-        description="Export format: dxf, stl, step, dwg, json",
+        description=(
+            "Export format: step (recommended), dxf, stl, dwg, json"
+        ),
         examples=["step"],
     )
     path: str = Field(..., description="Target file path")
@@ -45,7 +47,13 @@ class FileImportOutput(BaseModel):
 
 
 def cad_file_export(input: FileExportInput) -> FileExportOutput:
-    """Export the current document to a DXF, STL, STEP, DWG or JSON file."""
+    """Export the current document to a file.
+
+    STEP is the recommended interchange format: it is lossless for solid
+    geometry, requires no external converter, and round-trips through
+    ``cad_file_import``. DXF suits 2D annotation; DWG needs the ODA File
+    Converter (see the ``ODAFC_PATH`` hint on error).
+    """
     try:
         doc = DocumentManager().get_current()
         from cad_mcp_server.io.exporters.dwg import DWGExporter
