@@ -15,6 +15,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
     from cad_mcp_server.mcp.tools import (
         batch,
         boolean,
+        constraint,
         crud,
         file_io,
         json_ops,
@@ -41,6 +42,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         boolean,
         file_io,
         variables,
+        constraint,
     ):
         tools.extend(module.TOOLS)
     return dict(tools)

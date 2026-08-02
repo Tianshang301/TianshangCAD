@@ -13,6 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from cad_mcp_server.core.constraint import ConstraintManager
 from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.layer_manager import LayerManager
 from cad_mcp_server.core.session import SessionManager
@@ -46,6 +47,7 @@ class DocumentState:
         self.styles = StyleManager()
         self.views = ViewManager()
         self.variables = VariableManager()
+        self.constraints = ConstraintManager()
         self.created_at = datetime.now(UTC).isoformat()
         self.modified_at = self.created_at
         self.is_dirty = False
@@ -64,6 +66,7 @@ class DocumentState:
         self.styles = StyleManager()
         self.views = ViewManager()
         self.variables = VariableManager()
+        self.constraints = ConstraintManager()
 
     @property
     def closed(self) -> bool:
@@ -85,6 +88,7 @@ class DocumentState:
             "views": [view.to_dict() for view in self.views.list()],
             "current_layer": self.layers.get_current().name,
             "variables": [var.to_dict() for var in self.variables.list()],
+            "constraints": [constraint.to_dict() for constraint in self.constraints.list()],
             "entities": [record.to_dict() for record in self.entities.list()],
         }
 
@@ -121,6 +125,11 @@ class DocumentState:
 
             var_record = VariableRecord.from_dict(var_data)
             doc.variables._variables[var_record.name] = var_record
+        for constraint_data in data.get("constraints", []):
+            from cad_mcp_server.core.constraint import ConstraintRecord
+
+            constraint_record = ConstraintRecord.from_dict(constraint_data)
+            doc.constraints._constraints[constraint_record.id] = constraint_record
         for entity_data in data.get("entities", []):
             from cad_mcp_server.core.entity import EntityRecord
 

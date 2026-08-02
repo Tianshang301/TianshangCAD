@@ -41,6 +41,7 @@ TOOL_PERMISSIONS: dict[str, PermissionLevel] = {
     "cad_validate_topology": PermissionLevel.READ_ONLY,
     "cad_metrics_get": PermissionLevel.READ_ONLY,
     "cad_variable_list": PermissionLevel.READ_ONLY,
+    "cad_constraint_list": PermissionLevel.READ_ONLY,
     "cad_batch_templates": PermissionLevel.READ_ONLY,
     "cad_version_list": PermissionLevel.READ_ONLY,
     "cad_version_diff": PermissionLevel.READ_ONLY,
@@ -77,6 +78,9 @@ TOOL_PERMISSIONS: dict[str, PermissionLevel] = {
     "cad_json_import_params": PermissionLevel.STANDARD,
     "cad_json_save": PermissionLevel.STANDARD,
     "cad_variable_set": PermissionLevel.STANDARD,
+    "cad_constraint_add": PermissionLevel.STANDARD,
+    "cad_constraint_remove": PermissionLevel.STANDARD,
+    "cad_constraint_solve": PermissionLevel.STANDARD,
     "cad_batch_execute": PermissionLevel.STANDARD,
     "cad_batch_run_script": PermissionLevel.STANDARD,
     # Destructive tools - must confirm
