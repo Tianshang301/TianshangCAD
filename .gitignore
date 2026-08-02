@@ -32,4 +32,4 @@ docs/_build/
 !README.md
 !readme/README.zh-CN.md
 !THIRD_PARTY_LICENSES.md
-!docs/*.md
+docs/

@@ -26,6 +26,8 @@ DEFAULT_DAMPING = 1e-3
 _JACOBIAN_STEP = 1e-6
 _MIN_RADIUS = 1e-12
 _LENGTH_PRESERVE_WEIGHT = 1.0
+_DEGENERATE_LENGTH = 1e-6
+_WORKING_LENGTH = 1.0
 
 
 @dataclass
@@ -94,6 +96,7 @@ def solve_2d(
     initial: list[float] = []
     line_lengths: dict[str, float] = {}
     circle_radii: dict[str, float] = {}
+    restore_lengths: dict[str, float] = {}
 
     for entity_id in sorted(referenced):
         record = records.get(entity_id)
@@ -105,13 +108,28 @@ def solve_2d(
         else:
             var_offsets[entity_id] = len(initial)
             var_kinds[entity_id] = kind
-            initial.extend(values)
             if kind == "line":
-                line_lengths[entity_id] = math.hypot(
-                    values[2] - values[0], values[3] - values[1]
-                )
+                length = math.hypot(values[2] - values[0], values[3] - values[1])
+                line_lengths[entity_id] = length
+                if length < _DEGENERATE_LENGTH:
+                    restore_lengths[entity_id] = length
+                    dx, dy = values[2] - values[0], values[3] - values[1]
+                    if math.hypot(dx, dy) < _MIN_RADIUS:
+                        dx, dy = 1.0, 0.0
+                    unit_x, unit_y = dx / math.hypot(dx, dy), dy / math.hypot(dx, dy)
+                    angle = math.pi / 4.0
+                    rot_x = unit_x * math.cos(angle) - unit_y * math.sin(angle)
+                    rot_y = unit_x * math.sin(angle) + unit_y * math.cos(angle)
+                    values = [
+                        values[0],
+                        values[1],
+                        values[0] + rot_x * _WORKING_LENGTH,
+                        values[1] + rot_y * _WORKING_LENGTH,
+                    ]
+                    line_lengths[entity_id] = _WORKING_LENGTH
             else:
                 circle_radii[entity_id] = values[2]
+            initial.extend(values)
 
     n = len(initial)
     if n == 0:
@@ -311,8 +329,17 @@ def solve_2d(
     for entity_id, offset in var_offsets.items():
         kind = var_kinds[entity_id]
         size = 4 if kind == "line" else 3
+        solved = list(x[offset : offset + size])
+        if entity_id in restore_lengths:
+            sx, sy = solved[0], solved[1]
+            dx, dy = solved[2] - sx, solved[3] - sy
+            solved_length = math.hypot(dx, dy)
+            if solved_length > _MIN_RADIUS:
+                scale = restore_lengths[entity_id] / solved_length
+                solved[2] = sx + dx * scale
+                solved[3] = sy + dy * scale
         updates[entity_id] = _rebuild_params(
-            kind, records[entity_id], list(x[offset : offset + size])
+            kind, records[entity_id], solved
         )
 
     message = (
