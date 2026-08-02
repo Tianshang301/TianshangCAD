@@ -75,3 +75,32 @@ class TestEditCommands:
         result = runner.invoke(app, ["edit", "list"])
         assert entity_id in result.stdout
         assert "min=" in result.stdout
+
+
+class TestBooleanCommands:
+    """`cad-cli edit` boolean command tests."""
+
+    def _setup_boxes(self) -> tuple[str, str]:
+        runner.invoke(app, ["file", "new", "bool.json"])
+        a = runner.invoke(app, ["draw", "box", "0,0,0", "--dimensions", "2,2,2"])
+        b = runner.invoke(app, ["draw", "box", "1,1,1", "--dimensions", "2,2,2"])
+        return a.stdout.split()[-1], b.stdout.split()[-1]
+
+    def test_union(self) -> None:
+        a, b = self._setup_boxes()
+        result = runner.invoke(app, ["edit", "union", a, b])
+        assert result.exit_code == 0
+        assert f"Union {a} + {b}" in result.stdout
+        assert "-> " in result.stdout
+
+    def test_subtract(self) -> None:
+        a, b = self._setup_boxes()
+        result = runner.invoke(app, ["edit", "subtract", a, b])
+        assert result.exit_code == 0
+        assert f"Subtract {b} from {a}" in result.stdout
+
+    def test_intersect(self) -> None:
+        a, b = self._setup_boxes()
+        result = runner.invoke(app, ["edit", "intersect", a, b])
+        assert result.exit_code == 0
+        assert f"Intersect {a} & {b}" in result.stdout

@@ -23,6 +23,9 @@ Shape = dict[str, Any]
 
 _BOX_ROTATION_SIZE = 9
 
+#: Shape kinds that represent closed 3D solids eligible for mesh boolean ops.
+_SOLID_KINDS = frozenset({"box", "cylinder", "sphere", "cone", "mesh"})
+
 
 def _ensure_dims(values: Sequence[float], dims: int = 3) -> list[float]:
     """Pad/truncate ``values`` to exactly ``dims`` floats."""
@@ -308,11 +311,43 @@ class AnalyticKernel(CADKernel):
         }
 
     # ------------------------------------------------------------------
-    # Boolean operations (axis-aligned boxes only)
+    # Boolean operations
     # ------------------------------------------------------------------
 
     def boolean_union(self, target: Shape, tool: Shape) -> Shape:
-        """Boolean union of two shapes."""
+        """Boolean union of two shapes.
+
+        Box pairs use an exact fast path when the result is a single box;
+        otherwise solid shapes are tessellated and combined with the mesh
+        boolean engine (``pip install -e '.[boolean]'``).
+        """
+        if target["kind"] == "box" and tool["kind"] == "box":
+            try:
+                return self._box_union(target, tool)
+            except CADNotImplementedError:
+                pass
+        return self._mesh_boolean("union", target, tool)
+
+    def boolean_subtract(self, target: Shape, tool: Shape) -> Shape:
+        """Boolean subtraction: target minus tool."""
+        if target["kind"] == "box" and tool["kind"] == "box":
+            try:
+                return self._box_subtract(target, tool)
+            except CADNotImplementedError:
+                pass
+        return self._mesh_boolean("difference", target, tool)
+
+    def boolean_intersect(self, target: Shape, tool: Shape) -> Shape:
+        """Boolean intersection of two shapes."""
+        if target["kind"] == "box" and tool["kind"] == "box":
+            try:
+                return self._box_intersect(target, tool)
+            except CADNotImplementedError:
+                pass
+        return self._mesh_boolean("intersection", target, tool)
+
+    def _box_union(self, target: Shape, tool: Shape) -> Shape:
+        """Exact union for box pairs whose result is a single box."""
         self._require_box_pair(target, tool, "union")
         a_min, a_max = _bbox_arrays(target)
         b_min, b_max = _bbox_arrays(tool)
@@ -340,8 +375,8 @@ class AnalyticKernel(CADKernel):
             np.maximum(a_max, b_max).tolist(),
         )
 
-    def boolean_subtract(self, target: Shape, tool: Shape) -> Shape:
-        """Boolean subtraction: target minus tool."""
+    def _box_subtract(self, target: Shape, tool: Shape) -> Shape:
+        """Exact subtraction for box pairs that yield a single box."""
         self._require_box_pair(target, tool, "subtract")
         a_min, a_max = _bbox_arrays(target)
         b_min, b_max = _bbox_arrays(tool)
@@ -373,8 +408,8 @@ class AnalyticKernel(CADKernel):
             return self._empty_box()
         return self._box_from_bbox(new_min.tolist(), new_max.tolist())
 
-    def boolean_intersect(self, target: Shape, tool: Shape) -> Shape:
-        """Boolean intersection of two shapes."""
+    def _box_intersect(self, target: Shape, tool: Shape) -> Shape:
+        """Exact intersection for box pairs."""
         self._require_box_pair(target, tool, "intersect")
         a_min, a_max = _bbox_arrays(target)
         b_min, b_max = _bbox_arrays(tool)
@@ -383,6 +418,58 @@ class AnalyticKernel(CADKernel):
         if any(new_max[i] <= new_min[i] for i in range(3)):
             return self._empty_box()
         return self._box_from_bbox(new_min.tolist(), new_max.tolist())
+
+    def _mesh_boolean(self, operation: str, target: Shape, tool: Shape) -> Shape:
+        """Boolean via the trimesh/manifold engine; returns a ``mesh`` shape.
+
+        ``operation`` is one of ``union``, ``difference``, ``intersection``.
+        Requires the optional ``boolean`` extra
+        (``pip install -e '.[boolean]'``).
+        """
+        for shape in (target, tool):
+            if shape["kind"] not in _SOLID_KINDS:
+                raise CADNotImplementedError(
+                    f"boolean {operation} requires solid shapes "
+                    f"(box/cylinder/sphere/cone/mesh), not {shape['kind']}",
+                    code="unsupported_boolean",
+                )
+        try:
+            import trimesh
+            from trimesh import boolean as trimesh_boolean
+        except ImportError as exc:
+            raise CADNotImplementedError(
+                "Mesh boolean requires trimesh + manifold3d; "
+                "run `pip install -e '.[boolean]'`",
+                code="requires_boolean",
+            ) from exc
+        try:
+            vertices, faces = self.tessellate(target)
+            tool_vertices, tool_faces = self.tessellate(tool)
+            first = trimesh.Trimesh(vertices=vertices, faces=faces, process=False)
+            second = trimesh.Trimesh(vertices=tool_vertices, faces=tool_faces, process=False)
+            if operation == "union":
+                result = trimesh_boolean.union([first, second])
+            elif operation == "difference":
+                result = trimesh_boolean.difference([first, second])
+            else:
+                result = trimesh_boolean.intersection([first, second])
+        except Exception as exc:
+            raise CADNotImplementedError(
+                f"boolean {operation} failed: {exc}", code="unsupported_boolean"
+            ) from exc
+        return self._mesh_shape(result.vertices.tolist(), result.faces.tolist())
+
+    @staticmethod
+    def _mesh_shape(vertices: list[list[float]], faces: list[list[int]]) -> Shape:
+        """Wrap raw ``vertices``/``faces`` into a ``mesh`` shape dict."""
+        return {"kind": "mesh", "params": {"vertices": vertices, "faces": faces}}
+
+    def create_mesh(self, vertices: list[list[float]], faces: list[list[int]]) -> Shape:
+        """Create a ``mesh`` shape from explicit vertices and faces."""
+        return self._mesh_shape(
+            [list(vertex) for vertex in vertices],
+            [list(face) for face in faces],
+        )
 
     @staticmethod
     def _boxes_overlap(
@@ -707,12 +794,12 @@ class AnalyticKernel(CADKernel):
     def _tessellate_box(self, params: dict[str, Any]) -> tuple[list[list[float]], list[list[int]]]:
         corners = self._box_corners(params)
         faces = [
-            [0, 1, 3], [0, 3, 2],  # bottom
-            [4, 6, 5], [4, 7, 6],  # top
-            [0, 4, 5], [0, 5, 1],  # front
-            [1, 5, 7], [1, 7, 3],  # right
-            [2, 3, 7], [2, 7, 6],  # back
-            [0, 2, 6], [0, 6, 4],  # left
+            [0, 1, 3], [0, 3, 2],  # x-min
+            [4, 7, 5], [6, 7, 4],  # x-max
+            [0, 4, 5], [0, 5, 1],  # y-min
+            [1, 5, 7], [1, 7, 3],  # z-max
+            [2, 3, 7], [2, 7, 6],  # y-max
+            [0, 2, 6], [0, 6, 4],  # z-min
         ]
         return corners, faces
 
@@ -767,26 +854,39 @@ class AnalyticKernel(CADKernel):
         center = np.array(params["center"], dtype=float)
         radius = params["radius"]
         stacks, slices_ = 16, 24
-        vertices: list[list[float]] = []
-        faces: list[list[int]] = []
-        for i in range(stacks + 1):
+        vertices: list[list[float]] = [list(center + np.array([0.0, 0.0, radius]))]
+        rings: list[list[int]] = []
+        for i in range(1, stacks):
             phi = np.pi * i / stacks
+            ring: list[int] = []
             for j in range(slices_):
                 theta = 2.0 * np.pi * j / slices_
                 x = radius * np.sin(phi) * np.cos(theta)
                 y = radius * np.sin(phi) * np.sin(theta)
                 z = radius * np.cos(phi)
+                ring.append(len(vertices))
                 vertices.append((center + np.array([x, y, z])).tolist())
-        def index(i: int, j: int) -> int:
-            return i * slices_ + j % slices_
-        for i in range(stacks):
+            rings.append(ring)
+        south_pole = len(vertices)
+        vertices.append((center - np.array([0.0, 0.0, radius])).tolist())
+        faces: list[list[int]] = []
+        # Cap at the north pole.
+        top_ring = rings[0]
+        for j in range(slices_):
+            faces.append([top_ring[j], top_ring[(j + 1) % slices_], 0])
+        # Quad strips between rings.
+        for i in range(len(rings) - 1):
+            lower, upper = rings[i], rings[i + 1]
             for j in range(slices_):
-                a = index(i, j)
-                b = index(i + 1, j)
-                c = index(i + 1, j + 1)
-                d = index(i, j + 1)
-                faces.append([a, b, c])
-                faces.append([a, c, d])
+                j2 = (j + 1) % slices_
+                faces.append([lower[j], upper[j2], lower[j2]])
+                faces.append([lower[j], upper[j], upper[j2]])
+        # Cap at the south pole.
+        bottom_ring = rings[-1]
+        for j in range(slices_):
+            faces.append(
+                [bottom_ring[(j + 1) % slices_], bottom_ring[j], south_pole]
+            )
         return vertices, faces
 
     def _tessellate_cone(self, params: dict[str, Any]) -> tuple[list[list[float]], list[list[int]]]:
@@ -799,22 +899,34 @@ class AnalyticKernel(CADKernel):
         bottom = np.array(
             [[np.cos(a) * radius_bottom, np.sin(a) * radius_bottom, 0.0] for a in angles]
         )
-        upper = np.array(
-            [[np.cos(a) * radius_top, np.sin(a) * radius_top, params["height"]] for a in angles]
-        )
-        vertices = [(origin + point).tolist() for point in bottom] + \
-                   [(top + point).tolist() for point in upper]
-        bottom_center = len(vertices)
-        top_center = bottom_center + 1
-        vertices.append(origin.tolist())
-        vertices.append(top.tolist())
+        vertices = [(origin + point).tolist() for point in bottom]
         faces: list[list[int]] = []
-        for i in range(segments):
-            j = (i + 1) % segments
-            faces.append([i, j, segments + j])
-            faces.append([i, segments + j, segments + i])
-            faces.append([i, j, bottom_center])
-            faces.append([segments + i, segments + j, top_center])
+        bottom_center = len(vertices)
+        vertices.append(origin.tolist())
+        if radius_top > 0:
+            upper = np.array(
+                [
+                    [np.cos(a) * radius_top, np.sin(a) * radius_top, params["height"]]
+                    for a in angles
+                ]
+            )
+            upper_base = len(vertices)
+            vertices.extend((top + point).tolist() for point in upper)
+            top_center = len(vertices)
+            vertices.append(top.tolist())
+            for i in range(segments):
+                j = (i + 1) % segments
+                faces.append([i, j, upper_base + j])
+                faces.append([i, upper_base + j, upper_base + i])
+                faces.append([upper_base + i, upper_base + j, top_center])
+                faces.append([j, i, bottom_center])
+        else:
+            apex = len(vertices)
+            vertices.append(top.tolist())
+            for i in range(segments):
+                j = (i + 1) % segments
+                faces.append([i, j, apex])
+                faces.append([j, i, bottom_center])
         return vertices, faces
 
 

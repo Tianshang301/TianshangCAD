@@ -92,17 +92,54 @@ class TestBoolean:
         b = kernel.create_box([1, 1, 1], [2, 2, 2])
         assert kernel.boolean_union(a, b)["kind"] == "box"
 
-    def test_union_disjoint_raises(self, kernel: AnalyticKernel) -> None:
+    def test_union_disjoint_mesh(self, kernel: AnalyticKernel) -> None:
+        trimesh = pytest.importorskip("trimesh")
         a = kernel.create_box([0, 0, 0], [10, 10, 10])
         b = kernel.create_box([50, 0, 0], [10, 10, 10])
-        with pytest.raises(CADNotImplementedError):
-            kernel.boolean_union(a, b)
+        result = kernel.boolean_union(a, b)
+        assert result["kind"] == "mesh"
+        mesh = trimesh.Trimesh(
+            vertices=result["params"]["vertices"],
+            faces=result["params"]["faces"],
+        )
+        assert mesh.is_watertight
+        assert kernel.get_bbox(result) == {
+            "min": [0.0, 0.0, 0.0],
+            "max": [60.0, 10.0, 10.0],
+        }
 
-    def test_union_corner_raises(self, kernel: AnalyticKernel) -> None:
+    def test_union_corner_mesh(self, kernel: AnalyticKernel) -> None:
+        trimesh = pytest.importorskip("trimesh")
         a = kernel.create_box([0, 0, 0], [10, 10, 10])
         b = kernel.create_box([5, 5, 5], [10, 10, 10])
-        with pytest.raises(CADNotImplementedError):
-            kernel.boolean_union(a, b)
+        result = kernel.boolean_union(a, b)
+        assert result["kind"] == "mesh"
+        mesh = trimesh.Trimesh(
+            vertices=result["params"]["vertices"],
+            faces=result["params"]["faces"],
+        )
+        assert mesh.is_watertight
+        assert kernel.get_bbox(result) == {
+            "min": [0.0, 0.0, 0.0],
+            "max": [15.0, 15.0, 15.0],
+        }
+
+    def test_union_missing_extra_raises(self, kernel: AnalyticKernel) -> None:
+        a = kernel.create_box([0, 0, 0], [10, 10, 10])
+        b = kernel.create_box([50, 0, 0], [10, 10, 10])
+        import sys
+
+        real_trimesh = sys.modules.pop("trimesh", None)
+        try:
+            sys.modules["trimesh"] = None  # type: ignore[assignment]
+            with pytest.raises(CADNotImplementedError) as exc:
+                kernel.boolean_union(a, b)
+            assert exc.value.code == "requires_boolean"
+        finally:
+            if real_trimesh is not None:
+                sys.modules["trimesh"] = real_trimesh
+            else:
+                sys.modules.pop("trimesh", None)
 
     def test_intersect(self, kernel: AnalyticKernel) -> None:
         a = kernel.create_box([0, 0, 0], [10, 10, 10])
@@ -128,11 +165,21 @@ class TestBoolean:
         result = kernel.boolean_subtract(a, b)
         assert result["params"]["dimensions"] == [0.0, 0.0, 0.0]
 
-    def test_subtract_splitting_raises(self, kernel: AnalyticKernel) -> None:
+    def test_subtract_splitting_mesh(self, kernel: AnalyticKernel) -> None:
+        trimesh = pytest.importorskip("trimesh")
         a = kernel.create_box([0, 0, 0], [10, 10, 10])
         b = kernel.create_box([3, -1, -1], [4, 12, 12])
-        with pytest.raises(CADNotImplementedError):
-            kernel.boolean_subtract(a, b)
+        result = kernel.boolean_subtract(a, b)
+        assert result["kind"] == "mesh"
+        mesh = trimesh.Trimesh(
+            vertices=result["params"]["vertices"],
+            faces=result["params"]["faces"],
+        )
+        assert mesh.is_watertight
+        assert kernel.get_bbox(result) == {
+            "min": [0.0, 0.0, 0.0],
+            "max": [10.0, 10.0, 10.0],
+        }
 
     def test_union_non_box_raises(self, kernel: AnalyticKernel) -> None:
         line = kernel.create_line([0, 0, 0], [1, 0, 0])
@@ -202,7 +249,15 @@ class TestTessellate:
         shape = kernel.create_cone([0, 0, 0], radius_bottom=5, radius_top=0, height=10)
         vertices, faces = kernel.tessellate(shape)
         assert len(vertices) >= 2 + 24
-        assert len(faces) >= 4 * 24
+        assert len(faces) >= 2 * 24
+
+    def test_cone_mesh_watertight(self, kernel: AnalyticKernel) -> None:
+        trimesh = pytest.importorskip("trimesh")
+        shape = kernel.create_cone([0, 0, 0], radius_bottom=5, radius_top=2, height=10)
+        vertices, faces = kernel.tessellate(shape)
+        mesh = trimesh.Trimesh(vertices=vertices, faces=faces)
+        assert mesh.is_watertight
+        assert mesh.is_volume
 
     def test_line_tessellate_raises(self, kernel: AnalyticKernel) -> None:
         shape = kernel.create_line([0, 0, 0], [1, 0, 0])

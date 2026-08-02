@@ -1,4 +1,4 @@
-"""Editing commands: move, copy, rotate, scale, erase, list, undo, redo."""
+"""Editing commands: move, copy, rotate, scale, erase, list, undo, redo, boolean."""
 
 from __future__ import annotations
 
@@ -140,3 +140,45 @@ def cmd_redo() -> None:
     restore_document(doc, after)
     session.undo_stack.append(current)
     typer.echo("Redone")
+
+
+@app.command("union")
+@catch_errors
+def cmd_union(
+    target: str = typer.Argument(..., help="Target object id"),
+    tool: str = typer.Argument(..., help="Tool object id"),
+    new_id: str | None = typer.Option(None, "--new-id", help="Id for the result"),
+) -> None:
+    """Union two objects into a new mesh."""
+    doc = get_document()
+    push_undo()
+    result_id = doc.entities.boolean("union", target, tool, object_id=new_id)
+    typer.echo(f"Union {target} + {tool} -> {result_id}")
+
+
+@app.command("subtract")
+@catch_errors
+def cmd_subtract(
+    target: str = typer.Argument(..., help="Target object id"),
+    tool: str = typer.Argument(..., help="Tool object id"),
+    new_id: str | None = typer.Option(None, "--new-id", help="Id for the result"),
+) -> None:
+    """Subtract tool object from target object."""
+    doc = get_document()
+    push_undo()
+    result_id = doc.entities.boolean("subtract", target, tool, object_id=new_id)
+    typer.echo(f"Subtract {tool} from {target} -> {result_id}")
+
+
+@app.command("intersect")
+@catch_errors
+def cmd_intersect(
+    target: str = typer.Argument(..., help="Target object id"),
+    tool: str = typer.Argument(..., help="Tool object id"),
+    new_id: str | None = typer.Option(None, "--new-id", help="Id for the result"),
+) -> None:
+    """Intersect two objects into a new object."""
+    doc = get_document()
+    push_undo()
+    result_id = doc.entities.boolean("intersect", target, tool, object_id=new_id)
+    typer.echo(f"Intersect {target} & {tool} -> {result_id}")

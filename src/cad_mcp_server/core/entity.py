@@ -24,6 +24,7 @@ _TYPE_METHODS: dict[str, str] = {
     "cylinder": "create_cylinder",
     "sphere": "create_sphere",
     "cone": "create_cone",
+    "mesh": "create_mesh",
 }
 
 
@@ -207,6 +208,45 @@ class EntityManager:
         record.shape = self._kernel.transform(record.shape, matrix)
         record.touch()
         return record
+
+    def boolean(
+        self,
+        operation: str,
+        target_id: str,
+        tool_id: str,
+        object_id: str | None = None,
+        layer: str = "0",
+        properties: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> str:
+        """Combine two entities with a boolean and store the result.
+
+        ``operation`` is one of ``union``, ``subtract``, ``intersect``. The
+        source entities are left untouched; a new ``mesh`` entity records the
+        boolean result.
+        """
+        operation_key = operation.lower()
+        target = self.get(target_id)
+        tool = self.get(tool_id)
+        method_name = {
+            "union": "boolean_union",
+            "subtract": "boolean_subtract",
+            "difference": "boolean_subtract",
+            "intersect": "boolean_intersect",
+        }.get(operation_key)
+        if method_name is None:
+            supported = "union, subtract, intersect"
+            raise EntityError(
+                f"Unsupported boolean operation {operation!r}. Supported: {supported}",
+                code="unknown_boolean_op",
+            )
+        result_shape = getattr(self._kernel, method_name)(target.shape, tool.shape)
+        entity_id = object_id or new_entity_id()
+        record = EntityRecord(
+            entity_id, "mesh", result_shape, layer, properties, metadata
+        )
+        self._entities[entity_id] = record
+        return entity_id
 
     def get_bbox(self, entity_id: str) -> dict[str, list[float]]:
         """Return the bounding box of an entity."""
