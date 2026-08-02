@@ -77,17 +77,20 @@ def push_undo() -> None:
 
 
 def snapshot_document(doc: DocumentState) -> dict[str, Any]:
-    """Capture entities + layers + variables of ``doc`` as a snapshot."""
+    """Capture entities + layers + variables + constraints as a snapshot."""
     return {
         "entities": doc.entities.snapshot(),
         "layers": doc.layers.snapshot(),
         "variables": doc.variables.snapshot(),
+        "constraints": doc.constraints.snapshot(),
     }
 
 
 def restore_document(doc: DocumentState, snapshot: dict[str, Any]) -> None:
-    """Restore entities + layers + variables of ``doc`` from a snapshot."""
+    """Restore entities + layers + variables + constraints from a snapshot."""
     doc.entities.restore(snapshot["entities"])
     doc.layers.restore(snapshot["layers"])
     if "variables" in snapshot:
         doc.variables.restore(snapshot["variables"])
+    if "constraints" in snapshot:
+        doc.constraints.restore(snapshot["constraints"])

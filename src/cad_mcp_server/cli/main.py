@@ -8,7 +8,18 @@ import typer
 
 from cad_mcp_server import __version__
 from cad_mcp_server.cli.aliases import COMMAND_ALIASES
-from cad_mcp_server.cli.commands import batch, block, draw, edit, file, layer, measure, render, view
+from cad_mcp_server.cli.commands import (
+    batch,
+    block,
+    constraint,
+    draw,
+    edit,
+    file,
+    layer,
+    measure,
+    render,
+    view,
+)
 from cad_mcp_server.utils.logger import configure_logging
 
 app = typer.Typer(
@@ -27,6 +38,7 @@ app.add_typer(layer.app, name="layer", help="Layer management")
 app.add_typer(block.app, name="block", help="Blocks and parametrics")
 app.add_typer(render.app, name="render", help="Rendering output")
 app.add_typer(batch.app, name="batch", help="Batch processing")
+app.add_typer(constraint.app, name="constraint", help="Geometric constraints")
 
 
 @app.callback()

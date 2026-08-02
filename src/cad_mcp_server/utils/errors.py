@@ -69,3 +69,7 @@ class RateLimitError(CADError):
 
 class VariableError(CADError):
     """Raised for parametric variable / expression errors."""
+
+
+class ConstraintError(CADError):
+    """Raised for geometric constraint / solver errors."""

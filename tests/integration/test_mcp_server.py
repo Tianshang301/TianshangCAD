@@ -96,7 +96,11 @@ class TestMCPServer:
         assert "cad_variable_set" in names
         assert "cad_variable_list" in names
         assert "cad_object_boolean" in names
-        assert len(names) == 65
+        assert "cad_constraint_add" in names
+        assert "cad_constraint_remove" in names
+        assert "cad_constraint_list" in names
+        assert "cad_constraint_solve" in names
+        assert len(names) == 69
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(
