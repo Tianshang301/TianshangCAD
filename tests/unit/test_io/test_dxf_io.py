@@ -43,6 +43,36 @@ class TestDXFExport:
         d = ezdxf.readfile(str(target))
         assert "Outline" in d.layers
 
+    def test_export_solid_as_3dface(self, document_manager: DocumentManager, tmp_path) -> None:
+        doc_mgr = document_manager
+        doc_mgr.create("solid.json", unit="mm")
+        doc = doc_mgr.get_current()
+        doc.entities.create("box", {"origin": [0, 0, 0], "dimensions": [10, 5, 2]})
+        doc.entities.create("sphere", {"center": [0, 0, 0], "radius": 4})
+        target = tmp_path / "solid.dxf"
+        DXFExporter().export_document(doc, str(target))
+        d = ezdxf.readfile(str(target))
+        faces = [entity for entity in d.modelspace() if entity.dxftype() == "3DFACE"]
+        assert len(faces) > 0
+        first = faces[0].dxf
+        assert all(
+            hasattr(first, attr) for attr in ("vtx0", "vtx1", "vtx2", "vtx3")
+        )
+
+    def test_export_mesh_solid(self, document_manager: DocumentManager, tmp_path) -> None:
+        doc_mgr = document_manager
+        doc_mgr.create("mesh.json", unit="mm")
+        doc = doc_mgr.get_current()
+        doc.entities.create(
+            "mesh",
+            {"vertices": [[0, 0, 0], [1, 0, 0], [0, 1, 0]], "faces": [[0, 1, 2]]},
+        )
+        target = tmp_path / "mesh.dxf"
+        DXFExporter().export_document(doc, str(target))
+        d = ezdxf.readfile(str(target))
+        faces = [entity for entity in d.modelspace() if entity.dxftype() == "3DFACE"]
+        assert len(faces) == 1
+
 
 class TestDXFImport:
     """DXF import tests."""
