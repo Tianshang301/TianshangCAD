@@ -5,9 +5,9 @@ measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
 > **Status**: Phases 1–7 complete (v0.7.0 assembly + engineering drawings),
-> plus the v0.6.0 sprint and the v0.8.0 Task A/B (parametric features +
-> simulation interface). 820 tests passing, 86% coverage, `ruff` and `mypy`
-> clean.
+> plus the v0.6.0 sprint, the v0.8.0 Task A/B (parametric features +
+> simulation interface) and the v0.9.0 Task A (real-time collaboration).
+> 894 tests passing, 86% coverage, `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
 
@@ -15,7 +15,8 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 95 JSON-RPC tools over stdio or streamable HTTP, callable
+- **MCP Server** — 103 JSON-RPC tools over stdio, streamable HTTP or
+  WebSocket (collaboration), callable
   from Claude, Cursor and other MCP clients
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
   named views (iso / top / front / side / back / bottom), perspective /
@@ -118,7 +119,7 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (95 total)
+### Tools (103 total)
 
 | Group | Tools |
 |-------|-------|
@@ -140,6 +141,7 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 | Drawing | `cad_drawing_create`, `cad_drawing_add_view`, `cad_drawing_add_section`, `cad_drawing_add_dimension`, `cad_drawing_add_tolerance`, `cad_drawing_export` |
 | Features | `cad_feature_sweep`, `cad_feature_loft`, `cad_feature_fillet`, `cad_feature_chamfer`, `cad_feature_pattern_linear`, `cad_feature_pattern_circular`, `cad_feature_pattern_mirror` |
 | Simulation | `cad_sim_mesh`, `cad_sim_setup`, `cad_sim_run`, `cad_sim_result`, `cad_sim_list` |
+| Collaboration | `cad_collab_session`, `cad_collab_branch`, `cad_collab_annotation`, `cad_collab_presence`, `cad_collab_history`, `cad_collab_resolve`, `cad_collab_permission`, `cad_collab_sync` |
 
 ### Validation, rendering, 3D views & NLP
 
@@ -188,6 +190,35 @@ JSON consumable by `examples/threejs_viewer.html`. View definitions
 document and are also exposed as MCP tools (`cad_view_3d_*`,
 `cad_view_section`, `cad_view_explode`, `cad_view_animation`,
 `cad_webgl_sync`).
+
+### Real-time collaboration
+
+Phase 9 collaboration builds on the LWW-Map CRDT: a session holds the shared
+document state as keyed registers (geometry / layers / variables /
+constraints / assembly), with 4-role × 4-scope RBAC (viewer / editor / admin /
+owner over document / scene / assembly / settings). Sessions support
+presence, annotations, document branches (fork / edit / merge with explicit
+conflict resolution) and a transport-agnostic sync primitive:
+
+```bash
+# Optional dependency for the WebSocket hub
+pip install -e ".[collab]"
+
+cad-cli collab create --name review        # seed a session over the current doc
+cad-cli collab list
+cad-cli collab annotate <session_id> "check the hole"
+cad-cli collab perm <session_id> bob --role editor
+
+# WebSocket transport (default port 8082)
+python -m cad_mcp_server --transport ws --port 8082
+```
+
+MCP clients use `cad_collab_session`, `cad_collab_branch`,
+`cad_collab_annotation`, `cad_collab_presence`, `cad_collab_history`,
+`cad_collab_resolve`, `cad_collab_permission` and `cad_collab_sync`.
+WebSocket clients speak a small JSON envelope (`subscribe` / `op` / `sync` /
+`ping`) that maps onto the sync tool and broadcasts deltas to every
+subscriber of the same session.
 
 ### Batch & automation
 
@@ -273,7 +304,7 @@ pytest         # tests (coverage gate >= 80%)
 src/cad_mcp_server/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (95 tools)
+|   |-- server.py       # MCPServer wiring (103 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication

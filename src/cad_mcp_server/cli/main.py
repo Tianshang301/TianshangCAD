@@ -12,6 +12,7 @@ from cad_mcp_server.cli.commands import (
     assembly,
     batch,
     block,
+    collab,
     constraint,
     draw,
     drawing,
@@ -47,6 +48,7 @@ app.add_typer(assembly.app, name="assembly", help="Assembly modelling")
 app.add_typer(drawing.app, name="drawing", help="Engineering drawings")
 app.add_typer(features.app, name="feature", help="Parametric features")
 app.add_typer(simulation.app, name="sim", help="Simulation interface")
+app.add_typer(collab.app, name="collab", help="Real-time collaboration")
 
 
 @app.callback()

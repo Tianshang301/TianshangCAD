@@ -126,7 +126,15 @@ class TestMCPServer:
         assert "cad_sim_run" in names
         assert "cad_sim_result" in names
         assert "cad_sim_list" in names
-        assert len(names) == 95
+        assert "cad_collab_session" in names
+        assert "cad_collab_branch" in names
+        assert "cad_collab_annotation" in names
+        assert "cad_collab_presence" in names
+        assert "cad_collab_history" in names
+        assert "cad_collab_resolve" in names
+        assert "cad_collab_permission" in names
+        assert "cad_collab_sync" in names
+        assert len(names) == 103
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(

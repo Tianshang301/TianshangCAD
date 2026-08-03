@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from cad_mcp_server.core.collab import CollabManager
 from cad_mcp_server.core.document import DocumentManager
 from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.kernel import AnalyticKernel
@@ -20,6 +21,14 @@ def _clean_sessions() -> None:
     SessionManager().reset()
     yield
     SessionManager().reset()
+
+
+@pytest.fixture(autouse=True)
+def _clean_collab() -> None:
+    """Reset the collaboration registry before and after every test."""
+    CollabManager().reset()
+    yield
+    CollabManager().reset()
 
 
 @pytest.fixture(autouse=True)

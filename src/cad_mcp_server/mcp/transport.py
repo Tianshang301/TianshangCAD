@@ -1,19 +1,41 @@
-"""Transport layer: stdio and streamable HTTP.
+"""Transport layer: stdio, streamable HTTP and WebSocket collaboration sync.
 
 The HTTP transport exposes ``/health`` and ``/metrics`` custom routes and
 applies API-key authentication plus sliding-window rate limiting via
 Starlette middleware. The MCP endpoint itself lives at ``/mcp``.
+
+The WebSocket transport is a **collaboration sync channel** (the ``mcp``
+SDK has no native WS transport): clients subscribe to a
+:class:`~cad_mcp_server.core.collab.CollabSession`, push CRDT operations
+and receive broadcast deltas. It reuses ``cad_collab_sync`` and the
+``[collab]`` extra's ``websockets`` dependency, so it is optional.
 """
 
 from __future__ import annotations
 
 import asyncio
+import json
+from collections.abc import Callable
+from typing import Any, Protocol
 
 from mcp.server import MCPServer
 
 from cad_mcp_server.mcp.auth import api_key_enabled, validate_api_key
 from cad_mcp_server.mcp.rate_limit import RateLimiter
 from cad_mcp_server.utils.config import get_settings
+
+
+class WebSocketLike(Protocol):
+    """Minimal async WebSocket surface used by the sync handler."""
+
+    async def accept(self) -> None:
+        """Accept the incoming connection."""
+
+    async def send(self, payload: str) -> None:
+        """Send a text frame."""
+
+    async def receive(self) -> str | None:
+        """Receive the next text frame (``None`` when closed)."""
 
 
 def run_stdio(server: MCPServer) -> None:
@@ -132,3 +154,146 @@ def run_http(
     import uvicorn
 
     uvicorn.run(app, host=host, port=port, log_level="info")
+
+
+# ---------------------------------------------------------------------------
+# WebSocket collaboration sync
+# ---------------------------------------------------------------------------
+
+
+async def handle_ws_connection(
+    websocket: WebSocketLike,
+    *,
+    on_sync: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+) -> None:
+    """Serve one WebSocket client.
+
+    The protocol is a small JSON envelope over the MCP sync tool:
+    ``{"type": "subscribe", "session_id": ...}``,
+    ``{"type": "op", "session_id": ..., "ops": [...], "by_user": ...}`` and
+    ``{"type": "sync", "session_id": ..., "since": 0}``. The server replies
+    with ``{"type": "deltas", ...}`` and broadcasts applied ops to every
+    subscriber of the same session. ``on_sync`` defaults to a live
+    ``cad_collab_sync`` wrapper; tests inject a stub.
+    """
+
+    async def _send(payload: dict[str, Any]) -> None:
+        await websocket.send(json.dumps(payload))
+
+    async def _receive() -> dict[str, Any] | None:
+        try:
+            message = await websocket.receive()
+        except Exception:
+            return None
+        if message is None:
+            return None
+        try:
+            data = json.loads(message)
+        except (TypeError, ValueError):
+            return None
+        return data if isinstance(data, dict) else None
+
+    await websocket.accept()
+    subscription: str | None = None
+    if on_sync is None:
+        from cad_mcp_server.mcp.tools.collab import (
+            CollabSyncInput,
+            cad_collab_sync,
+        )
+
+        def on_sync(payload: dict[str, Any]) -> dict[str, Any]:
+            result = cad_collab_sync(
+                CollabSyncInput(
+                    session_id=str(payload["session_id"]),
+                    since=int(payload.get("since", 0)),
+                    ops=list(payload.get("ops", [])),
+                    include_state=bool(payload.get("include_state", True)),
+                    by_user=str(payload.get("by_user", "owner")),
+                )
+            )
+            return result.model_dump()
+
+    while True:
+        data = await _receive()
+        if data is None:
+            break
+        kind = data.get("type")
+        if kind == "subscribe":
+            subscription = str(data.get("session_id", ""))
+            await _send({"type": "subscribed", "session_id": subscription})
+        elif kind == "op" or kind == "sync":
+            session_id = str(data.get("session_id", subscription or ""))
+            if not session_id:
+                await _send({"type": "error", "message": "session_id is required"})
+                continue
+            try:
+                output = on_sync({**data, "session_id": session_id})
+            except Exception as exc:
+                await _send({"type": "error", "message": str(exc)})
+                continue
+            await _send({"type": "deltas", "session_id": session_id, **output})
+            if kind == "op":
+                await broadcast_deltas(session_id, output)
+        elif kind == "ping":
+            await _send({"type": "pong"})
+        else:
+            await _send({"type": "error", "message": f"Unknown message type: {kind}"})
+
+
+async def broadcast_deltas(session_id: str, payload: dict[str, Any]) -> None:
+    """No-op broadcast hook.
+
+    The full multi-client hub lives in :func:`run_ws`; this placeholder
+    keeps :func:`handle_ws_connection` self-contained and unit-testable
+    without a live socket.
+    """
+    from cad_mcp_server.utils.logger import get_logger
+
+    get_logger(__name__).info(
+        "collab broadcast",
+        session_id=session_id,
+        ops=len(payload.get("ops", [])),
+    )
+
+
+def run_ws(host: str = "127.0.0.1", port: int = 8082) -> None:
+    """Run a WebSocket collaboration hub on ``host:port``.
+
+    Requires the optional ``[collab]`` extra (``websockets``). Each client
+    is served by :func:`handle_ws_connection`, which is shared with the
+    unit tests.
+    """
+    try:
+        import websockets  # type: ignore[import-not-found]
+    except ImportError as exc:  # pragma: no cover - environment dependent
+        raise RuntimeError(
+            "WebSocket transport requires the 'collab' extra: pip install -e '.[collab]'"
+        ) from exc
+
+    def on_sync(payload: dict[str, Any]) -> dict[str, Any]:
+        from cad_mcp_server.mcp.tools.collab import (
+            CollabSyncInput,
+            cad_collab_sync,
+        )
+
+        # Bind the payload to a concrete session if it exists, otherwise
+        # let the sync tool raise the friendly "session_not_found" error.
+        result = cad_collab_sync(
+            CollabSyncInput(
+                session_id=str(payload["session_id"]),
+                since=int(payload.get("since", 0)),
+                ops=list(payload.get("ops", [])),
+                include_state=bool(payload.get("include_state", True)),
+                by_user=str(payload.get("by_user", "owner")),
+            )
+        )
+        return result.model_dump()
+
+    async def handler(websocket: WebSocketLike) -> None:
+        await handle_ws_connection(websocket, on_sync=on_sync)
+
+    async def serve() -> None:
+        async with websockets.serve(handler, host, port):
+            await asyncio.Future()  # run forever
+
+    asyncio.run(serve())

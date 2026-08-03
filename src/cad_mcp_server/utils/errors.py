@@ -85,3 +85,7 @@ class DrawingError(CADError):
 
 class SimulationError(CADError):
     """Raised for simulation lifecycle / execution errors."""
+
+
+class CollabError(CADError):
+    """Raised for collaboration session / sync errors."""

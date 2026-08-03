@@ -16,6 +16,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         assembly,
         batch,
         boolean,
+        collab,
         constraint,
         crud,
         drawing,
@@ -51,6 +52,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         drawing,
         features,
         simulation,
+        collab,
     ):
         tools.extend(module.TOOLS)
     return dict(tools)
