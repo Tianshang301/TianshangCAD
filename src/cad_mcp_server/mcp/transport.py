@@ -353,7 +353,7 @@ def run_ws(host: str = "127.0.0.1", port: int = 8082) -> None:
     handler = make_ws_connection_handler(hub, on_sync)
 
     async def serve() -> None:
-        async with websockets.serve(handler, host, port):  # type: ignore[arg-type]
+        async with websockets.serve(handler, host, port):  # type: ignore[arg-type, unused-ignore]
             await asyncio.Future()  # run forever
 
     asyncio.run(serve())
