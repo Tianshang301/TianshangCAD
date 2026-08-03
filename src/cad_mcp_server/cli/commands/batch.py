@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from pathlib import Path
 from typing import Any
 
@@ -11,12 +12,14 @@ import typer
 from cad_mcp_server.cli.utils import catch_errors, fail
 from cad_mcp_server.mcp.tools.batch import (
     BatchCancelInput,
+    BatchExecuteInput,
     BatchListInput,
     BatchRunScriptInput,
     BatchScheduleInput,
     BatchStatusInput,
     BatchTemplatesInput,
     cad_batch_cancel,
+    cad_batch_execute,
     cad_batch_list,
     cad_batch_run_script,
     cad_batch_schedule,
@@ -26,6 +29,18 @@ from cad_mcp_server.mcp.tools.batch import (
 from cad_mcp_server.mcp.tools.crud import FileCreateInput, cad_file_create
 
 app = typer.Typer(help="Batch processing")
+
+_TERMINAL_STATES = ("done", "error", "cancelled")
+
+
+def _print_results(results: Any) -> None:
+    """Print per-command results in a compact table."""
+    if not results:
+        return
+    for item in results:
+        mark = "ok " if item.success else "ERR"
+        detail = item.error or "done"
+        typer.echo(f"  [{item.index}] {mark} {item.tool}: {detail}")
 
 
 def _load_commands(path: str) -> list[dict[str, Any]]:
@@ -58,8 +73,21 @@ def cmd_schedule(
     webhook_url: str | None = typer.Option(
         None, "--webhook-url", help="URL to notify on completion"
     ),
+    wait: bool = typer.Option(
+        False,
+        "--wait",
+        help="Keep the CLI alive until a one-off (non-cron) job completes",
+    ),
+    timeout: float = typer.Option(
+        120.0, "--timeout", help="Maximum seconds to wait before giving up (with --wait)"
+    ),
 ) -> None:
-    """Schedule a batch job from a commands JSON file."""
+    """Schedule a batch job from a commands JSON file.
+
+    Without ``--cron`` the job runs once. ``--wait`` keeps the process
+    alive until that one-shot job reaches a terminal state, so the job is
+    guaranteed to actually execute in CLI mode.
+    """
     commands = _load_commands(commands_file)
     from cad_mcp_server.mcp.tools.batch import BatchCommand
 
@@ -75,6 +103,56 @@ def cmd_schedule(
     if result.status == "error":
         fail(result.message or "Failed to schedule job")
     typer.echo(f"Scheduled {result.job_id}: {result.message}")
+
+    if not wait:
+        return
+    if cron:
+        typer.echo("--wait is only valid for one-off (non-cron) jobs")
+        return
+
+    deadline = time.monotonic() + timeout
+    while True:
+        status = cad_batch_status(BatchStatusInput(job_id=result.job_id))
+        if status.state in _TERMINAL_STATES:
+            typer.echo(f"Job {result.job_id} finished: {status.state}")
+            _print_results(status.results)
+            if status.state != "done":
+                raise typer.Exit(code=1)
+            return
+        if time.monotonic() >= deadline:
+            typer.echo(f"Timed out waiting for job {result.job_id} (state: {status.state})")
+            raise typer.Exit(code=1)
+        time.sleep(0.2)
+
+
+@app.command("run")
+@catch_errors
+def cmd_run(
+    commands_file: str = typer.Argument(
+        ..., help="JSON file with an array of {tool, arguments}"
+    ),
+    stop_on_error: bool = typer.Option(
+        False, "--stop-on-error", help="Stop execution on the first error"
+    ),
+) -> None:
+    """Execute a commands JSON file synchronously (one-shot, no scheduler)."""
+    commands = _load_commands(commands_file)
+    from cad_mcp_server.mcp.tools.batch import BatchCommand
+
+    result = cad_batch_execute(
+        BatchExecuteInput(
+            commands=[BatchCommand.model_validate(command) for command in commands],
+            stop_on_error=stop_on_error,
+        )
+    )
+    if result.results:
+        for item in result.results:
+            mark = "ok " if item.success else "ERR"
+            detail = item.error or "done"
+            typer.echo(f"  [{item.index}] {mark} {item.tool}: {detail}")
+    typer.echo(result.message)
+    if result.status != "success":
+        raise typer.Exit(code=1)
 
 
 @app.command("run-script")
@@ -135,11 +213,7 @@ def cmd_status(job_id: str = typer.Argument(..., help="Job id")) -> None:
     typer.echo(f"State: {result.state}")
     typer.echo(f"Created: {result.created_at}")
     typer.echo(f"Commands: {result.command_count}")
-    if result.results:
-        for item in result.results:
-            mark = "ok " if item.success else "ERR"
-            detail = item.error or "done"
-            typer.echo(f"  [{item.index}] {mark} {item.tool}: {detail}")
+    _print_results(result.results)
 
 
 @app.command("cancel")

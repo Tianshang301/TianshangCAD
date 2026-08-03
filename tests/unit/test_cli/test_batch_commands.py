@@ -58,3 +58,45 @@ class TestBatchCommands:
         result = runner.invoke(app, ["batch", "run-script", str(script)])
         assert result.exit_code == 1
         assert "policy violation" in result.stderr or "Script failed" in result.stderr
+
+    def test_run_executes_synchronously(self, tmp_path) -> None:
+        commands_file = tmp_path / "commands.json"
+        commands_file.write_text(
+            '[{"tool": "cad_metrics_get", "arguments": {}}]', encoding="utf-8"
+        )
+        result = runner.invoke(app, ["batch", "run", str(commands_file)])
+        assert result.exit_code == 0
+        assert "ok " in result.stdout
+        assert "All commands succeeded" in result.stdout
+
+    def test_run_reports_failure(self, tmp_path) -> None:
+        commands_file = tmp_path / "commands.json"
+        commands_file.write_text(
+            '[{"tool": "cad_no_such_tool", "arguments": {}}]', encoding="utf-8"
+        )
+        result = runner.invoke(app, ["batch", "run", str(commands_file)])
+        assert result.exit_code == 1
+        assert "failed" in result.stdout
+
+    def test_schedule_wait_runs_one_shot(self, tmp_path) -> None:
+        commands_file = tmp_path / "commands.json"
+        commands_file.write_text(
+            '[{"tool": "cad_metrics_get", "arguments": {}}]', encoding="utf-8"
+        )
+        result = runner.invoke(
+            app,
+            [
+                "batch",
+                "schedule",
+                str(commands_file),
+                "--name",
+                "cli-wait-test",
+                "--wait",
+                "--timeout",
+                "10",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "Scheduled" in result.stdout
+        assert "finished: done" in result.stdout
+        assert "ok " in result.stdout
