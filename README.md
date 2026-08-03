@@ -365,6 +365,10 @@ amd64) and publishes them to a GitHub Release.
 
 **Apache License 2.0** — see [`LICENSE`](LICENSE).
 
+Community guidelines: [Code of Conduct](CODE_OF_CONDUCT.md) ·
+Security: [SECURITY.md](SECURITY.md) · Contributing via pull requests is
+welcome.
+
 Third-party runtime dependencies are all permissive-licensed (MIT / BSD /
 Apache-2.0 / ISC / PSF, plus MPL-2.0 for `certifi`); the full inventory is in
 [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md).

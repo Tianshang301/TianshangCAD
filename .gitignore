@@ -34,6 +34,8 @@ docs/_build/
 !THIRD_PARTY_LICENSES.md
 !CHANGELOG.md
 !MIGRATION.md
+!SECURITY.md
+!CODE_OF_CONDUCT.md
 
 # docs/: keep ignored except the community outreach copy
 docs/*
