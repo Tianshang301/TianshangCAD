@@ -138,7 +138,7 @@ def solve_2d(
             message="Nothing to solve",
         )
 
-    def _point(entity_id: str, index: int, x: np.ndarray) -> tuple[float, float]:
+    def _point(entity_id: str, index: int, x: np.ndarray[Any, Any]) -> tuple[float, float]:
         if entity_id in var_offsets:
             offset = var_offsets[entity_id]
             kind = var_kinds[entity_id]
@@ -154,7 +154,7 @@ def solve_2d(
             return (values[2], values[3])
         return (values[0], values[1])
 
-    def _direction(entity_id: str, x: np.ndarray) -> tuple[float, float]:
+    def _direction(entity_id: str, x: np.ndarray[Any, Any]) -> tuple[float, float]:
         start = _point(entity_id, 0, x)
         end = _point(entity_id, 1, x)
         return (end[0] - start[0], end[1] - start[1])
@@ -164,7 +164,7 @@ def solve_2d(
             return var_kinds[entity_id]
         return anchored[entity_id][0]
 
-    def _radius(entity_id: str, x: np.ndarray) -> float:
+    def _radius(entity_id: str, x: np.ndarray[Any, Any]) -> float:
         if entity_id in var_offsets:
             offset = var_offsets[entity_id]
             return float(x[offset + 2])
@@ -176,14 +176,14 @@ def solve_2d(
     def _dot(u: tuple[float, float], v: tuple[float, float]) -> float:
         return u[0] * v[0] + u[1] * v[1]
 
-    def _unit_direction(entity_id: str, x: np.ndarray) -> tuple[float, float]:
+    def _unit_direction(entity_id: str, x: np.ndarray[Any, Any]) -> tuple[float, float]:
         dx, dy = _direction(entity_id, x)
         length = math.hypot(dx, dy)
         if length < _MIN_RADIUS:
             return (0.0, 0.0)
         return (dx / length, dy / length)
 
-    def residual(x: np.ndarray) -> np.ndarray:
+    def residual(x: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
         rows: list[float] = []
         for constraint in constraints:
             ctype = constraint.type
@@ -277,7 +277,7 @@ def solve_2d(
     iterations = 0
     residual_norm = float("inf")
 
-    def _jacobian(x_current: np.ndarray) -> np.ndarray:
+    def _jacobian(x_current: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
         base = residual(x_current)
         rows = len(base)
         jac = np.zeros((rows, n))

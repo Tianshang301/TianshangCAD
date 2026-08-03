@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import math
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 
-Matrix4 = np.ndarray
+Matrix4 = np.ndarray[Any, Any]
 
 
 def translation(dx: float = 0.0, dy: float = 0.0, dz: float = 0.0) -> Matrix4:

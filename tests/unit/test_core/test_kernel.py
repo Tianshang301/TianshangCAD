@@ -276,8 +276,15 @@ class TestFactory:
             get_kernel("quantum")
 
     def test_ocp_missing_backend(self) -> None:
-        with pytest.raises(CADValidationError):
-            get_kernel("ocp")
+        try:
+            import cadquery  # noqa: F401
+        except ImportError:
+            with pytest.raises(CADValidationError):
+                get_kernel("ocp")
+        else:
+            from cad_mcp_server.core.backends.occt import OCCTKernel
+
+            assert isinstance(get_kernel("ocp"), OCCTKernel)
 
     def test_freecad_missing_backend(self) -> None:
         with pytest.raises(CADValidationError):

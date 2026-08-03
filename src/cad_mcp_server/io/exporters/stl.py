@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import struct
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
 from cad_mcp_server.core.document import DocumentState
 from cad_mcp_server.core.kernel import AnalyticKernel
 from cad_mcp_server.utils.errors import CADExportError, CADNotImplementedError
+
+_NdArray = np.ndarray[Any, Any]
 
 
 class STLExporter:
@@ -21,7 +24,7 @@ class STLExporter:
 
     def export_document(self, doc: DocumentState, filepath: str, deflection: float = 0.1) -> None:
         """Write ``doc``'s solid entities to a binary STL file."""
-        triangles: list[tuple[np.ndarray, np.ndarray, np.ndarray]] = []
+        triangles: list[tuple[_NdArray, _NdArray, _NdArray]] = []
         for record in doc.entities.list():
             try:
                 vertices, faces = self._kernel.tessellate(record.shape, deflection)
@@ -47,7 +50,7 @@ class STLExporter:
 
     @staticmethod
     def _write_binary(
-        path: Path, triangles: list[tuple[np.ndarray, np.ndarray, np.ndarray]]
+        path: Path, triangles: list[tuple[_NdArray, _NdArray, _NdArray]]
     ) -> None:
         try:
             with path.open("wb") as handle:
@@ -65,11 +68,11 @@ class STLExporter:
             ) from exc
 
 
-def _triangle_normal(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
+def _triangle_normal(a: _NdArray, b: _NdArray, c: _NdArray) -> _NdArray:
     u = b - a
     v = c - a
     normal = np.cross(u, v)
     length = np.linalg.norm(normal)
     if length == 0:
         return np.zeros(3)
-    return normal / length
+    return normal / length  # type: ignore[no-any-return]

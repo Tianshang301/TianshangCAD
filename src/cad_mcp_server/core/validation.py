@@ -54,7 +54,10 @@ class ValidationIssue:
 
 
 def _segment_intersection(
-    p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray
+    p1: np.ndarray[Any, Any],
+    p2: np.ndarray[Any, Any],
+    p3: np.ndarray[Any, Any],
+    p4: np.ndarray[Any, Any],
 ) -> list[float] | None:
     """Return the 2D intersection point of two segments, or ``None``."""
     r = p2 - p1
@@ -81,22 +84,28 @@ def _segment_intersection(
 
 
 def _segments_intersect(
-    p1: np.ndarray, p2: np.ndarray, p3: np.ndarray, p4: np.ndarray
+    p1: np.ndarray[Any, Any],
+    p2: np.ndarray[Any, Any],
+    p3: np.ndarray[Any, Any],
+    p4: np.ndarray[Any, Any],
 ) -> bool:
     return _segment_intersection(p1, p2, p3, p4) is not None
 
 
 def _shares_endpoint(
-    a1: np.ndarray, a2: np.ndarray, b1: np.ndarray, b2: np.ndarray
+    a1: np.ndarray[Any, Any],
+    a2: np.ndarray[Any, Any],
+    b1: np.ndarray[Any, Any],
+    b2: np.ndarray[Any, Any],
 ) -> bool:
     endpoints_a = [a1, a2]
     endpoints_b = [b1, b2]
-    return any(
-        np.allclose(pa, pb, atol=1e-8) for pa in endpoints_a for pb in endpoints_b
-    )
+    return any(np.allclose(pa, pb, atol=1e-8) for pa in endpoints_a for pb in endpoints_b)
 
 
-def _triangle_area_3d(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> float:
+def _triangle_area_3d(
+    a: np.ndarray[Any, Any], b: np.ndarray[Any, Any], c: np.ndarray[Any, Any]
+) -> float:
     """Area of a triangle in 3D space via the cross-product magnitude."""
     return float(np.linalg.norm(np.cross(b - a, c - a)) / 2.0)
 
@@ -129,9 +138,7 @@ def _outline_points(shape: Shape) -> list[list[float]] | None:
     if kind == "polygon":
         center = np.array(params["center"][:2], dtype=float)
         radius, sides, rotation = params["radius"], params["sides"], params["rotation"]
-        angles = np.radians(rotation) + np.radians(
-            np.linspace(0.0, 360.0, sides, endpoint=False)
-        )
+        angles = np.radians(rotation) + np.radians(np.linspace(0.0, 360.0, sides, endpoint=False))
         z = float(params["center"][2]) if len(params["center"]) > 2 else 0.0
         return [
             [float(center[0] + radius * np.cos(a)), float(center[1] + radius * np.sin(a)), z]
@@ -174,13 +181,9 @@ def _check_self_intersection(shape: Shape, kernel: CADKernel) -> list[Validation
             issues.append(
                 ValidationIssue(
                     issue_type="self_intersection",
-                    message=(
-                        f"Segments {i} and {j} intersect each other"
-                    ),
+                    message=(f"Segments {i} and {j} intersect each other"),
                     location=point,
-                    fix_suggestion=(
-                        "Move, delete or reroute one of the crossing segments"
-                    ),
+                    fix_suggestion=("Move, delete or reroute one of the crossing segments"),
                     details={"segment_a": i, "segment_b": j},
                 )
             )
@@ -252,13 +255,9 @@ def _check_non_manifold_edges(shape: Shape) -> list[ValidationIssue]:
             issues.append(
                 ValidationIssue(
                     issue_type="non_manifold_edge",
-                    message=(
-                        f"Edge {edge} is shared by {len(owners)} faces "
-                        f"(expected at most 2)"
-                    ),
+                    message=(f"Edge {edge} is shared by {len(owners)} faces (expected at most 2)"),
                     fix_suggestion=(
-                        "Split or rewire the edge so each edge borders at most "
-                        "two faces"
+                        "Split or rewire the edge so each edge borders at most two faces"
                     ),
                     details={"edge": list(edge), "faces": owners},
                 )
@@ -350,9 +349,7 @@ def overlap_bbox(
     return None
 
 
-def interference_volume(
-    a: dict[str, list[float]], b: dict[str, list[float]]
-) -> float:
+def interference_volume(a: dict[str, list[float]], b: dict[str, list[float]]) -> float:
     """Return the overlap volume of two bounding boxes (0 when disjoint)."""
     overlap = overlap_bbox(a, b)
     if overlap is None:

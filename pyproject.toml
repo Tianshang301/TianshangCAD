@@ -39,9 +39,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-occ = ["cadquery>=2.4"]
+occ = ["cadquery>=2.4,<3", "numpy>=1.26,<2"]
 freecad = []
-boolean = ["trimesh>=4.0", "manifold3d>=2.0"]
+boolean = ["trimesh>=4.0", "manifold3d>=2.0", "scipy>=1.12,<1.14"]
 solver = ["planegcs>=0.8.0"]
 dev = [
     "pytest>=8.0",
@@ -90,7 +90,15 @@ plugins = ["pydantic.mypy"]
 minversion = "8.0"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
-filterwarnings = ["error"]
+filterwarnings = [
+    "error",
+    # cadquery 2.4 pulls pyparsing which emits PyparsingDeprecationWarning
+    # on import (upstream issue, not our code). Ignore only this warning.
+    "ignore::pyparsing.warnings.PyparsingDeprecationWarning",
+    # nptyping (cadquery dependency) uses removed numpy aliases (np.bool8,
+    # np.object0, ...) under numpy 1.26. Upstream issue; harmless.
+    "ignore::DeprecationWarning:nptyping",
+]
 
 [tool.coverage.run]
 branch = true

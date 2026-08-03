@@ -502,13 +502,19 @@ class AnalyticKernel(CADKernel):
 
     @staticmethod
     def _boxes_overlap(
-        a_min: np.ndarray, a_max: np.ndarray, b_min: np.ndarray, b_max: np.ndarray
+        a_min: np.ndarray[Any, Any],
+        a_max: np.ndarray[Any, Any],
+        b_min: np.ndarray[Any, Any],
+        b_max: np.ndarray[Any, Any],
     ) -> bool:
         return all(a_max[i] > b_min[i] and b_max[i] > a_min[i] for i in range(3))
 
     @staticmethod
     def _box_contains(
-        outer_min: np.ndarray, outer_max: np.ndarray, inner_min: np.ndarray, inner_max: np.ndarray
+        outer_min: np.ndarray[Any, Any],
+        outer_max: np.ndarray[Any, Any],
+        inner_min: np.ndarray[Any, Any],
+        inner_max: np.ndarray[Any, Any],
     ) -> bool:
         return all(inner_min[i] >= outer_min[i] and inner_max[i] <= outer_max[i] for i in range(3))
 
@@ -733,7 +739,7 @@ class AnalyticKernel(CADKernel):
     def _cylinder_extents(self, params: dict[str, Any]) -> list[list[float]]:
         origin = np.array(params["origin"], dtype=float)
         axis = np.array(params["axis"], dtype=float)
-        norm = np.linalg.norm(axis)
+        norm = float(np.linalg.norm(axis))
         if norm == 0:
             axis = np.array([0.0, 0.0, 1.0])
             norm = 1.0
@@ -959,13 +965,13 @@ class AnalyticKernel(CADKernel):
         return vertices, faces
 
 
-def _bbox_arrays(shape: Shape) -> tuple[np.ndarray, np.ndarray]:
+def _bbox_arrays(shape: Shape) -> tuple[np.ndarray[Any, Any], np.ndarray[Any, Any]]:
     kernel = AnalyticKernel()
     bbox = kernel.get_bbox(shape)
     return np.array(bbox["min"], dtype=float), np.array(bbox["max"], dtype=float)
 
 
-def _align_z_rotation(axis: np.ndarray) -> np.ndarray:
+def _align_z_rotation(axis: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
     """Return a rotation matrix that maps Z onto ``axis``."""
     z = np.array([0.0, 0.0, 1.0])
     axis = np.asarray(axis, dtype=float)
