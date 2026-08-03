@@ -2,6 +2,25 @@
 
 Notable changes to TianshangCAD (cad-mcp-server), newest first.
 
+## v0.9.1 - 2026-08-04
+
+Maintenance release.
+
+### Changed
+- The Debian package is now a real self-contained bundle: the project wheel
+  plus pinned runtime dependency wheels are installed under
+  `/usr/lib/cad-mcp-server/site` with `/usr/bin` entry-point wrappers. No
+  network access is required at install time. Architecture is `amd64`.
+- `_DEGENERATE_LENGTH` widened to `1e-4` so boundary-degenerate lines
+  (length exactly `1e-5`) converge instead of stalling the constraint solver.
+
+### Fixed
+- `test_parallel_holds_for_random_lines`: the parallel assertion now
+  normalizes directions before the cross product (tolerance is `sin(theta)`,
+  scale-invariant), and boundary-length lines converge. Verified across
+  hypothesis seeds 1..60.
+- API key comparison is constant-time (`hmac.compare_digest`).
+
 ## v0.9.0 - 2026-08-03
 
 Largest release yet: pre-research spikes (solver, OCC, CRDT), Phase 7
