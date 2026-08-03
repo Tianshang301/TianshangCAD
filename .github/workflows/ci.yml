@@ -59,7 +59,7 @@ jobs:
           if [ "${{ matrix.python }}" = "3.12" ]; then pip install ".[solver]"; fi
       - name: Run pytest with coverage gate
         run: |
-          pytest --cov=cad_mcp_server --cov-report=term-missing --cov-fail-under=80 -q
+          pytest -m "not stress" --cov=cad_mcp_server --cov-report=term-missing --cov-fail-under=80 -q
       - name: Upload coverage report
         if: ${{ matrix.python == '3.12' && always() }}
         uses: actions/upload-artifact@v4
@@ -67,3 +67,20 @@ jobs:
           name: coverage-report
           path: htmlcov/
           if-no-files-found: ignore
+
+  stress:
+    name: Stress (concurrency + soak)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,boolean]"
+      - name: Run stress tests
+        run: pytest -m stress -q

@@ -93,6 +93,9 @@ plugins = ["pydantic.mypy"]
 minversion = "8.0"
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+markers = [
+    "stress: long-running concurrency / soak tests run in the dedicated stress CI job",
+]
 filterwarnings = [
     "error",
     # cadquery 2.4 pulls pyparsing which emits PyparsingDeprecationWarning
