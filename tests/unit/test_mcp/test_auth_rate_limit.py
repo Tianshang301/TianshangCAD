@@ -70,6 +70,19 @@ class TestAuth:
             get_settings.cache_clear()
             os.environ.pop("CAD_API_KEYS", None)
 
+    def test_constant_time_comparison(self) -> None:
+        os.environ["CAD_API_KEY"] = "secret123"
+        try:
+            from cad_mcp_server.utils.config import get_settings
+
+            get_settings.cache_clear()
+            assert validate_api_key(" secret123 ") is True
+            assert validate_api_key("SECRET123") is False
+            assert validate_api_key("") is False
+        finally:
+            get_settings.cache_clear()
+            os.environ.pop("CAD_API_KEY", None)
+
     def test_middleware_rejects_without_key(self) -> None:
         os.environ["CAD_API_KEY"] = "secret123"
         try:

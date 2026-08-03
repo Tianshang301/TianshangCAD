@@ -7,6 +7,8 @@ no key is configured the HTTP endpoint is open (local development).
 
 from __future__ import annotations
 
+import hmac
+
 from cad_mcp_server.utils.config import get_settings
 
 
@@ -37,4 +39,7 @@ def validate_api_key(token: str | None) -> bool:
         return True
     if not token:
         return False
-    return token.strip() in set(_configured_keys())
+    candidate = token.strip()
+    return any(
+        hmac.compare_digest(candidate.encode(), key.encode()) for key in _configured_keys()
+    )
