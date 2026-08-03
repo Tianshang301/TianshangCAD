@@ -140,6 +140,26 @@ def _build_middleware(app: object) -> object:
     return app
 
 
+def build_http_app(
+    server: MCPServer,
+    streamable_http_path: str = "/mcp",
+    host: str = "127.0.0.1",
+) -> Any:
+    """Build the streamable HTTP Starlette app with auth + metrics routes.
+
+    Returns the Starlette ASGI app instance. Extracted from :func:`run_http`
+    so integration tests can exercise the real HTTP stack (init, middleware,
+    call) over ``httpx.ASGITransport`` or a live uvicorn server.
+    """
+    _register_http_routes(server)
+    app = server.streamable_http_app(
+        streamable_http_path=streamable_http_path,
+        host=host,
+    )
+    _build_middleware(app)
+    return app
+
+
 def run_http(
     server: MCPServer,
     host: str = "127.0.0.1",
@@ -147,12 +167,7 @@ def run_http(
     streamable_http_path: str = "/mcp",
 ) -> None:
     """Run the server over streamable HTTP with auth + metrics routes."""
-    _register_http_routes(server)
-    app = server.streamable_http_app(
-        streamable_http_path=streamable_http_path,
-        host=host,
-    )
-    _build_middleware(app)
+    app = build_http_app(server, streamable_http_path=streamable_http_path, host=host)
     import uvicorn
 
     uvicorn.run(app, host=host, port=port, log_level="info")
