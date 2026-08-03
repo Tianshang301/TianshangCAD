@@ -7,7 +7,8 @@ command line and as standardized tools callable by any MCP client (AI agent).
 > **Status**: Phases 1–7 complete (v0.7.0 assembly + engineering drawings),
 > plus the v0.6.0 sprint, the v0.8.0 Task A/B (parametric features +
 > simulation interface) and the v0.9.0 Task A (real-time collaboration).
-> 894 tests passing, 86% coverage, `ruff` and `mypy` clean.
+> 907 tests passing, ~87% coverage (measured with optional extras
+> installed), `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
 
@@ -43,7 +44,10 @@ command line and as standardized tools callable by any MCP client (AI agent).
   metrics (`/metrics`), API-key authentication (401/403), sliding-window
   rate limiting (429) and a `/health` endpoint
 - **Quality gates** — `mypy` strict typing, `ruff` linting, `pytest` with a
-  80% coverage floor; GitHub Actions CI runs lint + tests on every push
+  80% coverage floor; GitHub Actions CI runs lint + tests on every push.
+  The reported ~87% coverage assumes the optional extras (`boolean`,
+  `solver`, `occ`, `collab`, `sim`) are installed; the base
+  `pip install -e .` suite measures lower.
 
 ## Install
 
@@ -335,10 +339,6 @@ tests/
 
 ## Documentation
 
-- `AGENTS.md` — full development guide and roadmap
-- `docs/architecture.md` — system design
-- `docs/roadmap_v0.2.5.md` — future development roadmap
-- `docs/development_plan_v0.3.0.md` — Phase 5/6 implementation plan
 - `readme/README.zh-CN.md` — Chinese README
 
 ## Continuous Integration

@@ -4,9 +4,9 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
-> **当前状态**：Phases 1–7 完成（v0.7.0 装配 + 工程图），并完成 v0.6.0 冲刺与
-> v0.8.0 Task A/B（参数化特征 + 仿真接口）。820 个测试通过，覆盖率 86%，`ruff` 与
-> `mypy` 全部通过。
+> **当前状态**：Phases 1–7 完成（v0.7.0 装配 + 工程图），并完成 v0.6.0 冲刺、
+> v0.8.0 Task A/B（参数化特征 + 仿真接口）与 v0.9.0 Task A（实时协作）。
+> 907 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
 
@@ -265,10 +265,6 @@ tests/
 
 ## 文档
 
-- `AGENTS.md` — 完整开发指南与路线图
-- `docs/architecture.md` — 系统架构设计
-- `docs/roadmap_v0.2.5.md` — 未来开发路线图
-- `docs/development_plan_v0.3.0.md` — Phase 5/6 实施计划
 - `README.md` — 英文 README（[../README.md](../README.md)）
 
 ## 持续集成

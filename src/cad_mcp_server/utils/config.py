@@ -1,7 +1,7 @@
 """Configuration management via environment variables and config files.
 
-All settings are prefixed with ``CAD_`` (see AGENTS.md section 8.2).
-Environment variables take precedence over a ``.env`` file.
+All settings are prefixed with ``CAD_``. Environment variables take
+precedence over a ``.env`` file.
 """
 
 from functools import lru_cache
