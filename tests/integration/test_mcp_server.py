@@ -136,24 +136,58 @@ class TestMCPServer:
         assert "cad_collab_sync" in names
         assert len(names) == 103
 
+    def test_flat_tool_schemas(self) -> None:
+        """Tools expose flat input schemas (no nested ``input`` wrapper)."""
+        server = build_server()
+
+        async def list_schemas() -> dict[str, dict]:
+            async with create_client_server_memory_streams() as (
+                client_streams,
+                server_streams,
+            ):
+                async def serve() -> None:
+                    read, write = server_streams
+                    await server._lowlevel_server.run(
+                        read,
+                        write,
+                        server._lowlevel_server.create_initialization_options(),
+                    )
+
+                task = asyncio.create_task(serve())
+                try:
+                    async with ClientSession(*client_streams) as session:
+                        await session.initialize()
+                        tools = await session.list_tools()
+                        return {tool.name: tool.input_schema for tool in tools.tools}
+                finally:
+                    task.cancel()
+                    with contextlib.suppress(asyncio.CancelledError, BaseExceptionGroup):
+                        await task
+
+        schemas = asyncio.run(list_schemas())
+        for name in ("cad_file_create", "cad_object_create", "cad_batch_schedule"):
+            props = schemas[name]["properties"]
+            assert "input" not in props
+        assert "filename" in schemas["cad_file_create"]["properties"]
+        assert "type" in schemas["cad_object_create"]["properties"]
+        assert "commands" in schemas["cad_batch_schedule"]["properties"]
+
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(
             [
                 (
                     "cad_file_create",
-                    {"input": {"filename": "e2e.json", "unit": "mm"}},
+                    {"filename": "e2e.json", "unit": "mm"},
                 ),
                 (
                     "cad_object_create",
                     {
-                        "input": {
-                            "type": "box",
-                            "params": {"origin": [0, 0, 0], "dimensions": [2, 3, 4]},
-                            "layer": "0",
-                        }
+                        "type": "box",
+                        "params": {"origin": [0, 0, 0], "dimensions": [2, 3, 4]},
+                        "layer": "0",
                     },
                 ),
-                ("cad_metrics_get", {"input": {}}),
+                ("cad_metrics_get", {}),
             ]
         )
         create_result = json.loads(outputs[0])
@@ -167,7 +201,7 @@ class TestMCPServer:
     def test_error_result_serialized(self) -> None:
         outputs = _call_tools(
             [
-                ("cad_object_read", {"input": {"object_id": "missing"}}),
+                ("cad_object_read", {"object_id": "missing"}),
             ]
         )
         result = json.loads(outputs[0])
@@ -180,22 +214,20 @@ class TestMCPServer:
                 (
                     "cad_batch_execute",
                     {
-                        "input": {
-                            "commands": [
-                                {
-                                    "tool": "cad_file_create",
-                                    "arguments": {"filename": "b.json", "unit": "mm"},
+                        "commands": [
+                            {
+                                "tool": "cad_file_create",
+                                "arguments": {"filename": "b.json", "unit": "mm"},
+                            },
+                            {
+                                "tool": "cad_object_create",
+                                "arguments": {
+                                    "type": "circle",
+                                    "params": {"center": [0, 0, 0], "radius": 10},
+                                    "layer": "0",
                                 },
-                                {
-                                    "tool": "cad_object_create",
-                                    "arguments": {
-                                        "type": "circle",
-                                        "params": {"center": [0, 0, 0], "radius": 10},
-                                        "layer": "0",
-                                    },
-                                },
-                            ]
-                        }
+                            },
+                        ]
                     },
                 )
             ]
