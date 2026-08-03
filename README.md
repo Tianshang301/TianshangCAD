@@ -12,6 +12,8 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
 
+**[Changelog](CHANGELOG.md)** · **[Migration guide v0.6.0 → v0.9.0](MIGRATION.md)**
+
 ## Features
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
@@ -59,6 +61,14 @@ python -m venv .venv
 source .venv/bin/activate
 
 pip install -e ".[dev]"
+```
+
+Self-contained Debian package (Linux amd64, bundles all runtime wheels — no
+network access needed at install time):
+
+```bash
+wget <release>/cad-mcp-server_<version>_amd64.deb
+sudo dpkg -i cad-mcp-server_<version>_amd64.deb
 ```
 
 Optional OCC kernel:
@@ -343,11 +353,13 @@ tests/
 
 ## Continuous Integration
 
-`.github/workflows/ci.yml` runs `ruff` + `mypy` on every push / PR, and
-`pytest` with the 80% coverage gate on Python 3.11 and 3.12. Pushing a `v*`
-tag triggers `.github/workflows/release.yml`, which builds the Windows
-executables (`cad-cli.exe`, `cad-mcp-server.exe` via PyInstaller) and the
-Debian package (`build_deb.py`) and publishes them to a GitHub Release.
+`.github/workflows/ci.yml` runs `ruff` + `mypy` on every push / PR,
+`pytest` with the 80% coverage gate on Python 3.11 and 3.12, and a separate
+`stress` job for the concurrency / soak suite. Pushing a `v*` tag triggers
+`.github/workflows/release.yml`, which builds the Windows executables
+(`cad-cli.exe`, `cad-mcp-server.exe` via PyInstaller) and the self-contained
+Debian package (`scripts/build_deb.py`, bundles runtime wheels for Linux
+amd64) and publishes them to a GitHub Release.
 
 ## License
 
