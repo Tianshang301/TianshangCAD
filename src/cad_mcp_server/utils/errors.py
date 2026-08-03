@@ -73,3 +73,11 @@ class VariableError(CADError):
 
 class ConstraintError(CADError):
     """Raised for geometric constraint / solver errors."""
+
+
+class AssemblyError(CADError):
+    """Raised for assembly modeling errors."""
+
+
+class DrawingError(CADError):
+    """Raised for engineering drawing errors."""

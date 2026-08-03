@@ -95,6 +95,48 @@ class TestSaveOpenRoundtrip:
         assert reopened.views.count() == 1
         assert reopened.views.get_by_name("iso") is not None
 
+    def test_assembly_persistence_roundtrip(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        document_manager.create("design.json")
+        doc = document_manager.get_current()
+        assembly = doc.assembly("engine")
+        part_a = assembly.add_part("base")
+        part_b = assembly.add_part("gear")
+        assembly.add_mate("distance", part_a, part_b, {"distance": 42.0, "axis": [1, 0, 0]})
+        saved = document_manager.save(path=str(tmp_path / "design.json"))
+
+        doc_mgr2 = DocumentManager()
+        doc_mgr2.open(saved)
+        reopened = doc_mgr2.get_current()
+        reopened_assembly = reopened.assembly()
+        assert reopened_assembly.name == "engine"
+        assert len(reopened_assembly.nodes) == 2
+        assert len(reopened_assembly.mates) == 1
+        world = reopened_assembly.solve()
+        assert world[part_b]["translation"] == [42.0, 0.0, 0.0]
+
+    def test_drawing_persistence_roundtrip(
+        self, document_manager: DocumentManager, tmp_path
+    ) -> None:
+        document_manager.create("design.json")
+        doc = document_manager.get_current()
+        drawing = doc.drawing(paper="A3", title="Reducer")
+        drawing.add_view("main", "main", entity_ids=["e1"])
+        drawing.add_dimension("linear", 10.0, position=[1, 2])
+        drawing.add_tolerance("flatness", 0.05, datum="A")
+        saved = document_manager.save(path=str(tmp_path / "design.json"))
+
+        doc_mgr2 = DocumentManager()
+        doc_mgr2.open(saved)
+        reopened = doc_mgr2.get_current()
+        reopened_drawing = reopened.drawing()
+        assert reopened_drawing.paper == "A3"
+        assert reopened_drawing.title == "Reducer"
+        assert len(reopened_drawing.views) == 1
+        assert len(reopened_drawing.dimensions) == 1
+        assert len(reopened_drawing.tolerances) == 1
+
 
 class TestCloseAndList:
     """Close / list / info tests."""

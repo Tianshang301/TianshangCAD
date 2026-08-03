@@ -9,10 +9,12 @@ import typer
 from cad_mcp_server import __version__
 from cad_mcp_server.cli.aliases import COMMAND_ALIASES
 from cad_mcp_server.cli.commands import (
+    assembly,
     batch,
     block,
     constraint,
     draw,
+    drawing,
     edit,
     file,
     layer,
@@ -39,6 +41,8 @@ app.add_typer(block.app, name="block", help="Blocks and parametrics")
 app.add_typer(render.app, name="render", help="Rendering output")
 app.add_typer(batch.app, name="batch", help="Batch processing")
 app.add_typer(constraint.app, name="constraint", help="Geometric constraints")
+app.add_typer(assembly.app, name="assembly", help="Assembly modelling")
+app.add_typer(drawing.app, name="drawing", help="Engineering drawings")
 
 
 @app.callback()

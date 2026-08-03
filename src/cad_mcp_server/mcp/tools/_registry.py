@@ -13,10 +13,12 @@ def get_registry() -> dict[str, Callable[..., Any]]:
     the tool modules that depend on it (e.g. ``batch``).
     """
     from cad_mcp_server.mcp.tools import (
+        assembly,
         batch,
         boolean,
         constraint,
         crud,
+        drawing,
         file_io,
         json_ops,
         nlp,
@@ -43,6 +45,8 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         file_io,
         variables,
         constraint,
+        assembly,
+        drawing,
     ):
         tools.extend(module.TOOLS)
     return dict(tools)

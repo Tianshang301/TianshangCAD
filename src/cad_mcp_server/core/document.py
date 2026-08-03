@@ -13,7 +13,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from cad_mcp_server.core.assembly import AssemblyDocument
 from cad_mcp_server.core.constraint import ConstraintManager
+from cad_mcp_server.core.drawing import DrawingDocument
 from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.layer_manager import LayerManager
 from cad_mcp_server.core.session import SessionManager
@@ -48,6 +50,8 @@ class DocumentState:
         self.views = ViewManager()
         self.variables = VariableManager()
         self.constraints = ConstraintManager()
+        self._assembly: AssemblyDocument | None = None
+        self._drawing: DrawingDocument | None = None
         self.created_at = datetime.now(UTC).isoformat()
         self.modified_at = self.created_at
         self.is_dirty = False
@@ -58,6 +62,18 @@ class DocumentState:
         self.modified_at = datetime.now(UTC).isoformat()
         self.is_dirty = True
 
+    def assembly(self, name: str | None = None) -> AssemblyDocument:
+        """Return the document's assembly, creating it on first access."""
+        if self._assembly is None:
+            self._assembly = AssemblyDocument(name=name or "assembly")
+        return self._assembly
+
+    def drawing(self, paper: str = "A4", title: str = "") -> DrawingDocument:
+        """Return the document's drawing sheet, creating it on first access."""
+        if self._drawing is None:
+            self._drawing = DrawingDocument(paper=paper, title=title)
+        return self._drawing
+
     def close(self) -> None:
         """Release the document resources."""
         self._closed = True
@@ -67,6 +83,8 @@ class DocumentState:
         self.views = ViewManager()
         self.variables = VariableManager()
         self.constraints = ConstraintManager()
+        self._assembly = None
+        self._drawing = None
 
     @property
     def closed(self) -> bool:
@@ -90,6 +108,8 @@ class DocumentState:
             "variables": [var.to_dict() for var in self.variables.list()],
             "constraints": [constraint.to_dict() for constraint in self.constraints.list()],
             "entities": [record.to_dict() for record in self.entities.list()],
+            "assembly": self._assembly.to_dict() if self._assembly else None,
+            "drawing": self._drawing.to_dict() if self._drawing else None,
         }
 
     @classmethod
@@ -135,6 +155,12 @@ class DocumentState:
 
             entity_record = EntityRecord.from_dict(entity_data)
             doc.entities._entities[entity_record.id] = entity_record
+        assembly_data = data.get("assembly")
+        if assembly_data:
+            doc._assembly = AssemblyDocument.from_dict(assembly_data)
+        drawing_data = data.get("drawing")
+        if drawing_data:
+            doc._drawing = DrawingDocument.from_dict(drawing_data)
         doc.is_dirty = False
         return doc
 

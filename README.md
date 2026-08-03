@@ -14,7 +14,7 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 65 JSON-RPC tools over stdio or streamable HTTP, callable
+- **MCP Server** — 82 JSON-RPC tools over stdio or streamable HTTP, callable
   from Claude, Cursor and other MCP clients
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
   named views (iso / top / front / side / back / bottom), perspective /
@@ -117,7 +117,7 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (65 total)
+### Tools (82 total)
 
 | Group | Tools |
 |-------|-------|
@@ -134,6 +134,9 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 | Version | `cad_version_save`, `cad_version_list`, `cad_version_diff`, `cad_version_restore` |
 | NLP | `cad_nlp_command` |
 | Batch | `cad_batch_execute`, `cad_batch_schedule`, `cad_batch_status`, `cad_batch_cancel`, `cad_batch_list`, `cad_batch_templates`, `cad_batch_run_script` |
+| Constraints | `cad_constraint_add`, `cad_constraint_remove`, `cad_constraint_list`, `cad_constraint_solve` |
+| Assembly | `cad_assembly_create`, `cad_assembly_add_part`, `cad_assembly_add_subasm`, `cad_assembly_add_mate`, `cad_assembly_solve`, `cad_assembly_bom`, `cad_assembly_explode` |
+| Drawing | `cad_drawing_create`, `cad_drawing_add_view`, `cad_drawing_add_section`, `cad_drawing_add_dimension`, `cad_drawing_add_tolerance`, `cad_drawing_export` |
 
 ### Validation, rendering, 3D views & NLP
 
@@ -253,7 +256,7 @@ pytest         # tests (coverage gate >= 80%)
 src/cad_mcp_server/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (65 tools)
+|   |-- server.py       # MCPServer wiring (82 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication

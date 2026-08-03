@@ -100,7 +100,20 @@ class TestMCPServer:
         assert "cad_constraint_remove" in names
         assert "cad_constraint_list" in names
         assert "cad_constraint_solve" in names
-        assert len(names) == 69
+        assert "cad_assembly_create" in names
+        assert "cad_assembly_add_part" in names
+        assert "cad_assembly_add_subasm" in names
+        assert "cad_assembly_add_mate" in names
+        assert "cad_assembly_solve" in names
+        assert "cad_assembly_bom" in names
+        assert "cad_assembly_explode" in names
+        assert "cad_drawing_create" in names
+        assert "cad_drawing_add_view" in names
+        assert "cad_drawing_add_section" in names
+        assert "cad_drawing_add_dimension" in names
+        assert "cad_drawing_add_tolerance" in names
+        assert "cad_drawing_export" in names
+        assert len(names) == 82
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(
