@@ -296,6 +296,13 @@ def _direction(params: dict) -> tuple[float, float]:
     return (end[0] - start[0], end[1] - start[1])
 
 
+def _unit(v: tuple[float, float]) -> tuple[float, float]:
+    length = math.hypot(v[0], v[1])
+    if length < 1e-12:
+        return (0.0, 0.0)
+    return (v[0] / length, v[1] / length)
+
+
 def _cross(u: tuple[float, float], v: tuple[float, float]) -> float:
     return u[0] * v[1] - u[1] * v[0]
 
@@ -336,8 +343,8 @@ class TestSolverFuzz:
         result = solve_2d(records, manager.list())
         apply_solution(entity_manager, result)
         assert result.converged
-        d1 = _direction(entity_manager.get(anchor).shape["params"])
-        d2 = _direction(entity_manager.get(movable).shape["params"])
+        d1 = _unit(_direction(entity_manager.get(anchor).shape["params"]))
+        d2 = _unit(_direction(entity_manager.get(movable).shape["params"]))
         assert abs(_cross(d1, d2)) < 1e-6
 
     @given(
