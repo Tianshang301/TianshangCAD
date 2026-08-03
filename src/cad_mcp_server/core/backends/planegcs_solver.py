@@ -44,10 +44,10 @@ from cad_mcp_server.core.entity import EntityManager, EntityRecord
 from cad_mcp_server.utils.errors import ConstraintError
 
 try:
-    from planegcs import Sketch, SolveStatus
+    from planegcs import Sketch, SolveStatus  # type: ignore[import-not-found, unused-ignore]
 except ImportError:  # pragma: no cover - exercised only without the extra
-    Sketch = None  # type: ignore[assignment, misc]
-    SolveStatus = None  # type: ignore[assignment, misc]
+    Sketch = None  # type: ignore[assignment, misc, unused-ignore]
+    SolveStatus = None  # type: ignore[assignment, misc, unused-ignore]
 
 
 class PlanegcsUnavailableError(ConstraintError):

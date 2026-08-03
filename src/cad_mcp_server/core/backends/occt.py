@@ -44,7 +44,7 @@ class OCCTKernel(CADKernel):
     def __init__(self) -> None:
         """Initialise the OCCT kernel by importing ``cadquery``."""
         try:
-            import cadquery
+            import cadquery  # type: ignore[import-not-found, unused-ignore]
             from OCP.BRepGProp import BRepGProp  # type: ignore[import-not-found]
             from OCP.GProp import GProp_GProps  # type: ignore[import-not-found]
         except ImportError as exc:
