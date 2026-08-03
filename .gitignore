@@ -27,9 +27,19 @@ Thumbs.db
 *.swp
 docs/_build/
 
-# Markdown files except README (kept only on GitHub for the README pages)
+# Markdown files except README (kept only on GitHub for the README/CHANGELOG)
 *.md
 !README.md
 !readme/README.zh-CN.md
 !THIRD_PARTY_LICENSES.md
-docs/
+!CHANGELOG.md
+!MIGRATION.md
+
+# docs/: keep ignored except the community outreach copy
+docs/*
+!docs/community/
+docs/community/*
+!docs/community/awesome_mcp_entry.md
+!docs/community/post_hn.md
+!docs/community/post_reddit.md
+docs/_build/
