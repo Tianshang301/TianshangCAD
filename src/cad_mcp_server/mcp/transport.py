@@ -14,13 +14,15 @@ and receive broadcast deltas. It reuses ``cad_collab_sync`` and the
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Any, Protocol
 
 from mcp.server import MCPServer
 
 from cad_mcp_server.mcp.auth import api_key_enabled, validate_api_key
+from cad_mcp_server.mcp.collab_hub import CollabHub
 from cad_mcp_server.mcp.rate_limit import RateLimiter
 from cad_mcp_server.utils.config import get_settings
 
@@ -165,6 +167,7 @@ async def handle_ws_connection(
     websocket: WebSocketLike,
     *,
     on_sync: Callable[[dict[str, Any]], dict[str, Any]] | None = None,
+    hub: CollabHub | None = None,
 ) -> None:
     """Serve one WebSocket client.
 
@@ -172,17 +175,35 @@ async def handle_ws_connection(
     ``{"type": "subscribe", "session_id": ...}``,
     ``{"type": "op", "session_id": ..., "ops": [...], "by_user": ...}`` and
     ``{"type": "sync", "session_id": ..., "since": 0}``. The server replies
-    with ``{"type": "deltas", ...}`` and broadcasts applied ops to every
-    subscriber of the same session. ``on_sync`` defaults to a live
-    ``cad_collab_sync`` wrapper; tests inject a stub.
+    with ``{"type": "deltas", ...}`` and, when a ``hub`` is provided,
+    broadcasts applied ops to every other subscriber of the same session.
+    ``on_sync`` defaults to a live ``cad_collab_sync`` wrapper; tests inject
+    a stub.
+
+    Outgoing frames always go through a single per-connection writer task
+    that drains an ``asyncio.Queue``, so concurrent broadcasts never
+    interleave on the socket.
     """
+    outbox: asyncio.Queue[str] = asyncio.Queue()
+    subscription: str | None = None
 
     async def _send(payload: dict[str, Any]) -> None:
-        await websocket.send(json.dumps(payload))
+        outbox.put_nowait(json.dumps(payload))
+
+    async def _drain() -> None:
+        while True:
+            frame = await outbox.get()
+            try:
+                await websocket.send(frame)
+            finally:
+                outbox.task_done()
 
     async def _receive() -> dict[str, Any] | None:
+        receive = getattr(websocket, "receive", None) or getattr(websocket, "recv", None)
+        if receive is None:
+            return None
         try:
-            message = await websocket.receive()
+            message = await receive()
         except Exception:
             return None
         if message is None:
@@ -193,8 +214,9 @@ async def handle_ws_connection(
             return None
         return data if isinstance(data, dict) else None
 
-    await websocket.accept()
-    subscription: str | None = None
+    accept = getattr(websocket, "accept", None)
+    if accept is not None:
+        await accept()
     if on_sync is None:
         from cad_mcp_server.mcp.tools.collab import (
             CollabSyncInput,
@@ -213,39 +235,61 @@ async def handle_ws_connection(
             )
             return result.model_dump()
 
-    while True:
-        data = await _receive()
-        if data is None:
-            break
-        kind = data.get("type")
-        if kind == "subscribe":
-            subscription = str(data.get("session_id", ""))
-            await _send({"type": "subscribed", "session_id": subscription})
-        elif kind == "op" or kind == "sync":
-            session_id = str(data.get("session_id", subscription or ""))
-            if not session_id:
-                await _send({"type": "error", "message": "session_id is required"})
-                continue
-            try:
-                output = on_sync({**data, "session_id": session_id})
-            except Exception as exc:
-                await _send({"type": "error", "message": str(exc)})
-                continue
-            await _send({"type": "deltas", "session_id": session_id, **output})
-            if kind == "op":
-                await broadcast_deltas(session_id, output)
-        elif kind == "ping":
-            await _send({"type": "pong"})
-        else:
-            await _send({"type": "error", "message": f"Unknown message type: {kind}"})
+    writer = asyncio.create_task(_drain())
+    try:
+        while True:
+            data = await _receive()
+            if data is None:
+                break
+            kind = data.get("type")
+            if kind == "subscribe":
+                session_id = str(data.get("session_id", ""))
+                if subscription is not None and hub is not None:
+                    await hub.unsubscribe(subscription, outbox)
+                subscription = session_id
+                if hub is not None:
+                    await hub.subscribe(session_id, outbox)
+                await _send({"type": "subscribed", "session_id": session_id})
+            elif kind == "op" or kind == "sync":
+                session_id = str(data.get("session_id", subscription or ""))
+                if not session_id:
+                    await _send({"type": "error", "message": "session_id is required"})
+                    continue
+                try:
+                    output = on_sync({**data, "session_id": session_id})
+                except Exception as exc:
+                    await _send({"type": "error", "message": str(exc)})
+                    continue
+                await _send({"type": "deltas", "session_id": session_id, **output})
+                if kind == "op":
+                    if hub is not None:
+                        await hub.publish(
+                            session_id,
+                            {"type": "deltas", "session_id": session_id, **output},
+                            exclude=outbox,
+                        )
+                    else:
+                        await broadcast_deltas(session_id, output)
+            elif kind == "ping":
+                await _send({"type": "pong"})
+            else:
+                await _send({"type": "error", "message": f"Unknown message type: {kind}"})
+    finally:
+        if hub is not None and subscription is not None:
+            await hub.unsubscribe(subscription, outbox)
+        await outbox.join()
+        writer.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await writer
 
 
 async def broadcast_deltas(session_id: str, payload: dict[str, Any]) -> None:
-    """No-op broadcast hook.
+    """Broadcast hook used when no :class:`CollabHub` is wired.
 
-    The full multi-client hub lives in :func:`run_ws`; this placeholder
-    keeps :func:`handle_ws_connection` self-contained and unit-testable
-    without a live socket.
+    The :func:`run_ws` path passes a real hub so applied ops fan out to every
+    subscriber of the session; this fallback keeps
+    :func:`handle_ws_connection` unit-testable without a live socket and is
+    the extension point tests monkeypatch.
     """
     from cad_mcp_server.utils.logger import get_logger
 
@@ -256,15 +300,31 @@ async def broadcast_deltas(session_id: str, payload: dict[str, Any]) -> None:
     )
 
 
+def make_ws_connection_handler(
+    hub: CollabHub,
+    on_sync: Callable[[dict[str, Any]], dict[str, Any]],
+) -> Callable[[WebSocketLike], Awaitable[None]]:
+    """Return an async ``(websocket) -> None`` handler bound to ``hub``.
+
+    Extracted so :func:`run_ws` and the integration tests share one wiring.
+    """
+
+    async def handler(websocket: WebSocketLike) -> None:
+        await handle_ws_connection(websocket, on_sync=on_sync, hub=hub)
+
+    return handler
+
+
 def run_ws(host: str = "127.0.0.1", port: int = 8082) -> None:
     """Run a WebSocket collaboration hub on ``host:port``.
 
     Requires the optional ``[collab]`` extra (``websockets``). Each client
-    is served by :func:`handle_ws_connection`, which is shared with the
-    unit tests.
+    is served by :func:`handle_ws_connection` through a shared
+    :class:`CollabHub`, so an ``op`` from one client broadcasts deltas to
+    every other subscriber of the same session.
     """
     try:
-        import websockets  # type: ignore[import-not-found]
+        import websockets  # type: ignore[import-not-found, unused-ignore]
     except ImportError as exc:  # pragma: no cover - environment dependent
         raise RuntimeError(
             "WebSocket transport requires the 'collab' extra: pip install -e '.[collab]'"
@@ -289,11 +349,11 @@ def run_ws(host: str = "127.0.0.1", port: int = 8082) -> None:
         )
         return result.model_dump()
 
-    async def handler(websocket: WebSocketLike) -> None:
-        await handle_ws_connection(websocket, on_sync=on_sync)
+    hub = CollabHub()
+    handler = make_ws_connection_handler(hub, on_sync)
 
     async def serve() -> None:
-        async with websockets.serve(handler, host, port):
+        async with websockets.serve(handler, host, port):  # type: ignore[arg-type]
             await asyncio.Future()  # run forever
 
     asyncio.run(serve())

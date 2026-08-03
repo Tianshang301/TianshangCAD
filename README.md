@@ -217,8 +217,9 @@ MCP clients use `cad_collab_session`, `cad_collab_branch`,
 `cad_collab_annotation`, `cad_collab_presence`, `cad_collab_history`,
 `cad_collab_resolve`, `cad_collab_permission` and `cad_collab_sync`.
 WebSocket clients speak a small JSON envelope (`subscribe` / `op` / `sync` /
-`ping`) that maps onto the sync tool and broadcasts deltas to every
-subscriber of the same session.
+`ping`) that maps onto the sync tool. A multi-client hub fans an applied
+`op` out as a `deltas` broadcast to every subscriber of the same session
+(excluding the origin sender, which already received its live response).
 
 ### Batch & automation
 
