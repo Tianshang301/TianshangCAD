@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cad-mcp-server"
-version = "0.6.0"
+version = "0.9.0"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -57,6 +57,7 @@ dev = [
 
 [project.scripts]
 cad-cli = "cad_mcp_server.cli.main:main"
+cad-mcp-server = "cad_mcp_server.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/Tianshang301/TianshangCAD"
