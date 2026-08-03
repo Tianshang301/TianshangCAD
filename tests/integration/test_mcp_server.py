@@ -114,7 +114,19 @@ class TestMCPServer:
         assert "cad_drawing_add_tolerance" in names
         assert "cad_drawing_export" in names
         assert "cad_nlp_chat" in names
-        assert len(names) == 83
+        assert "cad_feature_sweep" in names
+        assert "cad_feature_loft" in names
+        assert "cad_feature_fillet" in names
+        assert "cad_feature_chamfer" in names
+        assert "cad_feature_pattern_linear" in names
+        assert "cad_feature_pattern_circular" in names
+        assert "cad_feature_pattern_mirror" in names
+        assert "cad_sim_mesh" in names
+        assert "cad_sim_setup" in names
+        assert "cad_sim_run" in names
+        assert "cad_sim_result" in names
+        assert "cad_sim_list" in names
+        assert len(names) == 95
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(

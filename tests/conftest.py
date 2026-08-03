@@ -9,6 +9,7 @@ from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.kernel import AnalyticKernel
 from cad_mcp_server.core.scheduler import get_scheduler
 from cad_mcp_server.core.session import SessionManager
+from cad_mcp_server.core.simulation import SimulationManager
 from cad_mcp_server.mcp.tools.nlp import clear_chat_session
 from cad_mcp_server.mcp.tools.status import _log_buffer
 
@@ -44,6 +45,16 @@ def _clean_scheduler() -> None:
     scheduler.configure(jobstore_url=None)
     yield
     scheduler.configure(jobstore_url=None)
+
+
+@pytest.fixture(autouse=True)
+def _clean_simulations() -> None:
+    """Reset the simulation registry before and after every test."""
+    backends = dict(SimulationManager._backends)
+    SimulationManager().reset()
+    yield
+    SimulationManager().reset()
+    SimulationManager._backends = backends
 
 
 @pytest.fixture

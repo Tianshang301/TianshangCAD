@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -82,7 +82,10 @@ class CADKernel(ABC):
 
     @abstractmethod
     def create_box(
-        self, origin: Point, dimensions: Point, rotation: Sequence[float] | None = None
+        self,
+        origin: Point,
+        dimensions: Point,
+        rotation: Sequence[float] | Sequence[Sequence[float]] | None = None,
     ) -> Shape:
         """Create an axis-aligned (or rotated) box."""
 
@@ -238,7 +241,7 @@ class AnalyticKernel(CADKernel):
         self,
         origin: Point,
         dimensions: Point,
-        rotation: Sequence[float] | None = None,
+        rotation: Sequence[float] | Sequence[Sequence[float]] | None = None,
     ) -> Shape:
         """Create an axis-aligned (or rotated) box."""
         dims = _ensure_dims(dimensions)
@@ -255,7 +258,9 @@ class AnalyticKernel(CADKernel):
                     for row in rotation_list
                 ]
             else:
-                rotation_matrix = self._rotation_to_matrix(rotation_list)
+                rotation_matrix = self._rotation_to_matrix(
+                    cast(Sequence[float], rotation_list)
+                )
         return {
             "kind": "box",
             "params": {

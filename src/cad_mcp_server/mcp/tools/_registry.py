@@ -19,10 +19,12 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         constraint,
         crud,
         drawing,
+        features,
         file_io,
         json_ops,
         nlp,
         render,
+        simulation,
         status,
         validate,
         variables,
@@ -47,6 +49,8 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         constraint,
         assembly,
         drawing,
+        features,
+        simulation,
     ):
         tools.extend(module.TOOLS)
     return dict(tools)

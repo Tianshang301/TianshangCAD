@@ -4,9 +4,10 @@ A modern **CAD CLI + MCP Server** system. 2D/3D drawing, editing,
 measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
-> **Status**: Phases 1–6 complete, plus the v0.6.0 sprint (parametric
-> variables, mesh boolean ops, pure-Python STEP + DWG bridge). 545 tests
-> passing, 85%+ coverage, `ruff` and `mypy` clean.
+> **Status**: Phases 1–7 complete (v0.7.0 assembly + engineering drawings),
+> plus the v0.6.0 sprint and the v0.8.0 Task A/B (parametric features +
+> simulation interface). 820 tests passing, 86% coverage, `ruff` and `mypy`
+> clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
 
@@ -14,7 +15,7 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 82 JSON-RPC tools over stdio or streamable HTTP, callable
+- **MCP Server** — 95 JSON-RPC tools over stdio or streamable HTTP, callable
   from Claude, Cursor and other MCP clients
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
   named views (iso / top / front / side / back / bottom), perspective /
@@ -117,7 +118,7 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (83 total)
+### Tools (95 total)
 
 | Group | Tools |
 |-------|-------|
@@ -137,6 +138,8 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 | Constraints | `cad_constraint_add`, `cad_constraint_remove`, `cad_constraint_list`, `cad_constraint_solve` |
 | Assembly | `cad_assembly_create`, `cad_assembly_add_part`, `cad_assembly_add_subasm`, `cad_assembly_add_mate`, `cad_assembly_solve`, `cad_assembly_bom`, `cad_assembly_explode` |
 | Drawing | `cad_drawing_create`, `cad_drawing_add_view`, `cad_drawing_add_section`, `cad_drawing_add_dimension`, `cad_drawing_add_tolerance`, `cad_drawing_export` |
+| Features | `cad_feature_sweep`, `cad_feature_loft`, `cad_feature_fillet`, `cad_feature_chamfer`, `cad_feature_pattern_linear`, `cad_feature_pattern_circular`, `cad_feature_pattern_mirror` |
+| Simulation | `cad_sim_mesh`, `cad_sim_setup`, `cad_sim_run`, `cad_sim_result`, `cad_sim_list` |
 
 ### Validation, rendering, 3D views & NLP
 
@@ -270,16 +273,18 @@ pytest         # tests (coverage gate >= 80%)
 src/cad_mcp_server/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (83 tools)
+|   |-- server.py       # MCPServer wiring (95 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication
 |   |-- rate_limit.py   # sliding-window rate limiter
 |   `-- tools/          # crud, json_ops, status, validate, batch, boolean,
-|                       # file_io, variables, render, versioning, nlp, view3d
+|                       # file_io, variables, render, versioning, nlp, view3d,
+|                       # features, simulation
 |-- core/           # document, entity, layer, kernel, session, history,
 |                   # variables, scheduler, script_runner, batch_templates,
-|                   # validation, versioning, view_manager
+|                   # validation, versioning, view_manager, features, simulation,
+|                   # assembly, drawing, constraint
 |-- io/             # JSON / DXF / STL importers and exporters
 |-- schemas/        # Pydantic geometry, scene and view3d schemas
 |-- render/         # 2D / 3D PNG rendering, WebGL export, section, explode,

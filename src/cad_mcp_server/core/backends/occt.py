@@ -23,7 +23,7 @@ directly.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -299,7 +299,7 @@ class OCCTKernel(CADKernel):
         self,
         origin: Point,
         dimensions: Point,
-        rotation: Sequence[float] | None = None,
+        rotation: Sequence[float] | Sequence[Sequence[float]] | None = None,
     ) -> Shape:
         """Create an axis-aligned (or rotated) box."""
         dims = [float(v) for v in dimensions[:3]]
@@ -323,10 +323,11 @@ class OCCTKernel(CADKernel):
                     rotation_z,
                 )
 
+                angles = cast(Sequence[float], rotation_list)
                 matrix = compose(
-                    rotation_x(rotation_list[0]),
-                    rotation_y(rotation_list[1]) if len(rotation_list) > 1 else np.eye(4),
-                    rotation_z(rotation_list[-1]),
+                    rotation_x(angles[0]),
+                    rotation_y(angles[1]) if len(angles) > 1 else np.eye(4),
+                    rotation_z(angles[-1]),
                 )
                 rotation_matrix = matrix[:3, :3].tolist()
         return {
@@ -582,6 +583,37 @@ class OCCTKernel(CADKernel):
                 workplane = self._profile_on(workplane, profile)
         result = workplane.loft()
         return self._mesh_dict(result.val())
+
+    def fillet(self, shape: Shape, radius: float) -> Shape:
+        """Blend all edges of ``shape`` with a fillet of ``radius``.
+
+        Returns a ``mesh`` shape dict (tessellated OCC result). Failing
+        geometry (e.g. radius larger than an edge) raises a friendly
+        ``degenerate_feature`` error.
+        """
+        if radius <= 0:
+            raise CADValidationError("fillet radius must be > 0", code="invalid_radius")
+        wp = self._workplane(shape["kind"], shape["params"])
+        try:
+            result = wp.fillet(radius)
+        except Exception as exc:
+            raise CADNotImplementedError(
+                f"OCCT fillet failed: {exc}", code="degenerate_feature"
+            ) from exc
+        return self._mesh_dict(self._val(result))
+
+    def chamfer(self, shape: Shape, size: float) -> Shape:
+        """Cut all edges of ``shape`` with a chamfer of ``size``."""
+        if size <= 0:
+            raise CADValidationError("chamfer size must be > 0", code="invalid_size")
+        wp = self._workplane(shape["kind"], shape["params"])
+        try:
+            result = wp.chamfer(size)
+        except Exception as exc:
+            raise CADNotImplementedError(
+                f"OCCT chamfer failed: {exc}", code="degenerate_feature"
+            ) from exc
+        return self._mesh_dict(self._val(result))
 
     # ------------------------------------------------------------------
     # STEP / IGES export (true OCC BREP)

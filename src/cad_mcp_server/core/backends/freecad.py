@@ -72,7 +72,7 @@ class FreeCADKernel(CADKernel):
         self,
         origin: Point,
         dimensions: Point,
-        rotation: Sequence[float] | None = None,
+        rotation: Sequence[float] | Sequence[Sequence[float]] | None = None,
     ) -> Shape:
         """Create an axis-aligned (or rotated) box."""
         raise CADNotImplementedError("FreeCAD backend not wired up", code="unsupported_backend")

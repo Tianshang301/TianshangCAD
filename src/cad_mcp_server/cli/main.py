@@ -16,10 +16,12 @@ from cad_mcp_server.cli.commands import (
     draw,
     drawing,
     edit,
+    features,
     file,
     layer,
     measure,
     render,
+    simulation,
     view,
 )
 from cad_mcp_server.utils.logger import configure_logging
@@ -43,6 +45,8 @@ app.add_typer(batch.app, name="batch", help="Batch processing")
 app.add_typer(constraint.app, name="constraint", help="Geometric constraints")
 app.add_typer(assembly.app, name="assembly", help="Assembly modelling")
 app.add_typer(drawing.app, name="drawing", help="Engineering drawings")
+app.add_typer(features.app, name="feature", help="Parametric features")
+app.add_typer(simulation.app, name="sim", help="Simulation interface")
 
 
 @app.callback()

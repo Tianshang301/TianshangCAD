@@ -81,3 +81,7 @@ class AssemblyError(CADError):
 
 class DrawingError(CADError):
     """Raised for engineering drawing errors."""
+
+
+class SimulationError(CADError):
+    """Raised for simulation lifecycle / execution errors."""

@@ -74,6 +74,12 @@ class DocumentState:
             self._drawing = DrawingDocument(paper=paper, title=title)
         return self._drawing
 
+    def features(self) -> Any:
+        """Return a feature manager bound to this document's entities."""
+        from cad_mcp_server.core.features import FeatureManager
+
+        return FeatureManager(self.entities, self.entities.kernel)
+
     def close(self) -> None:
         """Release the document resources."""
         self._closed = True
