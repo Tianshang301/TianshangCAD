@@ -84,7 +84,7 @@ def _rotation_about_axis(
         ],
         dtype=float,
     )
-    return np.eye(3) * cos_a + (1.0 - cos_a) * np.outer(k, k) + sin_a * cross  # type: ignore[no-any-return]
+    return np.eye(3) * cos_a + (1.0 - cos_a) * np.outer(k, k) + sin_a * cross  # type: ignore[no-any-return, unused-ignore]
 
 
 def _reflection_matrix(plane_point: Point, normal: Point) -> np.ndarray[Any, Any]:
