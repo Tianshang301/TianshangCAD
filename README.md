@@ -117,7 +117,7 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (82 total)
+### Tools (83 total)
 
 | Group | Tools |
 |-------|-------|
@@ -132,7 +132,7 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 | Render | `cad_render_view` |
 | 3D Views | `cad_view_3d_create`, `cad_view_3d_read`, `cad_view_3d_list`, `cad_view_3d_update`, `cad_view_3d_delete`, `cad_view_3d_render`, `cad_view_section`, `cad_view_explode`, `cad_view_animation`, `cad_webgl_sync` |
 | Version | `cad_version_save`, `cad_version_list`, `cad_version_diff`, `cad_version_restore` |
-| NLP | `cad_nlp_command` |
+| NLP | `cad_nlp_command`, `cad_nlp_chat` |
 | Batch | `cad_batch_execute`, `cad_batch_schedule`, `cad_batch_status`, `cad_batch_cancel`, `cad_batch_list`, `cad_batch_templates`, `cad_batch_run_script` |
 | Constraints | `cad_constraint_add`, `cad_constraint_remove`, `cad_constraint_list`, `cad_constraint_solve` |
 | Assembly | `cad_assembly_create`, `cad_assembly_add_part`, `cad_assembly_add_subasm`, `cad_assembly_add_mate`, `cad_assembly_solve`, `cad_assembly_bom`, `cad_assembly_explode` |
@@ -162,6 +162,20 @@ cad-cli render views
 "draw a line from 0,0 to 10,10" -> cad_object_create (line)
 "render the side view"       -> cad_render_view  {view: side}
 "save a version"             -> cad_version_save
+```
+
+`cad_nlp_chat` adds multi-turn dialogue with anaphora resolution: each
+`session_id` remembers the last created object so later turns can refer to
+it with pronouns or descriptions. Create intents are executed against the
+current document, so "it" / "它" resolves to the real object id.
+
+```bash
+# Turn 1: draw a circle (creates the object, records it in the session)
+"draw a circle at 5,5 radius 3"   -> cad_object_create, object_id tracked
+# Turn 2: move the referenced circle (same session_id)
+"move it to 10,10"                -> cad_object_update {object_id, params}
+"move the circle I just drew to 3,3" -> same, explicit anaphora
+"把它移到 4,4"                     -> same, Chinese pronoun
 ```
 
 Version diffing uses `deepdiff` and reports changed fields, added/removed
@@ -256,7 +270,7 @@ pytest         # tests (coverage gate >= 80%)
 src/cad_mcp_server/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (82 tools)
+|   |-- server.py       # MCPServer wiring (83 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication

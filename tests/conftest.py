@@ -9,6 +9,7 @@ from cad_mcp_server.core.entity import EntityManager
 from cad_mcp_server.core.kernel import AnalyticKernel
 from cad_mcp_server.core.scheduler import get_scheduler
 from cad_mcp_server.core.session import SessionManager
+from cad_mcp_server.mcp.tools.nlp import clear_chat_session
 from cad_mcp_server.mcp.tools.status import _log_buffer
 
 
@@ -18,6 +19,14 @@ def _clean_sessions() -> None:
     SessionManager().reset()
     yield
     SessionManager().reset()
+
+
+@pytest.fixture(autouse=True)
+def _clean_chat() -> None:
+    """Reset NLP dialogue state before and after every test."""
+    clear_chat_session()
+    yield
+    clear_chat_session()
 
 
 @pytest.fixture(autouse=True)

@@ -49,6 +49,7 @@ TOOL_PERMISSIONS: dict[str, PermissionLevel] = {
     "cad_version_list": PermissionLevel.READ_ONLY,
     "cad_version_diff": PermissionLevel.READ_ONLY,
     "cad_nlp_command": PermissionLevel.READ_ONLY,
+    "cad_nlp_chat": PermissionLevel.STANDARD,
     "cad_render_view": PermissionLevel.READ_ONLY,
     "cad_view_3d_read": PermissionLevel.READ_ONLY,
     "cad_view_3d_list": PermissionLevel.READ_ONLY,

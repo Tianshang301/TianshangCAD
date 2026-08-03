@@ -1,0 +1,124 @@
+{
+  "description": "Single-stage reducer (gear + shaft + housing) reference example. Executable via cad_batch_execute: assembly modelling, BOM, engineering drawing and SVG export. Note: assembly mates reference runtime-generated node ids, so add-mate steps are omitted here; use the MCP tools directly (or the reducer_reference integration test) for the full mate+drawing pipeline.",
+  "version": "1.0",
+  "commands": [
+    {
+      "tool": "cad_file_create",
+      "arguments": { "filename": "reducer.json", "unit": "mm" }
+    },
+    {
+      "tool": "cad_assembly_create",
+      "arguments": { "name": "reducer" }
+    },
+    {
+      "tool": "cad_assembly_add_part",
+      "arguments": {
+        "name": "housing",
+        "entity_id": null,
+        "parent_id": null,
+        "translation": [0.0, 0.0, 0.0],
+        "euler": [0.0, 0.0, 0.0],
+        "properties": { "material": "cast_iron", "weight_kg": 4.2 }
+      }
+    },
+    {
+      "tool": "cad_assembly_add_part",
+      "arguments": {
+        "name": "input_shaft",
+        "entity_id": null,
+        "parent_id": null,
+        "translation": [40.0, 0.0, 20.0],
+        "euler": [0.0, 0.0, 0.0],
+        "properties": { "material": "steel_45", "weight_kg": 0.6 }
+      }
+    },
+    {
+      "tool": "cad_assembly_add_part",
+      "arguments": {
+        "name": "gear",
+        "entity_id": null,
+        "parent_id": null,
+        "translation": [40.0, 0.0, 20.0],
+        "euler": [0.0, 0.0, 0.0],
+        "properties": { "material": "steel_20cr", "weight_kg": 1.1, "teeth": 38 }
+      }
+    },
+    {
+      "tool": "cad_assembly_add_part",
+      "arguments": {
+        "name": "output_shaft",
+        "entity_id": null,
+        "parent_id": null,
+        "translation": [90.0, 0.0, 20.0],
+        "euler": [0.0, 0.0, 0.0],
+        "properties": { "material": "steel_45", "weight_kg": 0.7 }
+      }
+    },
+    {
+      "tool": "cad_assembly_add_part",
+      "arguments": {
+        "name": "cover",
+        "entity_id": null,
+        "parent_id": null,
+        "translation": [0.0, 0.0, 60.0],
+        "euler": [0.0, 0.0, 0.0],
+        "properties": { "material": "cast_iron", "weight_kg": 2.8 }
+      }
+    },
+    {
+      "tool": "cad_assembly_bom",
+      "arguments": { "format": "json" }
+    },
+    {
+      "tool": "cad_assembly_bom",
+      "arguments": { "format": "csv" }
+    },
+    {
+      "tool": "cad_assembly_explode",
+      "arguments": { "spacing": 25.0, "direction": "x" }
+    },
+    {
+      "tool": "cad_drawing_create",
+      "arguments": {
+        "name": "reducer_drawing",
+        "paper": "A3",
+        "title": "Single-stage reducer - general arrangement",
+        "drawn_by": "CAD team"
+      }
+    },
+    {
+      "tool": "cad_drawing_add_view",
+      "arguments": {
+        "name": "main_view",
+        "view_type": "main",
+        "scale": 0.5,
+        "translation": [80.0, 120.0],
+        "direction": "front",
+        "entity_ids": null
+      }
+    },
+    {
+      "tool": "cad_drawing_add_dimension",
+      "arguments": {
+        "dim_type": "linear",
+        "value": 180.0,
+        "points": [[0.0, 0.0], [180.0, 0.0]],
+        "position": [90.0, -20.0],
+        "reference": "main_view"
+      }
+    },
+    {
+      "tool": "cad_drawing_add_tolerance",
+      "arguments": {
+        "symbol": "position",
+        "value": 0.05,
+        "datum": "A",
+        "reference": "main_view"
+      }
+    },
+    {
+      "tool": "cad_drawing_export",
+      "arguments": { "format": "svg", "path": "reducer_drawing.svg" }
+    }
+  ]
+}

@@ -113,7 +113,8 @@ class TestMCPServer:
         assert "cad_drawing_add_dimension" in names
         assert "cad_drawing_add_tolerance" in names
         assert "cad_drawing_export" in names
-        assert len(names) == 82
+        assert "cad_nlp_chat" in names
+        assert len(names) == 83
 
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(
