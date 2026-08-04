@@ -4,9 +4,8 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
-> **当前状态**：Phases 1–7 完成（v0.7.0 装配 + 工程图），并完成 v0.6.0 冲刺、
-> v0.8.0 Task A/B（参数化特征 + 仿真接口）与 v0.9.0 Task A（实时协作）。
-> 907 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
+> **当前状态**：v0.10.5 — 全部阶段完成，含 v0.9.0 实时协作。
+> 919 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
 
@@ -14,7 +13,7 @@ MCP 客户端（AI 智能体）直接调用。
 
 - **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer`、`batch`
   等命令组，支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
-- **MCP Server** — 65 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
+- **MCP Server** — 103 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
   传输方式，可供 Claude、Cursor 等 MCP 客户端调用
 - **3D 视图** — JSON 定义的 `View3DDefinition`，支持球面相机位姿、命名视图
   （iso / top / front / side / back / bottom）、透视 / 正交投影、平面剖切
@@ -69,7 +68,7 @@ tianshangcad measure distance 0,0 100,100
 ```
 
 短命令别名会被自动展开：`tianshangcad l 0,0 100,0` 等价于 `tianshangcad draw line 0,0 100,0`。
-`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.5.0`）。
+`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.10.5`）。
 
 ### 命令组
 
