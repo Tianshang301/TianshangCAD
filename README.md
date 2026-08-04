@@ -67,8 +67,8 @@ Self-contained Debian package (Linux amd64, bundles all runtime wheels — no
 network access needed at install time):
 
 ```bash
-wget <release>/tianshangcad-server_<version>_amd64.deb
-sudo dpkg -i tianshangcad-server_<version>_amd64.deb
+wget <release>/tianshangcad_<version>_amd64.deb
+sudo dpkg -i tianshangcad_<version>_amd64.deb
 ```
 
 Optional OCC kernel:
