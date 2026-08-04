@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cad-mcp-server"
+name = "tianshangcad"
 version = "0.10.0"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"

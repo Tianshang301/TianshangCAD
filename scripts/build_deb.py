@@ -120,9 +120,9 @@ def _download_wheels(dest: Path) -> None:
 def _build_own_wheel(dest: Path) -> Path:
     """Build our wheel (no deps) into ``dest`` and return its path."""
     _run(["python", "-m", "pip", "wheel", ".", "--no-deps", "-w", str(dest)], cwd=ROOT)
-    matches = list(dest.glob("cad_mcp_server-*.whl"))
+    matches = list(dest.glob("tianshangcad-*.whl"))
     if not matches:
-        raise RuntimeError("wheel build produced no cad_mcp_server wheel")
+        raise RuntimeError("wheel build produced no tianshangcad wheel")
     return matches[0]
 
 

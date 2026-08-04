@@ -1,10 +1,10 @@
 # Changelog
 
-Notable changes to TianshangCAD (cad-mcp-server), newest first.
+Notable changes to TianshangCAD (tianshangcad on PyPI), newest first.
 
 ## v0.10.0 - 2026-08-04
 
-First PyPI release. Package installable via `pip install cad-mcp-server`.
+First PyPI release. Package installable via `pip install tianshangcad`.
 
 ### Added
 - PyPI publish job in `release.yml` (OIDC trusted publishing). Every future

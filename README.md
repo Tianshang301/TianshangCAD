@@ -1,4 +1,4 @@
-# TianshangCAD (cad-mcp-server)
+# TianshangCAD
 
 A modern **CAD CLI + MCP Server** system. 2D/3D drawing, editing,
 measurement, validation and JSON-driven workflows are available both from the
