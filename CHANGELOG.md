@@ -2,6 +2,20 @@
 
 Notable changes to TianshangCAD (cad-mcp-server), newest first.
 
+## v0.10.0 - 2026-08-04
+
+First PyPI release. Package installable via `pip install cad-mcp-server`.
+
+### Added
+- PyPI publish job in `release.yml` (OIDC trusted publishing). Every future
+  `v*` tag automatically publishes the wheel and source distribution to PyPI.
+- `glama.json` -- Glama MCP server registry claim.
+- Root-level `Dockerfile` for registry auto-detection.
+
+### Changed
+- Bumped version to `0.10.0`; `build` added to dev dependencies so CI can
+  produce standard wheels.
+
 ## v0.9.1 - 2026-08-04
 
 Maintenance release.
