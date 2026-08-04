@@ -37,8 +37,8 @@ expected to enable them in production:
 
 ### API-key authentication (HTTP transport)
 
-- The streamable-HTTP endpoint is guarded by `CAD_API_KEY` (single key) or
-  `TIANSHANGCAD_API_KEYS` (comma-separated list).
+- The streamable-HTTP endpoint is guarded by `TIANGSHANGCAD_API_KEY` (single key) or
+  `TIANSHANGTIANGSHANGTIANGSHANGCAD_API_KEYS` (comma-separated list).
 - Key comparison is constant-time via `hmac.compare_digest`, so timing
   attacks cannot leak key bytes.
 - If no key is configured the HTTP endpoint is open — intended for local
@@ -52,8 +52,8 @@ expected to enable them in production:
 - Read-only tools auto-approve; write tools require confirmation;
   destructive tools (delete / overwrite / cancel) always require explicit
   confirmation; admin tools are reserved for operators.
-- `CAD_AUTO_APPROVE` configures the auto-approved tool set;
-  `CAD_SAFE_MODE=true` disables destructive operations entirely.
+- `TIANGSHANGCAD_AUTO_APPROVE` configures the auto-approved tool set;
+  `TIANGSHANGCAD_SAFE_MODE=true` disables destructive operations entirely.
 
 ### Rate limiting
 
@@ -64,13 +64,13 @@ expected to enable them in production:
 ### Sandboxed script execution
 
 - Batch jobs run Python / SCR / batch scripts in a sandboxed subprocess with
-  a configurable timeout (`CAD_SAFE_MODE` and batch scheduling options).
+  a configurable timeout (`TIANGSHANGCAD_SAFE_MODE` and batch scheduling options).
 - Scripts are never executed inline in the server process.
 
 ## Configuration Checklist
 
-- Set `CAD_API_KEY` (or `TIANSHANGCAD_API_KEYS`) in production.
-- Keep `CAD_AUTO_APPROVE` as small as possible.
-- Enable `CAD_SAFE_MODE=true` when destructive operations are not needed.
+- Set `TIANGSHANGCAD_API_KEY` (or `TIANSHANGTIANGSHANGTIANGSHANGCAD_API_KEYS`) in production.
+- Keep `TIANGSHANGCAD_AUTO_APPROVE` as small as possible.
+- Enable `TIANGSHANGCAD_SAFE_MODE=true` when destructive operations are not needed.
 - Do not expose the MCP HTTP endpoint to the public internet without a
   reverse proxy, TLS, and an API key.

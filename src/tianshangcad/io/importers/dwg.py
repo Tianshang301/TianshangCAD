@@ -45,7 +45,7 @@ class DWGImporter:
         if not odafc.is_installed():  # type: ignore[attr-defined]
             raise CADImportError(
                 "DWG import requires the ODA File Converter; "
-                "install it and set ODAFC_PATH (or TIANSHANGCAD_ODAFC_PATH in the "
+                "install it and set ODAFC_PATH (or TIANSHANGTIANGSHANGCAD_ODAFC_PATH in the "
                 "tianshangcad config) to the converter executable",
                 code="requires_odafc",
             )

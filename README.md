@@ -126,11 +126,11 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 The server then serves MCP at `http://127.0.0.1:8081/mcp`, exposes a health
 check at `/health` and Prometheus metrics at `/metrics`.
 
-When an API key is configured (via the `TIANSHANGCAD_API_KEYS` env var, comma-separated),
+When an API key is configured (via the `TIANSHANGTIANGSHANGTIANGSHANGCAD_API_KEYS` env var, comma-separated),
 HTTP requests must send it as `x-api-key` or `Authorization: Bearer <key>`:
 missing keys get `401`, invalid keys get `403`. Requests are also subject to a
 sliding-window rate limit (default 100 requests / 60 s, configurable via
-`CAD_RATE_LIMIT_MAX` and `CAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
+`TIANGSHANGCAD_RATE_LIMIT_MAX` and `TIANGSHANGCAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
 ### Tools (103 total)
@@ -272,8 +272,8 @@ docker compose -f docker/docker-compose.yml up -d
 
 The container runs the MCP server over streamable HTTP on port `8081` with a
 `/health` healthcheck, and mounts `data/` + `config/` volumes. Environment
-overrides: `CAD_RUNTIME`, `CAD_HEADLESS`, `CAD_TEMP_DIR`, `TIANSHANGCAD_API_KEYS`,
-`CAD_LOG_LEVEL`, `CAD_RATE_LIMIT_MAX`, `CAD_RATE_LIMIT_WINDOW`.
+overrides: `TIANGSHANGCAD_RUNTIME`, `TIANGSHANGCAD_HEADLESS`, `TIANGSHANGCAD_TEMP_DIR`, `TIANSHANGTIANGSHANGTIANGSHANGCAD_API_KEYS`,
+`TIANGSHANGCAD_LOG_LEVEL`, `TIANGSHANGCAD_RATE_LIMIT_MAX`, `TIANGSHANGCAD_RATE_LIMIT_WINDOW`.
 
 Example MCP client configuration (Claude Desktop `~/.config/claude/mcp.json`):
 
