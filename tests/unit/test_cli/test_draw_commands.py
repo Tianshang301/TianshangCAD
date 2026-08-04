@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
@@ -15,7 +15,7 @@ def _new_file() -> None:
 
 
 class TestDrawCommands:
-    """`cad-cli draw` command tests."""
+    """`tianshangcad draw` command tests."""
 
     def test_draw_line(self) -> None:
         _new_file()

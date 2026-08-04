@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from cad_mcp_server.mcp.tools.crud import FileCreateInput, cad_file_create
-from cad_mcp_server.mcp.tools.json_ops import (
+from tianshangcad.mcp.tools.crud import FileCreateInput, cad_file_create
+from tianshangcad.mcp.tools.json_ops import (
     JsonExportGeometryInput,
     JsonExportSceneInput,
     JsonImportGeometryInput,

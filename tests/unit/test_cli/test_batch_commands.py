@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
 
 class TestBatchCommands:
-    """`cad-cli batch` command tests."""
+    """`tianshangcad batch` command tests."""
 
     def test_list_empty(self) -> None:
         result = runner.invoke(app, ["batch", "list"])

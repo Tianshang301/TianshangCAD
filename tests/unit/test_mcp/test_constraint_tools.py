@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.constraint import (
+from tianshangcad.mcp.tools.constraint import (
     ConstraintAddInput,
     ConstraintListInput,
     ConstraintRemoveInput,
@@ -12,7 +12,7 @@ from cad_mcp_server.mcp.tools.constraint import (
     cad_constraint_remove,
     cad_constraint_solve,
 )
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.tools.crud import (
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
@@ -23,7 +23,7 @@ class TestConstraintTools:
     """`cad_constraint_*` tool tests."""
 
     def _setup(self) -> tuple[str, str]:
-        from cad_mcp_server.mcp.tools.crud import FileCreateInput
+        from tianshangcad.mcp.tools.crud import FileCreateInput
 
         cad_file_create(FileCreateInput(filename="constraint.json"))
         line_a = cad_object_create(
@@ -62,7 +62,7 @@ class TestConstraintTools:
         assert result.status == "success"
 
     def test_list_empty(self) -> None:
-        from cad_mcp_server.mcp.tools.crud import FileCreateInput
+        from tianshangcad.mcp.tools.crud import FileCreateInput
 
         cad_file_create(FileCreateInput(filename="constraint2.json"))
         result = cad_constraint_list(ConstraintListInput())
@@ -85,7 +85,7 @@ class TestConstraintTools:
         assert result.status == "error"
 
     def test_solve_no_document(self) -> None:
-        from cad_mcp_server.mcp.tools.status import SessionManager
+        from tianshangcad.mcp.tools.status import SessionManager
 
         SessionManager().reset()
         result = cad_constraint_solve(ConstraintSolveInput())
@@ -108,12 +108,12 @@ class TestConstraintTools:
         assert line_b in result.moved_entities
 
     def test_solve_persists_roundtrip(self) -> None:
-        from cad_mcp_server.core.session import SessionManager
+        from tianshangcad.core.session import SessionManager
 
         line_a, line_b = self._setup()
         cad_constraint_add(ConstraintAddInput(type="parallel", entities=[line_a, line_b]))
         doc = SessionManager().current_session.current_file_id
-        from cad_mcp_server.core.document import DocumentManager
+        from tianshangcad.core.document import DocumentManager
 
         data = DocumentManager()._require(doc).to_dict()
         assert len(data["constraints"]) == 1

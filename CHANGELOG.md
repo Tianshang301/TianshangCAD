@@ -23,7 +23,7 @@ Maintenance release.
 ### Changed
 - The Debian package is now a real self-contained bundle: the project wheel
   plus pinned runtime dependency wheels are installed under
-  `/usr/lib/cad-mcp-server/site` with `/usr/bin` entry-point wrappers. No
+  `/usr/lib/tianshangcad-server/site` with `/usr/bin` entry-point wrappers. No
   network access is required at install time. Architecture is `amd64`.
 - `_DEGENERATE_LENGTH` widened to `1e-4` so boundary-degenerate lines
   (length exactly `1e-5`) converge instead of stalling the constraint solver.

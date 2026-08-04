@@ -10,8 +10,8 @@ from __future__ import annotations
 import json
 import os
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.mcp.tools.assembly import (
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.mcp.tools.assembly import (
     AssemblyAddMateInput,
     AssemblyAddPartInput,
     AssemblyBomInput,
@@ -23,7 +23,7 @@ from cad_mcp_server.mcp.tools.assembly import (
     cad_assembly_create,
     cad_assembly_solve,
 )
-from cad_mcp_server.mcp.tools.drawing import (
+from tianshangcad.mcp.tools.drawing import (
     DrawingAddDimensionInput,
     DrawingAddToleranceInput,
     DrawingAddViewInput,

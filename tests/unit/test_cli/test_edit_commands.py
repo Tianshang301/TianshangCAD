@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
@@ -16,7 +16,7 @@ def _setup_line() -> str:
 
 
 class TestEditCommands:
-    """`cad-cli edit` command tests."""
+    """`tianshangcad edit` command tests."""
 
     def test_move(self) -> None:
         entity_id = _setup_line()
@@ -78,7 +78,7 @@ class TestEditCommands:
 
 
 class TestBooleanCommands:
-    """`cad-cli edit` boolean command tests."""
+    """`tianshangcad edit` boolean command tests."""
 
     def _setup_boxes(self) -> tuple[str, str]:
         runner.invoke(app, ["file", "new", "bool.json"])
@@ -107,7 +107,7 @@ class TestBooleanCommands:
 
 
 class TestParamCommands:
-    """`cad-cli edit param-*` command tests."""
+    """`tianshangcad edit param-*` command tests."""
 
     def _new_file(self) -> None:
         runner.invoke(app, ["file", "new", "params.json"])

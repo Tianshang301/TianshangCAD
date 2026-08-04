@@ -1,14 +1,14 @@
 """LWW-Map CRDT collaboration prototype tests (Spike 3).
 
 Validates the pure-Python :class:`LWWMap` CRDT in
-``cad_mcp_server.core.backends.crdt``: convergent concurrent edits,
+``tianshangcad.core.backends.crdt``: convergent concurrent edits,
 delete/update conflict resolution, snapshot round-trips and the
 ≥99% consistency acceptance for randomized concurrent CAD edits.
 """
 
 from __future__ import annotations
 
-from cad_mcp_server.core.backends.crdt import (
+from tianshangcad.core.backends.crdt import (
     LWWMap,
     replicas_converge,
     replicate_via_json,

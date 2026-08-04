@@ -5,13 +5,13 @@ from __future__ import annotations
 import pytest
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
 
 class TestLayerCommands:
-    """`cad-cli layer` command tests."""
+    """`tianshangcad layer` command tests."""
 
     def test_create_list_set(self) -> None:
         runner.invoke(app, ["file", "new", "layers.json"])
@@ -43,7 +43,7 @@ class TestLayerCommands:
 
 
 class TestViewCommands:
-    """`cad-cli view` command tests."""
+    """`tianshangcad view` command tests."""
 
     def test_zoom_extents(self) -> None:
         runner.invoke(app, ["file", "new", "view.json"])
@@ -66,7 +66,7 @@ class TestViewCommands:
 
 
 class TestMeasureCommands:
-    """`cad-cli measure` command tests."""
+    """`tianshangcad measure` command tests."""
 
     def test_distance(self) -> None:
         runner.invoke(app, ["file", "new", "measure.json"])
@@ -102,9 +102,9 @@ class TestAliases:
 
     def test_line_alias(self, monkeypatch, capsys) -> None:
         runner.invoke(app, ["file", "new", "alias.json"])
-        from cad_mcp_server.cli.main import main as cli_main
+        from tianshangcad.cli.main import main as cli_main
 
-        monkeypatch.setattr("sys.argv", ["cad-cli", "l", "0,0", "100,0"])
+        monkeypatch.setattr("sys.argv", ["tianshangcad", "l", "0,0", "100,0"])
         with pytest.raises(SystemExit) as exc_info:
             cli_main()
         assert exc_info.value.code == 0
@@ -112,20 +112,20 @@ class TestAliases:
         assert "Created" in output
 
     def test_unknown_alias_not_expanded(self, monkeypatch, capsys) -> None:
-        from cad_mcp_server.cli.main import main as cli_main
+        from tianshangcad.cli.main import main as cli_main
 
-        monkeypatch.setattr("sys.argv", ["cad-cli", "not-an-alias"])
+        monkeypatch.setattr("sys.argv", ["tianshangcad", "not-an-alias"])
         with pytest.raises(SystemExit) as exc_info:
             cli_main()
         assert exc_info.value.code != 0
 
     def test_version_flag(self, monkeypatch, capsys) -> None:
         """`--version` prints the version and exits with code 0."""
-        from cad_mcp_server import __version__
-        from cad_mcp_server.cli.main import main as cli_main
+        from tianshangcad import __version__
+        from tianshangcad.cli.main import main as cli_main
 
-        monkeypatch.setattr("sys.argv", ["cad-cli", "--version"])
+        monkeypatch.setattr("sys.argv", ["tianshangcad", "--version"])
         with pytest.raises(SystemExit) as exc_info:
             cli_main()
         assert exc_info.value.code == 0
-        assert capsys.readouterr().out.strip() == f"cad-cli {__version__}"
+        assert capsys.readouterr().out.strip() == f"tianshangcad {__version__}"

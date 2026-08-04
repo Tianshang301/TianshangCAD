@@ -1,7 +1,7 @@
 """End-to-end WebSocket integration tests (requires the ``[collab]`` extra).
 
 These tests exercise the real ``websockets`` server loop wired through
-:func:`cad_mcp_server.mcp.transport.make_ws_connection_handler` and a shared
+:func:`tianshangcad.mcp.transport.make_ws_connection_handler` and a shared
 :class:`CollabHub`. They are skipped when ``websockets`` is not installed
 (``pip install -e ".[collab]"``).
 """
@@ -16,13 +16,13 @@ import pytest
 
 websockets = pytest.importorskip("websockets")
 
-from cad_mcp_server.core.collab import CollabManager  # noqa: E402
-from cad_mcp_server.mcp.collab_hub import CollabHub  # noqa: E402
-from cad_mcp_server.mcp.transport import make_ws_connection_handler  # noqa: E402
+from tianshangcad.core.collab import CollabManager  # noqa: E402
+from tianshangcad.mcp.collab_hub import CollabHub  # noqa: E402
+from tianshangcad.mcp.transport import make_ws_connection_handler  # noqa: E402
 
 
 def _make_ws_on_sync() -> Callable[[dict], dict]:
-    from cad_mcp_server.mcp.tools.collab import (
+    from tianshangcad.mcp.tools.collab import (
         CollabSyncInput,
         cad_collab_sync,
     )

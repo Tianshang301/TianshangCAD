@@ -1,7 +1,7 @@
 """planegcs constraint solver backend tests (Spike 1).
 
 These tests exercise the optional ``[solver]`` backend adapter in
-``cad_mcp_server.core.backends.planegcs_solver``. They are skipped
+``tianshangcad.core.backends.planegcs_solver``. They are skipped
 when planegcs is not installed (it requires Python >=3.12 and is an
 optional extra), keeping the default ``pip install -e .`` test suite
 green.
@@ -14,13 +14,13 @@ import math
 import numpy as np
 import pytest
 
-from cad_mcp_server.core.backends.planegcs_solver import (
+from tianshangcad.core.backends.planegcs_solver import (
     PlanegcsUnavailableError,
     apply_solution_planegcs,
     solve_2d_planegcs,
 )
-from cad_mcp_server.core.constraint import ConstraintManager, ConstraintType
-from cad_mcp_server.core.entity import EntityManager
+from tianshangcad.core.constraint import ConstraintManager, ConstraintType
+from tianshangcad.core.entity import EntityManager
 
 planegcs = pytest.importorskip("planegcs", reason="planegcs not installed (extra: solver)")
 
@@ -173,7 +173,7 @@ class TestPlanegcsUnavailable:
     """Backend surfaces a friendly error when planegcs is missing."""
 
     def test_raises_planegcs_unavailable(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        import cad_mcp_server.core.backends.planegcs_solver as module
+        import tianshangcad.core.backends.planegcs_solver as module
 
         monkeypatch.setattr(module, "Sketch", None)
         monkeypatch.setattr(module, "SolveStatus", None)

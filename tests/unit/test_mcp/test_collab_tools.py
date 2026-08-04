@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.core.collab import CollabManager
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.mcp.tools.collab import (
+from tianshangcad.core.collab import CollabManager
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.mcp.tools.collab import (
     TOOLS,
     CollabAnnotationInput,
     CollabBranchInput,

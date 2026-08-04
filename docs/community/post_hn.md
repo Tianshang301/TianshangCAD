@@ -38,7 +38,7 @@ Feedback welcome - especially on the flat tool schema (a deliberate v0.9
 breaking change) and whether a dedicated CAD category belongs in the
 awesome-mcp-servers list.
 
-Install: pip install cad-mcp-server
+Install: pip install tianshangcad-server
 
 ## Posting tips
 

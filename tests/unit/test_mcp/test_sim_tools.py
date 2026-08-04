@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import time
 
-from cad_mcp_server.core.simulation import SimulationManager
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.core.simulation import SimulationManager
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
 )
-from cad_mcp_server.mcp.tools.simulation import (
+from tianshangcad.mcp.tools.simulation import (
     SimListInput,
     SimMeshInput,
     SimResultInput,
@@ -110,7 +110,7 @@ class TestSimRun:
         assert result.status == "success"
         assert result.sim_state == "running"
         assert result.job_id.startswith("job_sim_")
-        from cad_mcp_server.core.scheduler import get_scheduler
+        from tianshangcad.core.scheduler import get_scheduler
 
         _wait_for_scheduler(get_scheduler(), result.job_id)
 

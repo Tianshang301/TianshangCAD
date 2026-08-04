@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 
-from cad_mcp_server.mcp.tools.batch import (
+from tianshangcad.mcp.tools.batch import (
     BatchCancelInput,
     BatchCommand,
     BatchExecuteInput,
@@ -21,18 +21,18 @@ from cad_mcp_server.mcp.tools.batch import (
     cad_batch_status,
     cad_batch_templates,
 )
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
 )
-from cad_mcp_server.mcp.tools.status import (
+from tianshangcad.mcp.tools.status import (
     LogsGetInput,
     cad_logs_clear,
     cad_logs_get,
 )
-from cad_mcp_server.mcp.tools.validate import (
+from tianshangcad.mcp.tools.validate import (
     MetricsGetInput,
     ValidateGeometryInput,
     ValidateInterferenceInput,
@@ -190,8 +190,8 @@ class TestValidationTools:
         assert result.warnings == []
 
     def test_validate_topology_warns_non_manifold_mesh(self) -> None:
-        from cad_mcp_server.core.document import DocumentManager
-        from cad_mcp_server.core.entity import EntityRecord
+        from tianshangcad.core.document import DocumentManager
+        from tianshangcad.core.entity import EntityRecord
 
         cad_file_create(FileCreateInput(filename="draw.json"))
         record = EntityRecord(

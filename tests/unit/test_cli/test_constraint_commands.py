@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
 
 class TestConstraintCommands:
-    """`cad-cli constraint` command tests."""
+    """`tianshangcad constraint` command tests."""
 
     def _new_file(self) -> None:
         runner.invoke(app, ["file", "new", "constraints.json"])

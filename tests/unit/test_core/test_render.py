@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.core.kernel import AnalyticKernel
-from cad_mcp_server.render.renderer_2d import render_view
-from cad_mcp_server.render.renderer_3d import render_3d
-from cad_mcp_server.render.webgl_exporter import (
+from tianshangcad.core.kernel import AnalyticKernel
+from tianshangcad.render.renderer_2d import render_view
+from tianshangcad.render.renderer_3d import render_3d
+from tianshangcad.render.webgl_exporter import (
     export_webgl,
     export_webgl_file,
     viewer_html,
 )
-from cad_mcp_server.utils.errors import CADValidationError
+from tianshangcad.utils.errors import CADValidationError
 
 _KERNEL = AnalyticKernel()
 

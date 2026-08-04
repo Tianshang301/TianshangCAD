@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import ezdxf
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.io.exporters.dxf import DXFExporter
-from cad_mcp_server.io.importers.dxf import DXFImporter
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.io.exporters.dxf import DXFExporter
+from tianshangcad.io.importers.dxf import DXFImporter
 
 
 class TestDXFExport:
@@ -112,7 +112,7 @@ class TestDXFImport:
     def test_import_missing_file(self) -> None:
         import pytest
 
-        from cad_mcp_server.utils.errors import CADImportError
+        from tianshangcad.utils.errors import CADImportError
 
         with pytest.raises(CADImportError):
             DXFImporter().import_file("/nope.dxf")
@@ -120,7 +120,7 @@ class TestDXFImport:
     def test_import_empty_dxf_raises(self, tmp_path) -> None:
         import pytest
 
-        from cad_mcp_server.utils.errors import CADImportError
+        from tianshangcad.utils.errors import CADImportError
 
         path = tmp_path / "empty.dxf"
         d = ezdxf.new("R2010")

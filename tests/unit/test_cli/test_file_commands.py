@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
 
 class TestFileCommands:
-    """`cad-cli file` command tests."""
+    """`tianshangcad file` command tests."""
 
     def test_new(self) -> None:
         result = runner.invoke(app, ["file", "new", "design.json"])
@@ -107,7 +107,7 @@ class TestDxfDataParity:
 
 
 class TestStepExportImport:
-    """`cad-cli file` STEP export/import tests."""
+    """`tianshangcad file` STEP export/import tests."""
 
     def test_export_import_step(self, tmp_path) -> None:
         step_path = tmp_path / "out.step"

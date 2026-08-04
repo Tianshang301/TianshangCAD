@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
+from tianshangcad.cli.main import app
 
 runner = CliRunner()
 
 
 class TestDrawingCommands:
-    """`cad-cli drawing` command tests."""
+    """`tianshangcad drawing` command tests."""
 
     def _new_file(self) -> None:
         runner.invoke(app, ["file", "new", "drawing.json"])

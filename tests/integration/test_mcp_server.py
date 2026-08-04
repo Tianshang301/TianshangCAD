@@ -9,7 +9,7 @@ import json
 from mcp import ClientSession
 from mcp.shared.memory import create_client_server_memory_streams
 
-from cad_mcp_server.mcp.server import build_server
+from tianshangcad.mcp.server import build_server
 
 
 def _call_tools(tool_arguments: list[tuple[str, dict]]) -> list[str]:

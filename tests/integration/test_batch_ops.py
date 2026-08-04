@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 
-from cad_mcp_server.mcp.tools.batch import (
+from tianshangcad.mcp.tools.batch import (
     BatchCommand,
     BatchExecuteInput,
     BatchScheduleInput,
@@ -14,8 +14,8 @@ from cad_mcp_server.mcp.tools.batch import (
     cad_batch_schedule,
     cad_batch_status,
 )
-from cad_mcp_server.mcp.tools.crud import FileCreateInput, cad_file_create
-from cad_mcp_server.mcp.tools.json_ops import (
+from tianshangcad.mcp.tools.crud import FileCreateInput, cad_file_create
+from tianshangcad.mcp.tools.json_ops import (
     JsonExportGeometryInput,
     cad_json_export_geometry,
 )

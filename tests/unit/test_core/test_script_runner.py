@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.script_runner import (
+from tianshangcad.core.script_runner import (
     SCRIPT_TYPES,
     _scan_code,
     run_script,
 )
-from cad_mcp_server.utils.errors import CADValidationError, SchedulerError
+from tianshangcad.utils.errors import CADValidationError, SchedulerError
 
 
 class TestPythonSandbox:

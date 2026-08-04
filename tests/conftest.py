@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.collab import CollabManager
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.core.entity import EntityManager
-from cad_mcp_server.core.kernel import AnalyticKernel
-from cad_mcp_server.core.scheduler import get_scheduler
-from cad_mcp_server.core.session import SessionManager
-from cad_mcp_server.core.simulation import SimulationManager
-from cad_mcp_server.mcp.tools.nlp import clear_chat_session
-from cad_mcp_server.mcp.tools.status import _log_buffer
+from tianshangcad.core.collab import CollabManager
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.core.entity import EntityManager
+from tianshangcad.core.kernel import AnalyticKernel
+from tianshangcad.core.scheduler import get_scheduler
+from tianshangcad.core.session import SessionManager
+from tianshangcad.core.simulation import SimulationManager
+from tianshangcad.mcp.tools.nlp import clear_chat_session
+from tianshangcad.mcp.tools.status import _log_buffer
 
 
 @pytest.fixture(autouse=True)

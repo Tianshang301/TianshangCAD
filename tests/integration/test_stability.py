@@ -19,11 +19,11 @@ from typing import Any
 
 import pytest
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.core.entity import EntityManager
-from cad_mcp_server.core.session import SessionManager
-from cad_mcp_server.mcp.collab_hub import CollabHub
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.core.entity import EntityManager
+from tianshangcad.core.session import SessionManager
+from tianshangcad.mcp.collab_hub import CollabHub
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     FileCreateOutput,
     cad_file_create,

@@ -1,11 +1,11 @@
-"""Build a real, self-contained Debian package for cad-mcp-server.
+"""Build a real, self-contained Debian package for tianshangcad-server.
 
 Unlike the earlier hand-rolled re-pack (which pip-installed dependencies at
 install time), this package bundles the project's own wheel together with the
-pinned runtime dependency wheels under ``/usr/lib/cad-mcp-server/site``.
+pinned runtime dependency wheels under ``/usr/lib/tianshangcad-server/site``.
 Installing the ``.deb`` needs no network access and no ``postinst`` pip hack.
 
-The two entry points (``/usr/bin/cad-cli`` and ``/usr/bin/cad-mcp-server``)
+The two entry points (``/usr/bin/tianshangcad`` and ``/usr/bin/tianshangcad-server``)
 are thin wrappers that point ``PYTHONPATH`` at the bundled site directory.
 
 Build on a Linux amd64 host with the target CPython (e.g. Python 3.12 on
@@ -13,7 +13,7 @@ Ubuntu 24.04):
 
     python scripts/build_deb.py
 
-Output: ``dist/cad-mcp-server_<version>_amd64.deb``
+Output: ``dist/tianshangcad-server_<version>_amd64.deb``
 """
 
 from __future__ import annotations
@@ -27,10 +27,10 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "src" / "cad_mcp_server"
+SRC = ROOT / "src" / "tianshangcad"
 DIST = ROOT / "dist"
-PACKAGE = "cad-mcp-server"
-PREFIX = "/usr/lib/cad-mcp-server"
+PACKAGE = "tianshangcad-server"
+PREFIX = "/usr/lib/tianshangcad-server"
 SITE = f"{PREFIX}/site"
 
 RUNTIME_DEPENDENCIES = [
@@ -79,19 +79,19 @@ Depends: python3 (>= 3.12), libc6 (>= 2.28)
 Copyright: {COPYRIGHT}
 License: {LICENSE_NAME}
 Description: {DESCRIPTION}
- JSON-driven CAD operations via command line (cad-cli) and an MCP server
- (cad-mcp-server). Self-contained bundle; no network access required at
+ JSON-driven CAD operations via command line (tianshangcad) and an MCP server
+ (tianshangcad-server). Self-contained bundle; no network access required at
  install time.
 """
 
 CLI_WRAPPER = f"""#!/bin/sh
 export PYTHONPATH={SITE}
-exec python3 -m cad_mcp_server.cli.main "$@"
+exec python3 -m tianshangcad.cli.main "$@"
 """
 
 SERVER_WRAPPER = f"""#!/bin/sh
 export PYTHONPATH={SITE}
-exec python3 -m cad_mcp_server "$@"
+exec python3 -m tianshangcad "$@"
 """
 
 
@@ -180,12 +180,12 @@ def _build_data_tar_gz(site: Path) -> tuple[bytes, list[tuple[str, str]]]:
             doc = ROOT / name
             if doc.exists():
                 add_bytes(
-                    f"./usr/share/doc/cad-mcp-server/{name}",
+                    f"./usr/share/doc/tianshangcad-server/{name}",
                     doc.read_bytes(),
                     0o644,
                 )
-        add_bytes("./usr/bin/cad-cli", CLI_WRAPPER.encode(), 0o755)
-        add_bytes("./usr/bin/cad-mcp-server", SERVER_WRAPPER.encode(), 0o755)
+        add_bytes("./usr/bin/tianshangcad", CLI_WRAPPER.encode(), 0o755)
+        add_bytes("./usr/bin/tianshangcad-server", SERVER_WRAPPER.encode(), 0o755)
     return buffer.getvalue(), md5sums
 
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.cli.main import app
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
@@ -27,7 +27,7 @@ def _seed() -> None:
 
 
 class TestRenderCommands:
-    """`cad-cli render` command tests."""
+    """`tianshangcad render` command tests."""
 
     def test_render_view(self, tmp_path) -> None:
         _seed()

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
 )
-from cad_mcp_server.mcp.tools.render import (
+from tianshangcad.mcp.tools.render import (
     RenderViewInput,
     cad_render_view,
 )

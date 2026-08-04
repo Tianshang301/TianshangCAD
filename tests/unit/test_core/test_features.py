@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.entity import EntityManager
-from cad_mcp_server.core.features import FeatureManager
-from cad_mcp_server.core.kernel import AnalyticKernel
-from cad_mcp_server.utils.errors import CADNotImplementedError, CADValidationError
+from tianshangcad.core.entity import EntityManager
+from tianshangcad.core.features import FeatureManager
+from tianshangcad.core.kernel import AnalyticKernel
+from tianshangcad.utils.errors import CADNotImplementedError, CADValidationError
 
 
 @pytest.fixture

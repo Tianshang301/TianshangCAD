@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.core.kernel import get_kernel
-from cad_mcp_server.render.animation import render_orbit_gif
-from cad_mcp_server.render.explode import explode_mesh
-from cad_mcp_server.render.section import bounds_radius, section_mesh
-from cad_mcp_server.render.webgl_exporter import export_webgl_delta
-from cad_mcp_server.schemas.view3d import (
+from tianshangcad.core.kernel import get_kernel
+from tianshangcad.render.animation import render_orbit_gif
+from tianshangcad.render.explode import explode_mesh
+from tianshangcad.render.section import bounds_radius, section_mesh
+from tianshangcad.render.webgl_exporter import export_webgl_delta
+from tianshangcad.schemas.view3d import (
     CameraPose,
     ExplodeSpec,
     SectionPlane,

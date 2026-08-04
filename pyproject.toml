@@ -56,8 +56,8 @@ dev = [
 ]
 
 [project.scripts]
-cad-cli = "cad_mcp_server.cli.main:main"
-cad-mcp-server = "cad_mcp_server.__main__:main"
+tianshangcad = "tianshangcad.cli.main:main"
+tianshangcad-server = "tianshangcad.__main__:main"
 
 [project.urls]
 Homepage = "https://github.com/Tianshang301/TianshangCAD"
@@ -66,7 +66,7 @@ Homepage = "https://github.com/Tianshang301/TianshangCAD"
 where = ["src"]
 
 [tool.setuptools.package-data]
-"cad_mcp_server" = ["config/*.yaml", "config/*.json", "py.typed", "templates/*.j2"]
+"tianshangcad" = ["config/*.yaml", "config/*.json", "py.typed", "templates/*.j2"]
 
 [tool.ruff]
 line-length = 100
@@ -79,7 +79,7 @@ ignore = ["D203", "D213", "D415"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "D"]
-"src/cad_mcp_server/mcp/tools/**" = ["A002", "RUF001", "RUF002"]
+"src/tianshangcad/mcp/tools/**" = ["A002", "RUF001", "RUF002"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -108,7 +108,7 @@ filterwarnings = [
 
 [tool.coverage.run]
 branch = true
-source = ["cad_mcp_server"]
+source = ["tianshangcad"]
 
 [tool.coverage.report]
 show_missing = true

@@ -1,4 +1,4 @@
-"""Drive the real cad-mcp-server over stdio to build a simple 3D scene and save it.
+"""Drive the real tianshangcad-server over stdio to build a simple 3D scene and save it.
 
 Usage: python scripts/mcp_3d_test.py [output.json]
 """
@@ -27,7 +27,7 @@ async def main() -> None:
     output = Path(sys.argv[1] if len(sys.argv) > 1 else "dist/demo/3d_test_scene.json")
     server = StdioServerParameters(
         command=sys.executable,
-        args=["-m", "cad_mcp_server", "--transport", "stdio"],
+        args=["-m", "tianshangcad", "--transport", "stdio"],
     )
     async with stdio_client(server) as (read, write), ClientSession(read, write) as session:
         await session.initialize()

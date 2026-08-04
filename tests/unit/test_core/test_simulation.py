@@ -6,11 +6,11 @@ import time
 
 import pytest
 
-from cad_mcp_server.core.simulation import (
+from tianshangcad.core.simulation import (
     SimulationManager,
     mesh_hex_bbox,
 )
-from cad_mcp_server.utils.errors import CADValidationError, SimulationError
+from tianshangcad.utils.errors import CADValidationError, SimulationError
 
 
 def _wait_for_scheduler(scheduler, job_id: str, timeout: float = 5.0) -> str:
@@ -109,7 +109,7 @@ class TestAsyncSubmit:
         sim_id = manager.create(name="async", kind="fea")
         job_id = manager.submit(sim_id)
         assert job_id.startswith("job_sim_")
-        from cad_mcp_server.core.scheduler import get_scheduler
+        from tianshangcad.core.scheduler import get_scheduler
 
         job = get_scheduler().get_job(job_id)
         assert job is not None
@@ -132,7 +132,7 @@ class TestAsyncSubmit:
 class TestMeshFromEntity:
     """Mesh an entity through the manager."""
     def test_mesh_entity(self, document) -> None:
-        from cad_mcp_server.core.document import DocumentManager
+        from tianshangcad.core.document import DocumentManager
 
         manager = DocumentManager()
         manager.create("e.json")

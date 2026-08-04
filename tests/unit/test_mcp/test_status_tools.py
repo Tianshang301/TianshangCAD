@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     LayerCreateInput,
     ObjectCreateInput,
@@ -10,7 +10,7 @@ from cad_mcp_server.mcp.tools.crud import (
     cad_layer_create,
     cad_object_create,
 )
-from cad_mcp_server.mcp.tools.status import (
+from tianshangcad.mcp.tools.status import (
     LogsClearInput,
     LogsGetInput,
     StatusCheckInput,

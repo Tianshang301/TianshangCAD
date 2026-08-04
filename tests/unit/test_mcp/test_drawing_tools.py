@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
 )
-from cad_mcp_server.mcp.tools.drawing import (
+from tianshangcad.mcp.tools.drawing import (
     DrawingAddDimensionInput,
     DrawingAddSectionInput,
     DrawingAddToleranceInput,
@@ -50,7 +50,7 @@ class TestDrawingTools:
         assert result.status == "error"
 
     def test_create_no_document(self) -> None:
-        from cad_mcp_server.core.session import SessionManager
+        from tianshangcad.core.session import SessionManager
 
         SessionManager().reset()
         result = cad_drawing_create(DrawingCreateInput(name="engine"))

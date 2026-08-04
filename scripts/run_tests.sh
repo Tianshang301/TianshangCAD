@@ -13,4 +13,4 @@ echo "==> mypy"
 mypy src
 
 echo "==> pytest (coverage gate >= 80%)"
-pytest --cov=cad_mcp_server --cov-report=term-missing --cov-fail-under=80
+pytest --cov=tianshangcad --cov-report=term-missing --cov-fail-under=80

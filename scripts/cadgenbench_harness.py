@@ -1,6 +1,6 @@
 """CADGenBench local demo harness.
 
-Drives the real ``cad-mcp-server`` over stdio to build a small set of
+Drives the real ``tianshangcad-server`` over stdio to build a small set of
 3D mechanical parts from declarative sample "descriptions", exports each
 as STEP, and runs a local validity check that mirrors CADGenBench's
 validity gate (well-formed, watertight manifold that meshes).
@@ -206,7 +206,7 @@ def check_validity(step_path: Path) -> dict[str, Any]:
     if mesh is None:
         # Fallback: read through our own AP203 importer (no cascadio needed).
         try:
-            from cad_mcp_server.io.importers.step import STEPImporter
+            from tianshangcad.io.importers.step import STEPImporter
 
             doc = STEPImporter().import_file(str(step_path))
             for entity in doc.entities.list():
@@ -260,7 +260,7 @@ async def run_all(out_dir: Path, use_occ: bool) -> dict[str, Any]:
     """Build every sample, export STEP, validate, and write reports."""
     out_dir.mkdir(parents=True, exist_ok=True)
     server = StdioServerParameters(
-        command=sys.executable, args=["-m", "cad_mcp_server", "--transport", "stdio"]
+        command=sys.executable, args=["-m", "tianshangcad", "--transport", "stdio"]
     )
     per_sample: dict[str, Any] = {}
     n_valid = 0
@@ -320,7 +320,7 @@ async def run_all(out_dir: Path, use_occ: bool) -> dict[str, Any]:
 
     n_samples = len(SAMPLES)
     summary: dict[str, Any] = {
-        "runner": "cad-mcp-server (offline demo harness)",
+        "runner": "tianshangcad-server (offline demo harness)",
         "backend": "occ" if use_occ else "analytic (AP203 faceted)",
         "aggregate_score": round(n_valid / n_samples, 4) if n_samples else 0.0,
         "validity_rate": round(n_valid / n_samples, 4) if n_samples else 0.0,

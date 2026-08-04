@@ -7,12 +7,12 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.io.exporters.json_io import JSONExporter
-from cad_mcp_server.io.importers.json_io import JSONImporter
-from cad_mcp_server.schemas.geometry import GeometryObject
-from cad_mcp_server.schemas.scene import SceneDefinition
-from cad_mcp_server.utils.errors import CADImportError
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.io.exporters.json_io import JSONExporter
+from tianshangcad.io.importers.json_io import JSONImporter
+from tianshangcad.schemas.geometry import GeometryObject
+from tianshangcad.schemas.scene import SceneDefinition
+from tianshangcad.utils.errors import CADImportError
 
 
 class TestSchemas:

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.batch_templates import list_templates, render_template
-from cad_mcp_server.utils.errors import SchedulerError
+from tianshangcad.core.batch_templates import list_templates, render_template
+from tianshangcad.utils.errors import SchedulerError
 
 
 class TestTemplates:

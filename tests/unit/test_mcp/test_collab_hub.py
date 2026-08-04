@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 
-from cad_mcp_server.mcp.collab_hub import CollabHub
+from tianshangcad.mcp.collab_hub import CollabHub
 
 
 def _run(coro):

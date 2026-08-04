@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.entity import EntityManager, EntityRecord
-from cad_mcp_server.core.transform import translation
-from cad_mcp_server.utils.errors import EntityError
+from tianshangcad.core.entity import EntityManager, EntityRecord
+from tianshangcad.core.transform import translation
+from tianshangcad.utils.errors import EntityError
 
 
 class TestCreate:

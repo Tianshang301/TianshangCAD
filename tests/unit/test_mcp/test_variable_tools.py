@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.variables import (
+from tianshangcad.mcp.tools.variables import (
     VariableListInput,
     VariableSetInput,
     cad_variable_list,
@@ -14,7 +14,7 @@ class TestVariableTools:
     """`cad_variable_*` tool tests."""
 
     def _setup_file(self) -> None:
-        from cad_mcp_server.mcp.tools.crud import FileCreateInput, cad_file_create
+        from tianshangcad.mcp.tools.crud import FileCreateInput, cad_file_create
 
         cad_file_create(FileCreateInput(filename="var.json"))
 
@@ -54,7 +54,7 @@ class TestVariableTools:
         assert result.count == 0
 
     def test_variable_set_no_document(self) -> None:
-        from cad_mcp_server.mcp.tools.status import SessionManager
+        from tianshangcad.mcp.tools.status import SessionManager
 
         SessionManager().reset()
         result = cad_variable_set(VariableSetInput(name="width", value=1))
@@ -62,12 +62,12 @@ class TestVariableTools:
         assert "No active document" in result.message
 
     def test_variable_list_persists_roundtrip(self) -> None:
-        from cad_mcp_server.core.session import SessionManager
+        from tianshangcad.core.session import SessionManager
 
         self._setup_file()
         cad_variable_set(VariableSetInput(name="width", value=50, unit="mm"))
         doc = SessionManager().current_session.current_file_id
-        from cad_mcp_server.core.document import DocumentManager
+        from tianshangcad.core.document import DocumentManager
 
         data = DocumentManager()._require(doc).to_dict()
         assert any(v["name"] == "width" for v in data["variables"])

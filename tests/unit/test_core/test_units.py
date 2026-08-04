@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.utils.errors import CADValidationError
-from cad_mcp_server.utils.units import (
+from tianshangcad.utils.errors import CADValidationError
+from tianshangcad.utils.units import (
     from_mm,
     scale_factor,
     to_mm,

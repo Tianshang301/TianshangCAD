@@ -1,11 +1,11 @@
 version: "3.8"
 
 services:
-  cad-mcp-server:
+  tianshangcad-server:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    image: cad-mcp-server:0.5.0
+    image: tianshangcad-server:0.5.0
     ports:
       - "8081:8081"
     volumes:
@@ -14,7 +14,7 @@ services:
     environment:
       - CAD_RUNTIME=analytic
       - CAD_HEADLESS=true
-      - CAD_TEMP_DIR=/tmp/cad
+      - CAD_TEMP_DIR=/tmp/tianshangcad
       - CAD_LOG_LEVEL=INFO
       - CAD_API_KEY=${CAD_API_KEY:-}
     restart: unless-stopped

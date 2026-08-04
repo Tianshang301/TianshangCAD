@@ -1,6 +1,6 @@
 # MIGRATION.md
 
-Guide for moving an MCP client from cad-mcp-server v0.6.0 (or earlier) to
+Guide for moving an MCP client from tianshangcad-server v0.6.0 (or earlier) to
 v0.9.0. There is one breaking change: tool arguments are now flat.
 
 ## Top-level breaking change

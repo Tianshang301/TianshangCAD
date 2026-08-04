@@ -8,10 +8,10 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from cad_mcp_server.core.constraint import ConstraintManager, ConstraintType
-from cad_mcp_server.core.entity import EntityManager
-from cad_mcp_server.core.solver import apply_solution, solve_2d
-from cad_mcp_server.utils.errors import ConstraintError
+from tianshangcad.core.constraint import ConstraintManager, ConstraintType
+from tianshangcad.core.entity import EntityManager
+from tianshangcad.core.solver import apply_solution, solve_2d
+from tianshangcad.utils.errors import ConstraintError
 
 
 def _line(entity_manager: EntityManager, start: list[float], end: list[float]) -> str:
@@ -83,7 +83,7 @@ class TestConstraintManager:
         manager = ConstraintManager()
         manager.add(ConstraintType.ANGLE, ["a", "b"], {"angle": 45.0})
         data = manager.list()[0].to_dict()
-        from cad_mcp_server.core.constraint import ConstraintRecord
+        from tianshangcad.core.constraint import ConstraintRecord
 
         restored = ConstraintRecord.from_dict(data)
         assert restored.type == ConstraintType.ANGLE

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.assembly import (
+from tianshangcad.mcp.tools.assembly import (
     AssemblyAddMateInput,
     AssemblyAddPartInput,
     AssemblyAddSubasmInput,
@@ -18,7 +18,7 @@ from cad_mcp_server.mcp.tools.assembly import (
     cad_assembly_explode,
     cad_assembly_solve,
 )
-from cad_mcp_server.mcp.tools.crud import FileCreateInput, cad_file_create
+from tianshangcad.mcp.tools.crud import FileCreateInput, cad_file_create
 
 
 class TestAssemblyTools:
@@ -42,7 +42,7 @@ class TestAssemblyTools:
         assert result.name == "engine"
 
     def test_create_no_document(self) -> None:
-        from cad_mcp_server.core.session import SessionManager
+        from tianshangcad.core.session import SessionManager
 
         SessionManager().reset()
         result = cad_assembly_create(AssemblyCreateInput(name="engine"))

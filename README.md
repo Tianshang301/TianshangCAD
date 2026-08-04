@@ -67,8 +67,8 @@ Self-contained Debian package (Linux amd64, bundles all runtime wheels — no
 network access needed at install time):
 
 ```bash
-wget <release>/cad-mcp-server_<version>_amd64.deb
-sudo dpkg -i cad-mcp-server_<version>_amd64.deb
+wget <release>/tianshangcad-server_<version>_amd64.deb
+sudo dpkg -i tianshangcad-server_<version>_amd64.deb
 ```
 
 Optional OCC kernel:
@@ -80,19 +80,19 @@ pip install -e ".[occ]"
 ## CLI Usage
 
 ```bash
-cad-cli --version
-cad-cli file new design.json --unit mm
-cad-cli draw line 0,0 100,0
-cad-cli draw circle 50,50 --radius 25
-cad-cli draw box 0,0,0 --dimensions 100,50,30
-cad-cli edit move line_1 --dx 50
-cad-cli view zoom --extents
-cad-cli measure distance 0,0 100,100
+tianshangcad --version
+tianshangcad file new design.json --unit mm
+tianshangcad draw line 0,0 100,0
+tianshangcad draw circle 50,50 --radius 25
+tianshangcad draw box 0,0,0 --dimensions 100,50,30
+tianshangcad edit move line_1 --dx 50
+tianshangcad view zoom --extents
+tianshangcad measure distance 0,0 100,100
 ```
 
 Short aliases are expanded automatically:
-`cad-cli l 0,0 100,0` equals `cad-cli draw line 0,0 100,0`.
-`cad-cli --version` prints the current version (e.g. `cad-cli 0.9.0`).
+`tianshangcad l 0,0 100,0` equals `tianshangcad draw line 0,0 100,0`.
+`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.9.0`).
 
 ### Command groups
 
@@ -114,19 +114,19 @@ Run the server and connect any MCP client to it.
 ### stdio (local agents)
 
 ```bash
-python -m cad_mcp_server --transport stdio
+python -m tianshangcad --transport stdio
 ```
 
 ### Streamable HTTP
 
 ```bash
-python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
+python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 ```
 
 The server then serves MCP at `http://127.0.0.1:8081/mcp`, exposes a health
 check at `/health` and Prometheus metrics at `/metrics`.
 
-When an API key is configured (via the `CAD_API_KEYS` env var, comma-separated),
+When an API key is configured (via the `TIANSHANGCAD_API_KEYS` env var, comma-separated),
 HTTP requests must send it as `x-api-key` or `Authorization: Bearer <key>`:
 missing keys get `401`, invalid keys get `403`. Requests are also subject to a
 sliding-window rate limit (default 100 requests / 60 s, configurable via
@@ -165,16 +165,16 @@ named 3D views with camera, section, explode and animation:
 
 ```bash
 # Render a 300 DPI top view PNG
-cad-cli render view --view top --dpi 300 --output preview.png
-cad-cli render 3d --output preview3d.png
-cad-cli render webgl --output viewer_data.json --viewer examples/threejs_viewer.html
+tianshangcad render view --view top --dpi 300 --output preview.png
+tianshangcad render 3d --output preview3d.png
+tianshangcad render webgl --output viewer_data.json --viewer examples/threejs_viewer.html
 
 # 3D views
-cad-cli render view3d iso --output iso.png
-cad-cli render section XY --offset 0 --output section.png
-cad-cli render explode --scale 1.5 --output explode.png
-cad-cli render gif --frames 48 --output orbit.gif
-cad-cli render views
+tianshangcad render view3d iso --output iso.png
+tianshangcad render section XY --offset 0 --output section.png
+tianshangcad render explode --scale 1.5 --output explode.png
+tianshangcad render gif --frames 48 --output orbit.gif
+tianshangcad render views
 
 # NLP examples (via the MCP tool cad_nlp_command)
 "new file design.dwg"        -> cad_file_create  {filename: design.dwg}
@@ -218,13 +218,13 @@ conflict resolution) and a transport-agnostic sync primitive:
 # Optional dependency for the WebSocket hub
 pip install -e ".[collab]"
 
-cad-cli collab create --name review        # seed a session over the current doc
-cad-cli collab list
-cad-cli collab annotate <session_id> "check the hole"
-cad-cli collab perm <session_id> bob --role editor
+tianshangcad collab create --name review        # seed a session over the current doc
+tianshangcad collab list
+tianshangcad collab annotate <session_id> "check the hole"
+tianshangcad collab perm <session_id> bob --role editor
 
 # WebSocket transport (default port 8082)
-python -m cad_mcp_server --transport ws --port 8082
+python -m tianshangcad --transport ws --port 8082
 ```
 
 MCP clients use `cad_collab_session`, `cad_collab_branch`,
@@ -243,18 +243,18 @@ state to SQLite:
 
 ```bash
 # One-off job
-cad-cli batch schedule commands.json --name report
+tianshangcad batch schedule commands.json --name report
 
 # Cron job (daily at 02:00) using a built-in template
-cad-cli batch schedule commands.json --cron "0 2 * * *"
+tianshangcad batch schedule commands.json --cron "0 2 * * *"
 
 # Run a sandboxed Python script
-cad-cli batch run-script script.py --type python --timeout 30
+tianshangcad batch run-script script.py --type python --timeout 30
 
 # Inspect results
-cad-cli batch list
-cad-cli batch status <job_id>
-cad-cli batch logs --source batch --job-id <job_id>
+tianshangcad batch list
+tianshangcad batch status <job_id>
+tianshangcad batch logs --source batch --job-id <job_id>
 ```
 
 Scripts run in an isolated subprocess (`python -I`) with an import whitelist
@@ -272,7 +272,7 @@ docker compose -f docker/docker-compose.yml up -d
 
 The container runs the MCP server over streamable HTTP on port `8081` with a
 `/health` healthcheck, and mounts `data/` + `config/` volumes. Environment
-overrides: `CAD_RUNTIME`, `CAD_HEADLESS`, `CAD_TEMP_DIR`, `CAD_API_KEYS`,
+overrides: `CAD_RUNTIME`, `CAD_HEADLESS`, `CAD_TEMP_DIR`, `TIANSHANGCAD_API_KEYS`,
 `CAD_LOG_LEVEL`, `CAD_RATE_LIMIT_MAX`, `CAD_RATE_LIMIT_WINDOW`.
 
 Example MCP client configuration (Claude Desktop `~/.config/claude/mcp.json`):
@@ -282,7 +282,7 @@ Example MCP client configuration (Claude Desktop `~/.config/claude/mcp.json`):
   "mcpServers": {
     "cad-server": {
       "command": "python",
-      "args": ["-m", "cad_mcp_server", "--transport", "stdio"],
+      "args": ["-m", "tianshangcad", "--transport", "stdio"],
       "autoApprove": [
         "cad_object_read",
         "cad_object_list",
@@ -334,7 +334,7 @@ Space.
 ## Project Layout
 
 ```
-src/cad_mcp_server/
+src/tianshangcad/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
 |   |-- server.py       # MCPServer wiring (103 tools)
@@ -375,7 +375,7 @@ tests/
 `pytest` with the 80% coverage gate on Python 3.11 and 3.12, and a separate
 `stress` job for the concurrency / soak suite. Pushing a `v*` tag triggers
 `.github/workflows/release.yml`, which builds the Windows executables
-(`cad-cli.exe`, `cad-mcp-server.exe` via PyInstaller) and the self-contained
+(`tianshangcad.exe`, `tianshangcad-server.exe` via PyInstaller) and the self-contained
 Debian package (`scripts/build_deb.py`, bundles runtime wheels for Linux
 amd64) and publishes them to a GitHub Release.
 

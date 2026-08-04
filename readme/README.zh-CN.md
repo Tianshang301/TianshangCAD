@@ -58,18 +58,18 @@ pip install -e ".[occ]"
 ## CLI 用法
 
 ```bash
-cad-cli --version
-cad-cli file new design.json --unit mm
-cad-cli draw line 0,0 100,0
-cad-cli draw circle 50,50 --radius 25
-cad-cli draw box 0,0,0 --dimensions 100,50,30
-cad-cli edit move line_1 --dx 50
-cad-cli view zoom --extents
-cad-cli measure distance 0,0 100,100
+tianshangcad --version
+tianshangcad file new design.json --unit mm
+tianshangcad draw line 0,0 100,0
+tianshangcad draw circle 50,50 --radius 25
+tianshangcad draw box 0,0,0 --dimensions 100,50,30
+tianshangcad edit move line_1 --dx 50
+tianshangcad view zoom --extents
+tianshangcad measure distance 0,0 100,100
 ```
 
-短命令别名会被自动展开：`cad-cli l 0,0 100,0` 等价于 `cad-cli draw line 0,0 100,0`。
-`cad-cli --version` 显示当前版本（例如 `cad-cli 0.5.0`）。
+短命令别名会被自动展开：`tianshangcad l 0,0 100,0` 等价于 `tianshangcad draw line 0,0 100,0`。
+`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.5.0`）。
 
 ### 命令组
 
@@ -91,19 +91,19 @@ cad-cli measure distance 0,0 100,100
 ### stdio（本地智能体）
 
 ```bash
-python -m cad_mcp_server --transport stdio
+python -m tianshangcad --transport stdio
 ```
 
 ### Streamable HTTP
 
 ```bash
-python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
+python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 ```
 
 服务器在 `http://127.0.0.1:8081/mcp` 提供 MCP 服务，并在 `/health` 暴露健康
 检查、在 `/metrics` 暴露 Prometheus 指标。
 
-当通过环境变量 `CAD_API_KEYS`（逗号分隔）配置了 API Key 时，HTTP 请求必须以
+当通过环境变量 `TIANSHANGCAD_API_KEYS`（逗号分隔）配置了 API Key 时，HTTP 请求必须以
 `x-api-key` 或 `Authorization: Bearer <key>` 携带密钥：缺失返回 `401`，无效
 返回 `403`。请求还受滑动窗口限流（默认 100 次 / 60 秒，可通过
 `CAD_RATE_LIMIT_MAX` 与 `CAD_RATE_LIMIT_WINDOW` 调整），超限返回 `429`。
@@ -139,16 +139,16 @@ python -m cad_mcp_server --transport http --host 127.0.0.1 --port 8081
 
 ```bash
 # 渲染 300 DPI 俯视图 PNG
-cad-cli render view --view top --dpi 300 --output preview.png
-cad-cli render 3d --output preview3d.png
-cad-cli render webgl --output viewer_data.json --viewer examples/threejs_viewer.html
+tianshangcad render view --view top --dpi 300 --output preview.png
+tianshangcad render 3d --output preview3d.png
+tianshangcad render webgl --output viewer_data.json --viewer examples/threejs_viewer.html
 
 # 3D 视图
-cad-cli render view3d iso --output iso.png
-cad-cli render section XY --offset 0 --output section.png
-cad-cli render explode --scale 1.5 --output explode.png
-cad-cli render gif --frames 48 --output orbit.gif
-cad-cli render views
+tianshangcad render view3d iso --output iso.png
+tianshangcad render section XY --offset 0 --output section.png
+tianshangcad render explode --scale 1.5 --output explode.png
+tianshangcad render gif --frames 48 --output orbit.gif
+tianshangcad render views
 ```
 
 版本对比使用 `deepdiff`，返回变更字段、新增/删除项与原始结果；WebGL 导出
@@ -164,18 +164,18 @@ cad-cli render views
 
 ```bash
 # 一次性任务
-cad-cli batch schedule commands.json --name report
+tianshangcad batch schedule commands.json --name report
 
 # Cron 任务（每天 02:00），使用内置模板
-cad-cli batch schedule commands.json --cron "0 2 * * *"
+tianshangcad batch schedule commands.json --cron "0 2 * * *"
 
 # 运行沙箱化 Python 脚本
-cad-cli batch run-script script.py --type python --timeout 30
+tianshangcad batch run-script script.py --type python --timeout 30
 
 # 查看结果
-cad-cli batch list
-cad-cli batch status <job_id>
-cad-cli batch logs --source batch --job-id <job_id>
+tianshangcad batch list
+tianshangcad batch status <job_id>
+tianshangcad batch logs --source batch --job-id <job_id>
 ```
 
 脚本在隔离子进程中运行（`python -I`），带有导入白名单（`os`、`subprocess`、
@@ -191,7 +191,7 @@ docker compose -f docker/docker-compose.yml up -d
 
 容器通过 streamable HTTP 在 `8081` 端口运行 MCP 服务器，并带 `/health`
 健康检查，挂载 `data/` 与 `config/` 数据卷。环境变量可覆盖：`CAD_RUNTIME`、
-`CAD_HEADLESS`、`CAD_TEMP_DIR`、`CAD_API_KEYS`、`CAD_LOG_LEVEL`、
+`CAD_HEADLESS`、`CAD_TEMP_DIR`、`TIANSHANGCAD_API_KEYS`、`CAD_LOG_LEVEL`、
 `CAD_RATE_LIMIT_MAX`、`CAD_RATE_LIMIT_WINDOW`。
 
 MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
@@ -201,7 +201,7 @@ MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
   "mcpServers": {
     "cad-server": {
       "command": "python",
-      "args": ["-m", "cad_mcp_server", "--transport", "stdio"],
+      "args": ["-m", "tianshangcad", "--transport", "stdio"],
       "autoApprove": [
         "cad_object_read",
         "cad_object_list",
@@ -235,7 +235,7 @@ pytest         # 测试（覆盖率门禁 >= 80%）
 ## 项目结构
 
 ```
-src/cad_mcp_server/
+src/tianshangcad/
 |-- cli/            # typer CLI：命令组 + 别名展开
 |-- mcp/            # MCP 服务器、传输层、安全与工具注册表
 |   |-- server.py       # MCPServer 装配（57 个工具）
@@ -271,8 +271,8 @@ tests/
 
 `.github/workflows/ci.yml` 在每次推送 / PR 时运行 `ruff` + `mypy`，并在
 Python 3.11 与 3.12 上运行带 80% 覆盖率门禁的 `pytest`。推送 `v*` 标签会触发
-`.github/workflows/release.yml`，构建 Windows 可执行文件（`cad-cli.exe`、
-`cad-mcp-server.exe`，基于 PyInstaller）与 Debian 包（`build_deb.py`），并发布
+`.github/workflows/release.yml`，构建 Windows 可执行文件（`tianshangcad.exe`、
+`tianshangcad-server.exe`，基于 PyInstaller）与 Debian 包（`build_deb.py`），并发布
 到 GitHub Release。
 
 ## 许可证

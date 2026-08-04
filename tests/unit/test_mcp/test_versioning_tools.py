@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.versioning import VersionManager
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.core.versioning import VersionManager
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
 )
-from cad_mcp_server.mcp.tools.versioning import (
+from tianshangcad.mcp.tools.versioning import (
     VersionDiffInput,
     VersionListInput,
     VersionRestoreInput,
@@ -21,7 +21,7 @@ from cad_mcp_server.mcp.tools.versioning import (
     cad_version_restore,
     cad_version_save,
 )
-from cad_mcp_server.utils.errors import VersionError
+from tianshangcad.utils.errors import VersionError
 
 
 @pytest.fixture(autouse=True)
@@ -71,7 +71,7 @@ class TestVersionManager:
             )
         )
         assert VersionManager().get(version_id)["payload"]["entities"] != []
-        from cad_mcp_server.core.document import DocumentManager
+        from tianshangcad.core.document import DocumentManager
 
         before = DocumentManager().get_current().entities.count()
         assert before == 2
@@ -179,7 +179,7 @@ class TestVersionTools:
         result = cad_version_restore(VersionRestoreInput(version_id=saved.version_id))
         assert result.status == "success"
         assert result.file_id.startswith("file_")
-        from cad_mcp_server.core.document import DocumentManager
+        from tianshangcad.core.document import DocumentManager
 
         assert DocumentManager().get_current().entities.count() == 1
 

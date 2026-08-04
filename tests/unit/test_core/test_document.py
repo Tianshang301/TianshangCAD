@@ -6,8 +6,8 @@ import json
 
 import pytest
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.utils.errors import CADImportError, CADValidationError, DocumentError
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.utils.errors import CADImportError, CADValidationError, DocumentError
 
 
 class TestCreate:
@@ -84,7 +84,7 @@ class TestSaveOpenRoundtrip:
     ) -> None:
         document_manager.create("design.json")
         doc = document_manager.get_current()
-        from cad_mcp_server.schemas.view3d import named_view
+        from tianshangcad.schemas.view3d import named_view
 
         doc.views.create("iso", definition=named_view("iso"))
         saved = document_manager.save(path=str(tmp_path / "design.json"))

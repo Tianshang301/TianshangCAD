@@ -27,13 +27,13 @@ ENV PATH=/root/.local/bin:$PATH \
     PYTHONPATH=/app/src \
     CAD_RUNTIME=analytic \
     CAD_HEADLESS=true \
-    CAD_TEMP_DIR=/tmp/cad \
+    CAD_TEMP_DIR=/tmp/tianshangcad \
     CAD_MAX_MEMORY=4096
 
 COPY --from=builder /root/.local /root/.local
 COPY --from=builder /app/src ./src/
 
-RUN mkdir -p /app/data /app/config /tmp/cad
+RUN mkdir -p /app/data /app/config /tmp/tianshangcad
 
 WORKDIR /app
 EXPOSE 8081
@@ -41,5 +41,5 @@ EXPOSE 8081
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8081/health')" || exit 1
 
-ENTRYPOINT ["python", "-m", "cad_mcp_server"]
+ENTRYPOINT ["python", "-m", "tianshangcad"]
 CMD ["--transport", "http", "--port", "8081"]

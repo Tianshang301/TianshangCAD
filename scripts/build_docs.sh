@@ -7,5 +7,5 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-echo "No doc generator configured yet. Run: cad-cli --help"
+echo "No doc generator configured yet. Run: tianshangcad --help"
 echo "See docs/architecture.md for the system design overview."

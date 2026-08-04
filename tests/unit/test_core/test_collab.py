@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.collab import (
+from tianshangcad.core.collab import (
     CollabAction,
     CollabManager,
     CollaborationRole,
@@ -13,8 +13,8 @@ from cad_mcp_server.core.collab import (
     build_seed,
     can_act,
 )
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.utils.errors import DocumentError
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.utils.errors import DocumentError
 
 
 def _assert_code(excinfo: pytest.ExceptionInfo[DocumentError], code: str) -> None:

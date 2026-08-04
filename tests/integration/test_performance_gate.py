@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import time
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.core.kernel import get_kernel
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.core.kernel import get_kernel
 
 OBJECT_COUNT = 1000
 LATENCY_BUDGET_MS = 100.0

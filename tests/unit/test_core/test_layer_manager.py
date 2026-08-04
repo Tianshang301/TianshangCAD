@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.layer_manager import LayerManager
-from cad_mcp_server.utils.errors import LayerError
+from tianshangcad.core.layer_manager import LayerManager
+from tianshangcad.utils.errors import LayerError
 
 
 class TestLayerManager:

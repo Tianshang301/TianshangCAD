@@ -6,12 +6,12 @@ import struct
 
 import pytest
 
-from cad_mcp_server.core.document import DocumentManager, DocumentState
-from cad_mcp_server.io.exporters.step import STEPExporter
-from cad_mcp_server.io.exporters.stl import STLExporter
-from cad_mcp_server.io.importers.step import STEPImporter
-from cad_mcp_server.io.importers.stl import STLImporter
-from cad_mcp_server.utils.errors import CADExportError, CADImportError
+from tianshangcad.core.document import DocumentManager, DocumentState
+from tianshangcad.io.exporters.step import STEPExporter
+from tianshangcad.io.exporters.stl import STLExporter
+from tianshangcad.io.importers.step import STEPImporter
+from tianshangcad.io.importers.stl import STLImporter
+from tianshangcad.utils.errors import CADExportError, CADImportError
 
 
 class TestSTLExporter:

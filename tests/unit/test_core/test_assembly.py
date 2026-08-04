@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.assembly import (
+from tianshangcad.core.assembly import (
     AssemblyDocument,
     AssemblyNode,
     Mate,
     MateType,
     identity_transform,
 )
-from cad_mcp_server.utils.errors import AssemblyError
+from tianshangcad.utils.errors import AssemblyError
 
 
 def _part(

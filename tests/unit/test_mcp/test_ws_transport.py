@@ -5,9 +5,9 @@ from __future__ import annotations
 import asyncio
 import json
 
-from cad_mcp_server.mcp import transport
-from cad_mcp_server.mcp.collab_hub import CollabHub
-from cad_mcp_server.mcp.transport import (
+from tianshangcad.mcp import transport
+from tianshangcad.mcp.collab_hub import CollabHub
+from tianshangcad.mcp.transport import (
     handle_ws_connection,
     make_ws_connection_handler,
 )

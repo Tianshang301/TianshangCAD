@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from cad_mcp_server.mcp.tools.json_ops import (
+from tianshangcad.mcp.tools.json_ops import (
     JsonExportSceneInput,
     JsonImportGeometryInput,
     JsonImportSceneInput,
@@ -14,7 +14,7 @@ from cad_mcp_server.mcp.tools.json_ops import (
     cad_json_import_scene,
     cad_json_validate,
 )
-from cad_mcp_server.mcp.tools.validate import (
+from tianshangcad.mcp.tools.validate import (
     MetricsGetInput,
     ValidateInterferenceInput,
     cad_metrics_get,

@@ -6,7 +6,7 @@ import math
 
 import pytest
 
-from cad_mcp_server.core.drawing import (
+from tianshangcad.core.drawing import (
     DimensionType,
     DrawingDimension,
     DrawingDocument,
@@ -16,8 +16,8 @@ from cad_mcp_server.core.drawing import (
     ViewType,
     paper_size,
 )
-from cad_mcp_server.core.entity import EntityManager
-from cad_mcp_server.utils.errors import DrawingError
+from tianshangcad.core.entity import EntityManager
+from tianshangcad.utils.errors import DrawingError
 
 
 class TestPaper:

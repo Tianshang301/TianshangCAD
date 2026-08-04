@@ -6,8 +6,8 @@ import time
 
 import pytest
 
-from cad_mcp_server.core.scheduler import SchedulerService
-from cad_mcp_server.utils.errors import SchedulerError
+from tianshangcad.core.scheduler import SchedulerService
+from tianshangcad.utils.errors import SchedulerError
 
 _METRICS = [{"tool": "cad_metrics_get", "arguments": {}}]
 
@@ -124,7 +124,7 @@ class TestWebhook:
     """Completion notification via HTTP POST."""
 
     def test_webhook_sent_on_completion(self, scheduler: SchedulerService, monkeypatch) -> None:
-        import cad_mcp_server.core.scheduler as scheduler_module
+        import tianshangcad.core.scheduler as scheduler_module
 
         payloads: list[dict] = []
 

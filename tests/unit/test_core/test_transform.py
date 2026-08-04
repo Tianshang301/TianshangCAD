@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from cad_mcp_server.core import transform as t
+from tianshangcad.core import transform as t
 
 
 class TestMatrixBuilders:

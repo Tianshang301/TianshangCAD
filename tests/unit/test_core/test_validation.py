@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from cad_mcp_server.core.kernel import AnalyticKernel
-from cad_mcp_server.core.validation import (
+from tianshangcad.core.kernel import AnalyticKernel
+from tianshangcad.core.validation import (
     _check_degenerate_faces,
     _check_non_manifold_edges,
     _check_self_intersection,
@@ -209,7 +209,7 @@ class TestNumpyAuxiliary:
     """Direct checks on low-level math helpers."""
 
     def test_segment_intersection_point(self) -> None:
-        from cad_mcp_server.core.validation import _segment_intersection
+        from tianshangcad.core.validation import _segment_intersection
 
         a = np.array([0.0, 0.0])
         b = np.array([2.0, 2.0])

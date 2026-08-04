@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.mcp.tools.nlp import (
+from tianshangcad.mcp.tools.nlp import (
     ChatInput,
     NLPCommandInput,
     cad_nlp_chat,

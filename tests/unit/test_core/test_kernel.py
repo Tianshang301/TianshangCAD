@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.kernel import AnalyticKernel, get_kernel
-from cad_mcp_server.core.transform import rotation_z, translation
-from cad_mcp_server.utils.errors import CADNotImplementedError, CADValidationError
+from tianshangcad.core.kernel import AnalyticKernel, get_kernel
+from tianshangcad.core.transform import rotation_z, translation
+from tianshangcad.utils.errors import CADNotImplementedError, CADValidationError
 
 
 class TestCreateAndBBox:
@@ -208,7 +208,7 @@ class TestTransform:
 
     def test_scale_circle(self, kernel: AnalyticKernel) -> None:
         shape = kernel.create_circle([0, 0, 0], 10)
-        from cad_mcp_server.core.transform import scale
+        from tianshangcad.core.transform import scale
 
         scaled = kernel.transform(shape, scale(2, 2, 2))
         assert kernel.get_bbox(scaled) == {
@@ -282,7 +282,7 @@ class TestFactory:
             with pytest.raises(CADValidationError):
                 get_kernel("ocp")
         else:
-            from cad_mcp_server.core.backends.occt import OCCTKernel
+            from tianshangcad.core.backends.occt import OCCTKernel
 
             assert isinstance(get_kernel("ocp"), OCCTKernel)
 

@@ -16,8 +16,8 @@ import uvicorn
 from mcp import ClientSession
 from mcp.client.streamable_http import streamable_http_client
 
-from cad_mcp_server.mcp.server import build_server
-from cad_mcp_server.mcp.transport import build_http_app
+from tianshangcad.mcp.server import build_server
+from tianshangcad.mcp.transport import build_http_app
 
 
 def _serve(app: object, *, url_path: str = "/mcp") -> tuple[uvicorn.Server, threading.Thread, str]:
@@ -81,9 +81,9 @@ class TestHTTPTransport:
             _stop(server, thread)
 
     def test_api_key_authentication(self) -> None:
-        os.environ["CAD_API_KEY"] = "http-secret"
+        os.environ["TIANSHANGCAD_API_KEY"] = "http-secret"
         try:
-            from cad_mcp_server.utils.config import get_settings
+            from tianshangcad.utils.config import get_settings
 
             get_settings.cache_clear()
             app = build_http_app(build_server())
@@ -105,7 +105,7 @@ class TestHTTPTransport:
             finally:
                 _stop(server, thread)
         finally:
-            from cad_mcp_server.utils.config import get_settings
+            from tianshangcad.utils.config import get_settings
 
             get_settings.cache_clear()
-            os.environ.pop("CAD_API_KEY", None)
+            os.environ.pop("TIANSHANGCAD_API_KEY", None)

@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from typer.testing import CliRunner
 
-from cad_mcp_server.cli.main import app
-from cad_mcp_server.core.collab import CollabManager
-from cad_mcp_server.core.document import DocumentManager
+from tianshangcad.cli.main import app
+from tianshangcad.core.collab import CollabManager
+from tianshangcad.core.document import DocumentManager
 
 runner = CliRunner()
 

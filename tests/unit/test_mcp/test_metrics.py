@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.mcp.server import build_server
-from cad_mcp_server.mcp.tools._registry import get_registry
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.server import build_server
+from tianshangcad.mcp.tools._registry import get_registry
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
     cad_object_create,
 )
-from cad_mcp_server.utils.metrics import (
+from tianshangcad.utils.metrics import (
     ENTITY_COUNT,
     OPERATION_COUNT,
     OPERATION_DURATION,
@@ -89,7 +89,7 @@ class TestServerInstrumentation:
         assert "cad_view_3d_create" in get_registry()
 
     def test_build_server_registers_tools(self) -> None:
-        from cad_mcp_server.mcp.server import SERVER_NAME
+        from tianshangcad.mcp.server import SERVER_NAME
 
         server = build_server()
         assert server.name == SERVER_NAME
@@ -110,7 +110,7 @@ class TestServerInstrumentation:
         assert box_samples
 
     def test_instrumented_wrapper_records_operation(self) -> None:
-        from cad_mcp_server.mcp.server import _instrumented
+        from tianshangcad.mcp.server import _instrumented
 
         def sample_tool(payload) -> dict[str, str]:
             return {"status": "ok"}

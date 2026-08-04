@@ -29,7 +29,7 @@ jobs:
         run: mypy src
       - name: Run pytest with coverage gate
         run: |
-          pytest --cov=cad_mcp_server --cov-report=term-missing --cov-fail-under=80 -q
+          pytest --cov=tianshangcad --cov-report=term-missing --cov-fail-under=80 -q
 
   build-windows:
     name: Build Windows executables
@@ -46,18 +46,18 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]" pyinstaller
-      - name: Build cad-cli.exe
-        run: python -m PyInstaller --noconfirm --distpath dist/exe packaging/cad-cli.spec
-      - name: Build cad-mcp-server.exe
-        run: python -m PyInstaller --noconfirm --distpath dist/exe packaging/cad-mcp-server.spec
+      - name: Build tianshangcad.exe
+        run: python -m PyInstaller --noconfirm --distpath dist/exe packaging/tianshangcad.spec
+      - name: Build tianshangcad-server.exe
+        run: python -m PyInstaller --noconfirm --distpath dist/exe packaging/tianshangcad-server.spec
       - name: Smoke test
-        run: dist\exe\cad-cli.exe --version
+        run: dist\exe\tianshangcad.exe --version
       - uses: actions/upload-artifact@v4
         with:
           name: windows-exe
           path: |
-            dist/exe/cad-cli.exe
-            dist/exe/cad-mcp-server.exe
+            dist/exe/tianshangcad.exe
+            dist/exe/tianshangcad-server.exe
 
   build-deb:
     name: Build Debian package

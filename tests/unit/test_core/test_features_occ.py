@@ -1,6 +1,6 @@
 """OCCT-backed feature tests (Phase 8, optional ``[occ]`` extra).
 
-These exercises run against ``cad_mcp_server.core.backends.occt`` and are
+These exercises run against ``tianshangcad.core.backends.occt`` and are
 skipped when cadquery is not installed. They verify the exact sweep / loft
 / fillet / chamfer paths dispatched through :class:`FeatureManager`.
 """
@@ -11,9 +11,9 @@ import pytest
 
 pytest.importorskip("cadquery", reason="cadquery not installed (extra: occ)")
 
-from cad_mcp_server.core.backends.occt import OCCTKernel
-from cad_mcp_server.core.entity import EntityManager
-from cad_mcp_server.core.features import FeatureManager
+from tianshangcad.core.backends.occt import OCCTKernel
+from tianshangcad.core.entity import EntityManager
+from tianshangcad.core.features import FeatureManager
 
 
 def _kernel() -> OCCTKernel:
@@ -67,7 +67,7 @@ class TestOCCTFeatures:
     def test_fillet_too_large_reports_requires_occ(self) -> None:
         fm = _fm()
         bid = fm._entities.create("box", {"origin": [0, 0, 0], "dimensions": [4, 4, 4]})
-        from cad_mcp_server.utils.errors import CADNotImplementedError
+        from tianshangcad.utils.errors import CADNotImplementedError
 
         with pytest.raises(CADNotImplementedError):
             fm.fillet(bid, 10.0)

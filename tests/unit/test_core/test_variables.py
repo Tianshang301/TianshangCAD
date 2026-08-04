@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.variables import VariableManager
-from cad_mcp_server.utils.errors import VariableError
+from tianshangcad.core.variables import VariableManager
+from tianshangcad.utils.errors import VariableError
 
 
 class TestVariableSet:
@@ -146,7 +146,7 @@ class TestSerialization:
         assert restored.list()[0].unit == "mm"
 
     def test_record_to_from_dict(self) -> None:
-        from cad_mcp_server.core.variables import VariableRecord
+        from tianshangcad.core.variables import VariableRecord
 
         record = VariableRecord("h", value=10.0, unit="cm", expr=None)
         data = record.to_dict()

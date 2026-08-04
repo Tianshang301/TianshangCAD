@@ -38,7 +38,7 @@ expected to enable them in production:
 ### API-key authentication (HTTP transport)
 
 - The streamable-HTTP endpoint is guarded by `CAD_API_KEY` (single key) or
-  `CAD_API_KEYS` (comma-separated list).
+  `TIANSHANGCAD_API_KEYS` (comma-separated list).
 - Key comparison is constant-time via `hmac.compare_digest`, so timing
   attacks cannot leak key bytes.
 - If no key is configured the HTTP endpoint is open — intended for local
@@ -69,7 +69,7 @@ expected to enable them in production:
 
 ## Configuration Checklist
 
-- Set `CAD_API_KEY` (or `CAD_API_KEYS`) in production.
+- Set `CAD_API_KEY` (or `TIANSHANGCAD_API_KEYS`) in production.
 - Keep `CAD_AUTO_APPROVE` as small as possible.
 - Enable `CAD_SAFE_MODE=true` when destructive operations are not needed.
 - Do not expose the MCP HTTP endpoint to the public internet without a

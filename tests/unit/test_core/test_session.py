@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.core.session import SessionManager, SessionState
+from tianshangcad.core.session import SessionManager, SessionState
 
 
 class TestSessionManager:

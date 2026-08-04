@@ -59,7 +59,7 @@ jobs:
           if [ "${{ matrix.python }}" = "3.12" ]; then pip install ".[solver]"; fi
       - name: Run pytest with coverage gate
         run: |
-          pytest -m "not stress" --cov=cad_mcp_server --cov-report=term-missing --cov-fail-under=80 -q
+          pytest -m "not stress" --cov=tianshangcad --cov-report=term-missing --cov-fail-under=80 -q
       - name: Upload coverage report
         if: ${{ matrix.python == '3.12' && always() }}
         uses: actions/upload-artifact@v4

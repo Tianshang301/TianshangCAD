@@ -1,6 +1,6 @@
-"""PyInstaller entry point for the `cad-cli` console executable."""
+"""PyInstaller entry point for the `tianshangcad` console executable."""
 
-from cad_mcp_server.cli.main import main
+from tianshangcad.cli.main import main
 
 if __name__ == "__main__":
     main()

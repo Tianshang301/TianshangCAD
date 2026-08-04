@@ -31,7 +31,7 @@ executables and a Debian package.
 A note for MCP clients: v0.9.0 flattens tool input schemas (top-level params
 instead of nested "input"). `tools/list` is authoritative; see MIGRATION.md.
 
-Try it: pip install cad-mcp-server
+Try it: pip install tianshangcad-server
 Repo: https://github.com/Tianshang301/TianshangCAD
 
 Happy to discuss the transport choices and the flat-schema design.

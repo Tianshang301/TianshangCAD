@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from cad_mcp_server.core.history import History
+from tianshangcad.core.history import History
 
 
 class TestHistory:

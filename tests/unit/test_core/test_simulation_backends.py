@@ -11,7 +11,7 @@ import shutil
 
 import pytest
 
-from cad_mcp_server.core.simulation import (
+from tianshangcad.core.simulation import (
     LinearStaticFEA,
     RigidBodyKinematics,
     SimulationConfig,
@@ -42,7 +42,7 @@ class TestLinearStaticFEA:
         assert metrics["returncode"] == 0
 
     def test_build_inp_smells_like_calculix(self) -> None:
-        from cad_mcp_server.core.simulation import mesh_hex_bbox
+        from tianshangcad.core.simulation import mesh_hex_bbox
 
         backend = LinearStaticFEA()
         mesh = mesh_hex_bbox([0, 0, 0], [10, 10, 10], 2, 2, 2)

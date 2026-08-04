@@ -24,7 +24,7 @@ block, keeping the alphabetical order of the `* ...` TOC links):
   🐍 🏠 🍎 🪟 🐧 - Modern CAD CLI + MCP Server: 2D/3D drawing, editing,
   measurement, validation, assembly modeling, engineering drawings, batch
   automation and real-time collaboration (CRDT + WebSocket). 103 JSON-RPC
-  tools over stdio, streamable HTTP or WebSocket. `pip install cad-mcp-server`
+  tools over stdio, streamable HTTP or WebSocket. `pip install tianshangcad-server`
 ```
 
 ## Pull request body
@@ -46,7 +46,7 @@ Highlights:
 - Zero native deps on the default analytic kernel; optional OCC (cadquery)
   and FreeCAD kernels.
 
-Install: `pip install cad-mcp-server`
+Install: `pip install tianshangcad-server`
 Docs: https://github.com/Tianshang301/TianshangCAD
 ```
 

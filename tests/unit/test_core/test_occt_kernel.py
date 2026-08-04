@@ -1,7 +1,7 @@
 """OCCT kernel tests (Spike 2 pre-research).
 
 These tests exercise the optional ``[occ]`` backend in
-``cad_mcp_server.core.backends.occt`` (cadquery / OCP). They are skipped
+``tianshangcad.core.backends.occt`` (cadquery / OCP). They are skipped
 when cadquery is not installed, keeping the default ``pip install -e .``
 test suite green. The occ extra requires numpy <2 (cadquery 2.4 uses
 nptyping which references removed numpy aliases).
@@ -16,8 +16,8 @@ import pytest
 
 pytest.importorskip("cadquery", reason="cadquery not installed (extra: occ)")
 
-from cad_mcp_server.core.backends.occt import OCCTKernel
-from cad_mcp_server.utils.errors import CADValidationError
+from tianshangcad.core.backends.occt import OCCTKernel
+from tianshangcad.utils.errors import CADValidationError
 
 
 def _kernel() -> OCCTKernel:
@@ -143,7 +143,7 @@ class TestOCCTTransformTessellate:
     """Transform and tessellation."""
 
     def test_transform_translation(self) -> None:
-        from cad_mcp_server.core.transform import translation
+        from tianshangcad.core.transform import translation
 
         kernel = _kernel()
         box = kernel.create_box([0, 0, 0], [10, 20, 30])

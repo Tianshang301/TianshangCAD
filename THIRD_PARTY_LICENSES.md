@@ -1,6 +1,6 @@
 # Third-Party Licenses
 
-This project (cad-mcp-server) is licensed under the **Apache License 2.0**.
+This project (tianshangcad-server) is licensed under the **Apache License 2.0**.
 The following third-party packages are used at runtime and remain under
 their own licenses. All licenses below are **permissive** and compatible
 with Apache-2.0 distribution.

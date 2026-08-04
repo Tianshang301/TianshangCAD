@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.core.document import DocumentManager
-from cad_mcp_server.io.exporters.dwg import DWGExporter
-from cad_mcp_server.io.importers.dwg import DWGImporter
-from cad_mcp_server.utils.errors import CADExportError, CADImportError
+from tianshangcad.core.document import DocumentManager
+from tianshangcad.io.exporters.dwg import DWGExporter
+from tianshangcad.io.importers.dwg import DWGImporter
+from tianshangcad.utils.errors import CADExportError, CADImportError
 
 
 class TestDWGExporter:

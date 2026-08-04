@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from cad_mcp_server.mcp.tools.boolean import (
+from tianshangcad.mcp.tools.boolean import (
     BooleanInput,
     BooleanOutput,
     ObjectBooleanInput,
@@ -14,7 +14,7 @@ from cad_mcp_server.mcp.tools.boolean import (
     cad_boolean_union,
     cad_object_boolean,
 )
-from cad_mcp_server.mcp.tools.crud import (
+from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
     ObjectCreateInput,
     cad_file_create,
@@ -144,7 +144,7 @@ class TestObjectBoolean:
             ObjectBooleanInput(operation="extrude", target_id=a, tool_ids=[b])
 
     def test_invalid_operation_direct(self) -> None:
-        from cad_mcp_server.mcp.tools.boolean import _run_boolean
+        from tianshangcad.mcp.tools.boolean import _run_boolean
 
         a, b, _ = self._setup()
         result = _run_boolean("extrude", a, b, "", "0")
