@@ -32,8 +32,8 @@ class TestAuth:
     """API-key authentication helpers and middleware."""
 
     def test_disabled_when_no_key(self) -> None:
-        old = os.environ.get("TIANSHANGCAD_API_KEY")
-        os.environ["TIANSHANGCAD_API_KEY"] = ""
+        old = os.environ.get("CAD_API_KEY")
+        os.environ["CAD_API_KEY"] = ""
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -43,12 +43,12 @@ class TestAuth:
         finally:
             get_settings.cache_clear()
             if old is None:
-                os.environ.pop("TIANSHANGCAD_API_KEY", None)
+                os.environ.pop("CAD_API_KEY", None)
             else:
-                os.environ["TIANSHANGCAD_API_KEY"] = old
+                os.environ["CAD_API_KEY"] = old
 
     def test_enabled_with_key(self) -> None:
-        os.environ["TIANSHANGCAD_API_KEY"] = "secret123"
+        os.environ["CAD_API_KEY"] = "secret123"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -59,7 +59,7 @@ class TestAuth:
             assert validate_api_key(None) is False
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_API_KEY", None)
 
     def test_multiple_keys(self) -> None:
         os.environ["CAD_API_KEYS"] = "k1,k2,k3"
@@ -74,7 +74,7 @@ class TestAuth:
             os.environ.pop("CAD_API_KEYS", None)
 
     def test_constant_time_comparison(self) -> None:
-        os.environ["TIANSHANGCAD_API_KEY"] = "secret123"
+        os.environ["CAD_API_KEY"] = "secret123"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -84,10 +84,10 @@ class TestAuth:
             assert validate_api_key("") is False
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_API_KEY", None)
 
     def test_middleware_rejects_without_key(self) -> None:
-        os.environ["TIANSHANGCAD_API_KEY"] = "secret123"
+        os.environ["CAD_API_KEY"] = "secret123"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -97,10 +97,10 @@ class TestAuth:
             assert response.status_code == 401
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_API_KEY", None)
 
     def test_middleware_rejects_wrong_key(self) -> None:
-        os.environ["TIANSHANGCAD_API_KEY"] = "secret123"
+        os.environ["CAD_API_KEY"] = "secret123"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -110,10 +110,10 @@ class TestAuth:
             assert response.status_code == 403
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_API_KEY", None)
 
     def test_middleware_accepts_correct_key(self) -> None:
-        os.environ["TIANSHANGCAD_API_KEY"] = "secret123"
+        os.environ["CAD_API_KEY"] = "secret123"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -123,10 +123,10 @@ class TestAuth:
             assert response.status_code == 200
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_API_KEY", None)
 
     def test_middleware_accepts_bearer_token(self) -> None:
-        os.environ["TIANSHANGCAD_API_KEY"] = "secret123"
+        os.environ["CAD_API_KEY"] = "secret123"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -136,7 +136,7 @@ class TestAuth:
             assert response.status_code == 200
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_API_KEY", None)
 
 
 class TestRateLimiter:
@@ -171,9 +171,9 @@ class TestRateLimiter:
         assert limiter.remaining("client-a") == 2
 
     def test_middleware_returns_429(self) -> None:
-        os.environ["TIANSHANGCAD_RATE_LIMIT_MAX"] = "2"
-        os.environ["TIANSHANGCAD_RATE_LIMIT_WINDOW"] = "60"
-        os.environ["TIANSHANGCAD_API_KEY"] = ""
+        os.environ["CAD_RATE_LIMIT_MAX"] = "2"
+        os.environ["CAD_RATE_LIMIT_WINDOW"] = "60"
+        os.environ["CAD_API_KEY"] = ""
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -184,6 +184,6 @@ class TestRateLimiter:
             assert client.get("/test").status_code == 429
         finally:
             get_settings.cache_clear()
-            os.environ.pop("TIANSHANGCAD_RATE_LIMIT_MAX", None)
-            os.environ.pop("TIANSHANGCAD_RATE_LIMIT_WINDOW", None)
-            os.environ.pop("TIANSHANGCAD_API_KEY", None)
+            os.environ.pop("CAD_RATE_LIMIT_MAX", None)
+            os.environ.pop("CAD_RATE_LIMIT_WINDOW", None)
+            os.environ.pop("CAD_API_KEY", None)
