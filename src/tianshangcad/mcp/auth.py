@@ -1,6 +1,6 @@
 """API-key authentication for the HTTP transport.
 
-A single ``TIANGSHANGCAD_API_KEY`` (or a comma-separated ``TIANGSHANGCAD_API_KEYS`` list)
+A single ``TIANSHANGCAD_API_KEY`` (or a comma-separated ``TIANSHANGCAD_API_KEYS`` list)
 guards the MCP streamable HTTP endpoint. stdio mode is unaffected. When
 no key is configured the HTTP endpoint is open (local development).
 """

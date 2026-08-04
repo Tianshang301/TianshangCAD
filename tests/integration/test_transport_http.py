@@ -81,7 +81,7 @@ class TestHTTPTransport:
             _stop(server, thread)
 
     def test_api_key_authentication(self) -> None:
-        os.environ["TIANGSHANGCAD_API_KEY"] = "http-secret"
+        os.environ["TIANSHANGCAD_API_KEY"] = "http-secret"
         try:
             from tianshangcad.utils.config import get_settings
 
@@ -108,4 +108,4 @@ class TestHTTPTransport:
             from tianshangcad.utils.config import get_settings
 
             get_settings.cache_clear()
-            os.environ.pop("TIANGSHANGCAD_API_KEY", None)
+            os.environ.pop("TIANSHANGCAD_API_KEY", None)

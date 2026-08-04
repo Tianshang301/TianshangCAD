@@ -4,9 +4,9 @@
       "command": "python",
       "args": ["-m", "tianshangcad"],
       "env": {
-        "TIANGSHANGCAD_RUNTIME": "analytic",
-        "TIANGSHANGCAD_HEADLESS": "true",
-        "TIANGSHANGCAD_TEMP_DIR": "/tmp/tianshangcad"
+        "TIANSHANGCAD_RUNTIME": "analytic",
+        "TIANSHANGCAD_HEADLESS": "true",
+        "TIANSHANGCAD_TEMP_DIR": "/tmp/tianshangcad"
       },
       "disabled": false,
       "autoApprove": [

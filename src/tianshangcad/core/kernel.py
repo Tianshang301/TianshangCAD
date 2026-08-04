@@ -4,7 +4,7 @@
 pure-Python / numpy implementation used by default so that the whole
 system works without heavyweight native dependencies. Optional backends
 (OCCT via ``cadquery`` and FreeCAD) may be selected through the
-``TIANGSHANGCAD_RUNTIME`` setting.
+``TIANSHANGCAD_RUNTIME`` setting.
 """
 
 from __future__ import annotations
@@ -1000,7 +1000,7 @@ def _align_z_rotation(axis: np.ndarray[Any, Any]) -> np.ndarray[Any, Any]:
 
 
 def get_kernel(runtime: str | None = None) -> CADKernel:
-    """Return the kernel configured by ``TIANGSHANGCAD_RUNTIME`` (default analytic)."""
+    """Return the kernel configured by ``TIANSHANGCAD_RUNTIME`` (default analytic)."""
     selected = (runtime or get_settings().runtime or "analytic").lower().strip()
     if selected in ("analytic", "none", "default"):
         return AnalyticKernel()
@@ -1009,7 +1009,7 @@ def get_kernel(runtime: str | None = None) -> CADKernel:
     if selected == "freecad":
         return _load_backend("tianshangcad.core.backends.freecad", "FreeCADKernel", "FreeCAD")
     raise CADValidationError(
-        f"Unknown TIANGSHANGCAD_RUNTIME {selected!r}. Supported: analytic, ocp, freecad",
+        f"Unknown TIANSHANGCAD_RUNTIME {selected!r}. Supported: analytic, ocp, freecad",
         code="invalid_runtime",
     )
 

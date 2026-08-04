@@ -1,6 +1,6 @@
 """Configuration management via environment variables and config files.
 
-All settings are prefixed with ``TIANGSHANGCAD_``. Environment variables
+All settings are prefixed with ``TIANSHANGCAD_``. Environment variables
 take precedence over a ``.env`` file.
 """
 
@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     """Runtime settings for the TianshangCAD system."""
 
     model_config = SettingsConfigDict(
-        env_prefix="TIANGSHANGCAD_",
+        env_prefix="TIANSHANGCAD_",
         extra="ignore",
         case_sensitive=False,
     )
@@ -64,4 +64,4 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     """Return the process-wide singleton settings."""
-    return Settings(_env_prefix="TIANGSHANGCAD_").load_yaml_overrides()
+    return Settings(_env_prefix="TIANSHANGCAD_").load_yaml_overrides()

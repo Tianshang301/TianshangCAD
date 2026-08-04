@@ -80,7 +80,7 @@ wheel, the Windows executables, or the `.deb` package:
 
 | Package | Extra | License | Notes |
 |---------|-------|---------|-------|
-| cadquery | `occ` | Apache-2.0 | Compatible; used only when `TIANGSHANGCAD_RUNTIME=ocp` |
+| cadquery | `occ` | Apache-2.0 | Compatible; used only when `TIANSHANGCAD_RUNTIME=ocp` |
 | FreeCAD | `freecad` | LGPL-2.1 | System dependency; not packaged as a wheel |
 
 ### LGPL obligations (FreeCAD / OCCT backends)

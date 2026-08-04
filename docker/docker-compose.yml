@@ -12,11 +12,11 @@ services:
       - ./data:/app/data
       - ./config:/app/config
     environment:
-      - TIANGSHANGCAD_RUNTIME=analytic
-      - TIANGSHANGCAD_HEADLESS=true
-      - TIANGSHANGCAD_TEMP_DIR=/tmp/tianshangcad
-      - TIANGSHANGCAD_LOG_LEVEL=INFO
-      - TIANGSHANGCAD_API_KEY=${TIANGSHANGCAD_API_KEY:-}
+      - TIANSHANGCAD_RUNTIME=analytic
+      - TIANSHANGCAD_HEADLESS=true
+      - TIANSHANGCAD_TEMP_DIR=/tmp/tianshangcad
+      - TIANSHANGCAD_LOG_LEVEL=INFO
+      - TIANSHANGCAD_API_KEY=${TIANSHANGCAD_API_KEY:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8081/health')"]

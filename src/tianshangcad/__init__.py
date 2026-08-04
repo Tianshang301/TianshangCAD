@@ -5,4 +5,4 @@ server built on top of a pluggable geometry kernel (analytic / OCC /
 FreeCAD). Geometry, scenes and parameters are defined via JSON Schema.
 """
 
-__version__ = "0.10.4"
+__version__ = "0.10.5"

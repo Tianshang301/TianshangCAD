@@ -25,10 +25,10 @@ FROM python:3.11-slim AS runtime
 ENV PATH=/root/.local/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
-    TIANGSHANGCAD_RUNTIME=analytic \
-    TIANGSHANGCAD_HEADLESS=true \
-    TIANGSHANGCAD_TEMP_DIR=/tmp/tianshangcad \
-    TIANGSHANGCAD_MAX_MEMORY=4096
+    TIANSHANGCAD_RUNTIME=analytic \
+    TIANSHANGCAD_HEADLESS=true \
+    TIANSHANGCAD_TEMP_DIR=/tmp/tianshangcad \
+    TIANSHANGCAD_MAX_MEMORY=4096
 
 COPY --from=builder /root/.local /root/.local
 COPY --from=builder /app/src ./src/
