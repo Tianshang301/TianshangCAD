@@ -103,7 +103,7 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 服务器在 `http://127.0.0.1:8081/mcp` 提供 MCP 服务，并在 `/health` 暴露健康
 检查、在 `/metrics` 暴露 Prometheus 指标。
 
-当通过环境变量 `TIANSHANGTIANGSHANGTIANGSHANGCAD_API_KEYS`（逗号分隔）配置了 API Key 时，HTTP 请求必须以
+当通过环境变量 `TIANSHANGTIANGSHANGCAD_API_KEYS`（逗号分隔）配置了 API Key 时，HTTP 请求必须以
 `x-api-key` 或 `Authorization: Bearer <key>` 携带密钥：缺失返回 `401`，无效
 返回 `403`。请求还受滑动窗口限流（默认 100 次 / 60 秒，可通过
 `TIANGSHANGCAD_RATE_LIMIT_MAX` 与 `TIANGSHANGCAD_RATE_LIMIT_WINDOW` 调整），超限返回 `429`。
@@ -191,7 +191,7 @@ docker compose -f docker/docker-compose.yml up -d
 
 容器通过 streamable HTTP 在 `8081` 端口运行 MCP 服务器，并带 `/health`
 健康检查，挂载 `data/` 与 `config/` 数据卷。环境变量可覆盖：`TIANGSHANGCAD_RUNTIME`、
-`TIANGSHANGCAD_HEADLESS`、`TIANGSHANGCAD_TEMP_DIR`、`TIANSHANGTIANGSHANGTIANGSHANGCAD_API_KEYS`、`TIANGSHANGCAD_LOG_LEVEL`、
+`TIANGSHANGCAD_HEADLESS`、`TIANGSHANGCAD_TEMP_DIR`、`TIANSHANGTIANGSHANGCAD_API_KEYS`、`TIANGSHANGCAD_LOG_LEVEL`、
 `TIANGSHANGCAD_RATE_LIMIT_MAX`、`TIANGSHANGCAD_RATE_LIMIT_WINDOW`。
 
 MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
