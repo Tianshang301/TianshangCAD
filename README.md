@@ -313,6 +313,24 @@ mypy src       # type check
 pytest         # tests (coverage gate >= 80%)
 ```
 
+### Benchmark harness (CADGenBench)
+
+`scripts/cadgenbench_harness.py` is an offline demo harness that drives the
+real MCP server over stdio to build a small set of 3D parts, export them as
+STEP, and run a local validity check (watertight manifold) mirroring
+CADGenBench's scoring gate -- no external API or HuggingFace token needed:
+
+```bash
+python scripts/cadgenbench_harness.py            # analytic AP203 exporter
+python scripts/cadgenbench_harness.py --occ      # OCCT kernel path
+# Results: dist/cadgenbench/run_summary.json
+```
+
+To turn this into a real CADGenBench submission, read a sample's
+`description.yaml`, let an LLM choose the tool calls with this server as the
+backend, and upload the resulting `output.step` candidates to the leaderboard
+Space.
+
 ## Project Layout
 
 ```
