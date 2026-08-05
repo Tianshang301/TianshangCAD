@@ -1,0 +1,4607 @@
+{
+  "version": "0.1.0",
+  "ground_truth": {
+    "cb001": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb001.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              30,
+              30,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb002": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb002.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              50,
+              25
+            ]
+          },
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb003": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb003.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 20,
+            "height": 50
+          },
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb004": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb004.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "sphere",
+          "params": {
+            "center": [
+              0,
+              0,
+              0
+            ],
+            "radius": 15
+          },
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb005": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb005.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cone",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius_bottom": 15,
+            "radius_top": 0,
+            "height": 40
+          },
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb006": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb006.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              60,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              30,
+              0
+            ],
+            "radius": 8,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb007": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb007.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              50,
+              12
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              25,
+              12
+            ],
+            "radius": 12,
+            "height": 20
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb008": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb008.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              40,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              25,
+              10,
+              0
+            ],
+            "dimensions": [
+              50,
+              20,
+              30
+            ]
+          },
+          "layer": "Pocket"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb009": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb009.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 25,
+            "height": 40
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              10
+            ],
+            "radius": 12,
+            "height": 30
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb010": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb010.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 25,
+            "height": 60
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 20,
+            "height": 60
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb011": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb011.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              60,
+              8
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              12,
+              12,
+              0
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              88,
+              12,
+              0
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              12,
+              48,
+              0
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              88,
+              48,
+              0
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb012": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb012.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              40,
+              8
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              20,
+              0
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              80,
+              20,
+              0
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb013": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb013.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              60,
+              15
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              20,
+              25,
+              0
+            ],
+            "dimensions": [
+              60,
+              10,
+              15
+            ]
+          },
+          "layer": "Slot"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb014": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb014.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              8
+            ],
+            "radius": 20,
+            "height": 50
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 35,
+            "height": 8
+          },
+          "layer": "Flange"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb015": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb015.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              80,
+              20
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              40,
+              10
+            ],
+            "radius": 14,
+            "height": 10
+          },
+          "layer": "Cbore"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              40,
+              0
+            ],
+            "radius": 8,
+            "height": 20
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb016": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb016.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              60,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25,
+              30,
+              10
+            ],
+            "radius": 10,
+            "height": 18
+          },
+          "layer": "Boss1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              95,
+              30,
+              10
+            ],
+            "radius": 10,
+            "height": 18
+          },
+          "layer": "Boss2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb017": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb017.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              40,
+              10,
+              60
+            ]
+          },
+          "layer": "Vertical"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              10,
+              40,
+              40
+            ]
+          },
+          "layer": "Horizontal"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb018": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb018.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              60,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              15,
+              30,
+              0
+            ],
+            "radius": 5,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              30,
+              0
+            ],
+            "radius": 5,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              65,
+              30,
+              0
+            ],
+            "radius": 5,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb019": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb019.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              80,
+              8
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              15,
+              15,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              15,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              65,
+              15,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              15,
+              40,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              40,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              65,
+              40,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              15,
+              65,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              65,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              65,
+              65,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__",
+            "__7__",
+            "__8__",
+            "__9__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb020": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb020.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 40,
+            "height": 8
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              28.0,
+              0.0,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -14.0,
+              24.25,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -14.0,
+              -24.25,
+              0
+            ],
+            "radius": 4,
+            "height": 8
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb021": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb021.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              60,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25,
+              30,
+              10
+            ],
+            "radius": 8,
+            "height": 15
+          },
+          "layer": "BossL"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              95,
+              30,
+              10
+            ],
+            "radius": 8,
+            "height": 15
+          },
+          "layer": "BossR"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb022": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb022.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              150,
+              30,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              11,
+              15,
+              10
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              39,
+              15,
+              10
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              67,
+              15,
+              10
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              95,
+              15,
+              10
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              123,
+              15,
+              10
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb023": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb023.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 30,
+            "height": 50
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              50
+            ],
+            "radius": 20,
+            "height": 40
+          },
+          "layer": "Mid"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              90
+            ],
+            "radius": 12,
+            "height": 30
+          },
+          "layer": "Top"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb024": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb024.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              80,
+              20
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25,
+              40,
+              12
+            ],
+            "radius": 10,
+            "height": 8
+          },
+          "layer": "Cbore1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25,
+              40,
+              0
+            ],
+            "radius": 5,
+            "height": 20
+          },
+          "layer": "Hole1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              75,
+              40,
+              12
+            ],
+            "radius": 10,
+            "height": 8
+          },
+          "layer": "Cbore2"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              75,
+              40,
+              0
+            ],
+            "radius": 5,
+            "height": 20
+          },
+          "layer": "Hole2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb025": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb025.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 45,
+            "height": 10
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 8,
+            "height": 10
+          },
+          "layer": "Centre"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              34.0,
+              0.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0.0,
+              34.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -34.0,
+              0.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -0.0,
+              -34.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb026": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb026.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              80,
+              15
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              20,
+              20,
+              0
+            ],
+            "dimensions": [
+              60,
+              40,
+              15
+            ]
+          },
+          "layer": "Cavity"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb027": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb027.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 20,
+            "height": 60
+          },
+          "layer": "Vertical"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -40,
+              0,
+              30
+            ],
+            "radius": 14,
+            "height": 80
+          },
+          "layer": "Horizontal"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb028": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb028.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              60,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              20,
+              15,
+              10
+            ],
+            "dimensions": [
+              40,
+              30,
+              20
+            ]
+          },
+          "layer": "Pocket"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb029": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb029.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              60,
+              20
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              10,
+              5,
+              20
+            ],
+            "dimensions": [
+              80,
+              5,
+              10
+            ]
+          },
+          "layer": "Rib1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              10,
+              25,
+              20
+            ],
+            "dimensions": [
+              80,
+              5,
+              10
+            ]
+          },
+          "layer": "Rib2"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              10,
+              45,
+              20
+            ],
+            "dimensions": [
+              80,
+              5,
+              10
+            ]
+          },
+          "layer": "Rib3"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb030": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb030.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              60,
+              8,
+              80
+            ]
+          },
+          "layer": "Vertical"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              60,
+              40,
+              8
+            ]
+          },
+          "layer": "Base"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              30,
+              4,
+              15
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              30,
+              4,
+              65
+            ],
+            "radius": 5,
+            "height": 8
+          },
+          "layer": "Hole2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb031": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb031.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              80,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              15,
+              15,
+              10
+            ],
+            "dimensions": [
+              70,
+              50,
+              20
+            ]
+          },
+          "layer": "Cavity"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25,
+              25,
+              10
+            ],
+            "radius": 4,
+            "height": 20
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              75,
+              25,
+              10
+            ],
+            "radius": 4,
+            "height": 20
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25,
+              55,
+              10
+            ],
+            "radius": 4,
+            "height": 20
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              75,
+              55,
+              10
+            ],
+            "radius": 4,
+            "height": 20
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb032": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb032.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              60,
+              40
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              30,
+              15
+            ],
+            "radius": 18,
+            "height": 25
+          },
+          "layer": "Recess"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              10,
+              10,
+              0
+            ],
+            "radius": 4,
+            "height": 40
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              70,
+              10,
+              0
+            ],
+            "radius": 4,
+            "height": 40
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              10,
+              50,
+              0
+            ],
+            "radius": 4,
+            "height": 40
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              70,
+              50,
+              0
+            ],
+            "radius": 4,
+            "height": 40
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb033": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb033.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 40,
+            "height": 15
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 10,
+            "height": 15
+          },
+          "layer": "Centre"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              25.0,
+              0.0,
+              0
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Lighten"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0.0,
+              25.0,
+              0
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Lighten"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -25.0,
+              0.0,
+              0
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Lighten"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -0.0,
+              -25.0,
+              0
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Lighten"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb034": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb034.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              100,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              45,
+              10
+            ],
+            "dimensions": [
+              100,
+              10,
+              10
+            ]
+          },
+          "layer": "Rib1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              45,
+              0,
+              10
+            ],
+            "dimensions": [
+              10,
+              100,
+              10
+            ]
+          },
+          "layer": "Rib2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb035": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb035.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              60,
+              20
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              15,
+              15,
+              20
+            ],
+            "radius": 8,
+            "height": 15
+          },
+          "layer": "Boss1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              65,
+              15,
+              20
+            ],
+            "radius": 8,
+            "height": 15
+          },
+          "layer": "Boss2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              45,
+              0
+            ],
+            "radius": 5,
+            "height": 20
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__3__",
+          "tool_ids": [
+            "__4__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb036": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb036.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              60,
+              40
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              30,
+              20
+            ],
+            "radius": 10,
+            "height": 100
+          },
+          "layer": "BoreH"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              30,
+              0,
+              0
+            ],
+            "radius": 8,
+            "height": 40
+          },
+          "layer": "BoreV"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb037": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb037.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              10,
+              60
+            ]
+          },
+          "layer": "Back"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              50,
+              10
+            ]
+          },
+          "layer": "Shelf"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              10,
+              10
+            ],
+            "dimensions": [
+              50,
+              40,
+              50
+            ]
+          },
+          "layer": "Gusset"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb038": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb038.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 35,
+            "height": 10
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 15,
+            "height": 10
+          },
+          "layer": "Bore"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              26.0,
+              0.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0.0,
+              26.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -26.0,
+              0.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -0.0,
+              -26.0,
+              0
+            ],
+            "radius": 3,
+            "height": 10
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb039": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb039.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 50,
+            "height": 12
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 20,
+            "height": 12
+          },
+          "layer": "Bore"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              38.0,
+              0.0,
+              0
+            ],
+            "radius": 4,
+            "height": 12
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0.0,
+              38.0,
+              0
+            ],
+            "radius": 4,
+            "height": 12
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -38.0,
+              0.0,
+              0
+            ],
+            "radius": 4,
+            "height": 12
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -0.0,
+              -38.0,
+              0
+            ],
+            "radius": 4,
+            "height": 12
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb040": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb040.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              60,
+              40,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              5,
+              15
+            ],
+            "dimensions": [
+              60,
+              30,
+              15
+            ]
+          },
+          "layer": "Slot"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb041": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb041.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              60,
+              8
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              6,
+              0,
+              8
+            ],
+            "dimensions": [
+              68,
+              2,
+              25
+            ]
+          },
+          "layer": "Fin"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              6,
+              12,
+              8
+            ],
+            "dimensions": [
+              68,
+              2,
+              25
+            ]
+          },
+          "layer": "Fin"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              6,
+              24,
+              8
+            ],
+            "dimensions": [
+              68,
+              2,
+              25
+            ]
+          },
+          "layer": "Fin"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              6,
+              36,
+              8
+            ],
+            "dimensions": [
+              68,
+              2,
+              25
+            ]
+          },
+          "layer": "Fin"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              6,
+              48,
+              8
+            ],
+            "dimensions": [
+              68,
+              2,
+              25
+            ]
+          },
+          "layer": "Fin"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb042": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb042.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 18,
+            "height": 12
+          },
+          "layer": "Hub"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              4,
+              -5,
+              0
+            ],
+            "dimensions": [
+              40,
+              10,
+              12
+            ]
+          },
+          "layer": "ArmR"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              -44,
+              -5,
+              0
+            ],
+            "dimensions": [
+              40,
+              10,
+              12
+            ]
+          },
+          "layer": "ArmL"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "radius": 8,
+            "height": 12
+          },
+          "layer": "HubHole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              44,
+              0,
+              0
+            ],
+            "radius": 5,
+            "height": 12
+          },
+          "layer": "EndR"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -44,
+              0,
+              0
+            ],
+            "radius": 5,
+            "height": 12
+          },
+          "layer": "EndL"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__3__",
+          "tool_ids": [
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb043": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb043.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              80,
+              60,
+              40
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              -30,
+              30,
+              20
+            ],
+            "radius": 15,
+            "height": 30
+          },
+          "layer": "Inlet"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              80,
+              30,
+              20
+            ],
+            "radius": 12,
+            "height": 25
+          },
+          "layer": "Outlet"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40,
+              30,
+              40
+            ],
+            "radius": 35,
+            "height": 8
+          },
+          "layer": "Flange"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              66.0,
+              30.0,
+              0
+            ],
+            "radius": 4,
+            "height": 48
+          },
+          "layer": "Bolt"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40.0,
+              56.0,
+              0
+            ],
+            "radius": 4,
+            "height": 48
+          },
+          "layer": "Bolt"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              14.0,
+              30.0,
+              0
+            ],
+            "radius": 4,
+            "height": 48
+          },
+          "layer": "Bolt"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              40.0,
+              4.0,
+              0
+            ],
+            "radius": 4,
+            "height": 48
+          },
+          "layer": "Bolt"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__4__",
+          "tool_ids": [
+            "__5__",
+            "__6__",
+            "__7__",
+            "__8__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb044": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb044.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              80,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              15,
+              15,
+              5
+            ],
+            "dimensions": [
+              90,
+              50,
+              25
+            ]
+          },
+          "layer": "Cavity"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              8,
+              8,
+              5
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              112,
+              8,
+              5
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              8,
+              72,
+              5
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              112,
+              72,
+              5
+            ],
+            "radius": 6,
+            "height": 15
+          },
+          "layer": "Boss"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__2__",
+          "tool_ids": [
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              8,
+              8,
+              5
+            ],
+            "radius": 3,
+            "height": 15
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              112,
+              8,
+              5
+            ],
+            "radius": 3,
+            "height": 15
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              8,
+              72,
+              5
+            ],
+            "radius": 3,
+            "height": 15
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              112,
+              72,
+              5
+            ],
+            "radius": 3,
+            "height": 15
+          },
+          "layer": "Hole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__7__",
+          "tool_ids": [
+            "__8__",
+            "__9__",
+            "__10__",
+            "__11__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb045": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb045.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              60,
+              15
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              20,
+              30,
+              0
+            ],
+            "radius": 5,
+            "height": 15
+          },
+          "layer": "Hole1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              80,
+              30,
+              0
+            ],
+            "radius": 5,
+            "height": 15
+          },
+          "layer": "Hole2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              35,
+              15,
+              15
+            ],
+            "dimensions": [
+              30,
+              30,
+              5
+            ]
+          },
+          "layer": "Pad"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__3__",
+          "tool_ids": [
+            "__4__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              50,
+              30,
+              15
+            ],
+            "radius": 4,
+            "height": 5
+          },
+          "layer": "PadHole"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__5__",
+          "tool_ids": [
+            "__6__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb046": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb046.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              60,
+              40,
+              25
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              8,
+              8,
+              0
+            ],
+            "radius": 4,
+            "height": 25
+          },
+          "layer": "Corner"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              52,
+              8,
+              0
+            ],
+            "radius": 4,
+            "height": 25
+          },
+          "layer": "Corner"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              8,
+              32,
+              0
+            ],
+            "radius": 4,
+            "height": 25
+          },
+          "layer": "Corner"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              52,
+              32,
+              0
+            ],
+            "radius": 4,
+            "height": 25
+          },
+          "layer": "Corner"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              30,
+              20,
+              0
+            ],
+            "radius": 12,
+            "height": 25
+          },
+          "layer": "Centre"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb047": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb047.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              100,
+              30,
+              60
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              15,
+              0
+            ],
+            "dimensions": [
+              100,
+              10,
+              60
+            ]
+          },
+          "layer": "Web"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              5,
+              0
+            ],
+            "dimensions": [
+              100,
+              20,
+              10
+            ]
+          },
+          "layer": "Flange1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              5,
+              50
+            ],
+            "dimensions": [
+              100,
+              20,
+              10
+            ]
+          },
+          "layer": "Flange2"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb048": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb048.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              60,
+              10,
+              40
+            ]
+          },
+          "layer": "Left"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              50,
+              0
+            ],
+            "dimensions": [
+              60,
+              10,
+              40
+            ]
+          },
+          "layer": "Right"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              70,
+              60,
+              10
+            ]
+          },
+          "layer": "Bottom"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "union",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__"
+          ],
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              30,
+              5,
+              30
+            ],
+            "radius": 6,
+            "height": 10
+          },
+          "layer": "HoleL"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              30,
+              55,
+              30
+            ],
+            "radius": 6,
+            "height": 10
+          },
+          "layer": "HoleR"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__3__",
+          "tool_ids": [
+            "__4__",
+            "__5__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb049": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb049.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              80,
+              10
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              60,
+              40,
+              0
+            ],
+            "radius": 25,
+            "height": 10
+          },
+          "layer": "Bore"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              10,
+              10,
+              0
+            ],
+            "radius": 4,
+            "height": 10
+          },
+          "layer": "Mount"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              110,
+              10,
+              0
+            ],
+            "radius": 4,
+            "height": 10
+          },
+          "layer": "Mount"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              10,
+              70,
+              0
+            ],
+            "radius": 4,
+            "height": 10
+          },
+          "layer": "Mount"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              110,
+              70,
+              0
+            ],
+            "radius": 4,
+            "height": 10
+          },
+          "layer": "Mount"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ],
+    "cb050": [
+      {
+        "tool": "cad_file_create",
+        "args": {
+          "filename": "cb050.json",
+          "unit": "mm"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "box",
+          "params": {
+            "origin": [
+              0,
+              0,
+              0
+            ],
+            "dimensions": [
+              120,
+              80,
+              30
+            ]
+          },
+          "layer": "Body"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              20,
+              15
+            ],
+            "radius": 5,
+            "height": 120
+          },
+          "layer": "Bore1"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              40,
+              15
+            ],
+            "radius": 5,
+            "height": 120
+          },
+          "layer": "Bore2"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              0,
+              60,
+              15
+            ],
+            "radius": 5,
+            "height": 120
+          },
+          "layer": "Bore3"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              20,
+              20,
+              0
+            ],
+            "radius": 4,
+            "height": 30
+          },
+          "layer": "Port"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              60,
+              20,
+              0
+            ],
+            "radius": 4,
+            "height": 30
+          },
+          "layer": "Port"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              100,
+              20,
+              0
+            ],
+            "radius": 4,
+            "height": 30
+          },
+          "layer": "Port"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              20,
+              60,
+              0
+            ],
+            "radius": 4,
+            "height": 30
+          },
+          "layer": "Port"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              60,
+              60,
+              0
+            ],
+            "radius": 4,
+            "height": 30
+          },
+          "layer": "Port"
+        }
+      },
+      {
+        "tool": "cad_object_create",
+        "args": {
+          "type": "cylinder",
+          "params": {
+            "origin": [
+              100,
+              60,
+              0
+            ],
+            "radius": 4,
+            "height": 30
+          },
+          "layer": "Port"
+        }
+      },
+      {
+        "tool": "cad_object_boolean",
+        "args": {
+          "operation": "subtract",
+          "target_id": "__0__",
+          "tool_ids": [
+            "__1__",
+            "__2__",
+            "__3__",
+            "__4__",
+            "__5__",
+            "__6__",
+            "__7__",
+            "__8__",
+            "__9__"
+          ],
+          "layer": "Body"
+        }
+      }
+    ]
+  }
+}
