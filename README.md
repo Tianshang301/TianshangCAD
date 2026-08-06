@@ -266,7 +266,7 @@ guard and a hard timeout.
 
 ## Docker
 
-A multi-stage image (< 500 MB, `python:3.11-slim`) is provided in
+A multi-stage image (< 500 MB, `python:3.12-slim`) is provided in
 `docker/` for headless deployment:
 
 ```bash
@@ -360,7 +360,7 @@ src/tianshangcad/
 examples/
 `-- threejs_viewer.html  # browser viewer for WebGL exports
 docker/
-|-- Dockerfile          # multi-stage image (python:3.11-slim)
+|-- Dockerfile          # multi-stage image (python:3.12-slim)
 |-- docker-compose.yml  # service definition with healthcheck
 `-- entrypoint.sh
 tests/
@@ -375,7 +375,7 @@ tests/
 ## Continuous Integration
 
 `.github/workflows/ci.yml` runs `ruff` + `mypy` on every push / PR,
-`pytest` with the 80% coverage gate on Python 3.11 and 3.12, and a separate
+`pytest` with the 80% coverage gate on Python 3.12, and a separate
 `stress` job for the concurrency / soak suite. Pushing a `v*` tag triggers
 `.github/workflows/release.yml`, which builds the Windows executables
 (`tianshangcad.exe`, `tianshangcad-server.exe` via PyInstaller) and the self-contained

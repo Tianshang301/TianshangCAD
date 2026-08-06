@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import functools
 from collections.abc import Callable
-from typing import Any, NoReturn, TypeVar
+from typing import Any, NoReturn
 
 import typer
 
@@ -14,10 +14,8 @@ from tianshangcad.utils.errors import CADError
 from tianshangcad.utils.validators import parse_point as _parse_point
 from tianshangcad.utils.validators import parse_point_list as _parse_point_list
 
-F = TypeVar("F", bound=Callable[..., Any])
 
-
-def catch_errors(func: F) -> F:
+def catch_errors[F: Callable[..., Any]](func: F) -> F:
     """Decorate a typer command so ``CADError`` becomes an error message."""
 
     @functools.wraps(func)

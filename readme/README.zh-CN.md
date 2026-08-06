@@ -186,7 +186,7 @@ tianshangcad batch logs --source batch --job-id <job_id>
 
 ## Docker
 
-`docker/` 提供了多阶段镜像（< 500 MB，`python:3.11-slim`），用于无头部署：
+`docker/` 提供了多阶段镜像（< 500 MB，`python:3.12-slim`），用于无头部署：
 
 ```bash
 docker compose -f docker/docker-compose.yml up -d
@@ -258,7 +258,7 @@ src/tianshangcad/
 examples/
 `-- threejs_viewer.html  # 用于 WebGL 导出的浏览器查看器
 docker/
-|-- Dockerfile          # 多阶段镜像（python:3.11-slim）
+|-- Dockerfile          # 多阶段镜像（python:3.12-slim）
 |-- docker-compose.yml  # 服务定义（含健康检查）
 `-- entrypoint.sh
 tests/
@@ -273,7 +273,7 @@ tests/
 ## 持续集成
 
 `.github/workflows/ci.yml` 在每次推送 / PR 时运行 `ruff` + `mypy`，并在
-Python 3.11 与 3.12 上运行带 80% 覆盖率门禁的 `pytest`。推送 `v*` 标签会触发
+Python 3.12 上运行带 80% 覆盖率门禁的 `pytest`。推送 `v*` 标签会触发
 `.github/workflows/release.yml`，构建 Windows 可执行文件（`tianshangcad.exe`、
 `tianshangcad-server.exe`，基于 PyInstaller）与 Debian 包（`build_deb.py`），并发布
 到 GitHub Release。
