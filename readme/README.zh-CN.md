@@ -4,7 +4,7 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
-> **当前状态**：v0.10.5 — 全部阶段完成，含 v0.9.0 实时协作。
+> **当前状态**：v0.10.6 — 全部阶段完成，含 v0.9.0 实时协作。
 > 919 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
@@ -72,7 +72,7 @@ tianshangcad measure distance 0,0 100,100
 ```
 
 短命令别名会被自动展开：`tianshangcad l 0,0 100,0` 等价于 `tianshangcad draw line 0,0 100,0`。
-`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.10.5`）。
+`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.10.6`）。
 
 ### 命令组
 

@@ -4,7 +4,7 @@ A modern **CAD CLI + MCP Server** system. 2D/3D drawing, editing,
 measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
-> **Status**: v0.10.5 — all phases through v0.9.0 collaborative editing complete.
+> **Status**: v0.10.6 — all phases through v0.9.0 collaborative editing complete.
 > 919 tests passing, ~87% coverage (measured with optional extras
 > installed), `ruff` and `mypy` clean.
 
@@ -95,7 +95,7 @@ tianshangcad measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `tianshangcad l 0,0 100,0` equals `tianshangcad draw line 0,0 100,0`.
-`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.10.5`).
+`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.10.6`).
 
 ### Command groups
 
