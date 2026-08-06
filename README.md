@@ -61,6 +61,11 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+> The `[sim]` extra (`pip install -e '.[sim]'`) provides FEA and kinematics.
+> CalculiX FEA requires the `ccx` solver binary installed separately;
+> install it from [calculix.de](https://www.calculix.de) and ensure `ccx` is
+> in `PATH`.
+
 Self-contained Debian package (Linux amd64, bundles all runtime wheels — no
 network access needed at install time):
 

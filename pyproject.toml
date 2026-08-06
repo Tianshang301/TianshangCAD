@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tianshangcad"
-version = "0.10.5"
+version = "0.10.6"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -43,7 +43,7 @@ occ = ["cadquery>=2.4,<3", "numpy>=1.26,<2"]
 freecad = []
 boolean = ["trimesh>=4.0", "manifold3d>=2.0", "scipy>=1.12,<1.14"]
 solver = ["planegcs>=0.8.0"]
-sim = ["pybullet>=3.2", "calculix-cae>=2.20"]
+sim = ["pybullet>=3.2"]
 collab = ["websockets>=12.0"]
 dev = [
     "pytest>=8.0",

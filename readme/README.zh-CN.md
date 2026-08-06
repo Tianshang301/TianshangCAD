@@ -48,6 +48,10 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
+> `[sim]` 额外依赖 (`pip install -e '.[sim]'`) 提供有限元和运动学仿真功能。
+> CalculiX FEA 需要单独安装 `ccx` 求解器二进制文件；
+> 从 [calculix.de](https://www.calculix.de) 安装并将 `ccx` 加入 `PATH`。
+
 可选 OCC 内核：
 
 ```bash
