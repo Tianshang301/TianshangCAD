@@ -6,7 +6,15 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 [![TianshangCAD MCP server](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/card.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
 
-> **Status**: v0.10.6 — all phases through v0.9.0 collaborative editing complete.
+[![MCP Score](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/score.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
+[![CI](https://img.shields.io/github/actions/workflow/status/Tianshang301/TianshangCAD/ci.yml?branch=main&label=CI)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/pypi/pyversions/tianshangcad)](https://pypi.org/project/tianshangcad/)
+[![Version](https://img.shields.io/pypi/v/tianshangcad)](https://pypi.org/project/tianshangcad/)
+[![License](https://img.shields.io/github/license/Tianshang301/TianshangCAD)](LICENSE)
+[![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+
+> **Status**: v0.11.0 — MCP tool surface consolidated from 103 to 77 tools.
 > 919 tests passing, ~87% coverage (measured with optional extras
 > installed), `ruff` and `mypy` clean.
 
@@ -97,7 +105,7 @@ tianshangcad measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `tianshangcad l 0,0 100,0` equals `tianshangcad draw line 0,0 100,0`.
-`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.10.6`).
+`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.11.0`).
 
 ### Command groups
 
