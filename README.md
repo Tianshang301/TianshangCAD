@@ -4,6 +4,8 @@ A modern **CAD CLI + MCP Server** system. 2D/3D drawing, editing,
 measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
+[![TianshangCAD MCP server](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/card.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
+
 > **Status**: v0.10.6 — all phases through v0.9.0 collaborative editing complete.
 > 919 tests passing, ~87% coverage (measured with optional extras
 > installed), `ruff` and `mypy` clean.

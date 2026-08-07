@@ -4,6 +4,8 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
+[![TianshangCAD MCP server](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/card.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
+
 > **当前状态**：v0.10.6 — 全部阶段完成，含 v0.9.0 实时协作。
 > 919 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
