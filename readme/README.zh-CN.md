@@ -4,15 +4,13 @@
 校验以及 JSON 驱动的工作流，既可通过命令行使用，也可以作为标准化工具被任何
 MCP 客户端（AI 智能体）直接调用。
 
-[![TianshangCAD MCP server](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/card.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
-
-[![MCP Score](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/score.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
 [![CI](https://img.shields.io/github/actions/workflow/status/Tianshang301/TianshangCAD/ci.yml?branch=main&label=CI)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/pypi/pyversions/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![Version](https://img.shields.io/pypi/v/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![License](https://img.shields.io/github/license/Tianshang301/TianshangCAD)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![MCP Score](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/score.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
 
 > **当前状态**：v0.11.1 — 工具描述与注解质量优化（77 个 MCP 工具）。
 > 919 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
