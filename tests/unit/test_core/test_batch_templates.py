@@ -20,23 +20,24 @@ class TestTemplates:
     def test_render_cleanup(self) -> None:
         commands = render_template("cleanup")
         assert isinstance(commands, list)
-        assert commands[0]["tool"] == "cad_logs_clear"
-        assert commands[1]["tool"] == "cad_status_health"
+        assert commands[0]["tool"] == "cad_logs"
+        assert commands[0]["arguments"]["logs"]["action"] == "clear"
+        assert commands[1]["tool"] == "cad_status"
+        assert commands[1]["arguments"]["status"]["target"] == "health"
 
     def test_render_export_all(self) -> None:
         commands = render_template("export_all")
         tools = [command["tool"] for command in commands]
-        assert "cad_json_export_scene" in tools
-        assert "cad_json_export_geometry" in tools
+        assert tools.count("cad_json") == 2
         assert commands[0]["tool"] == "cad_file_save"
 
     def test_render_backup_json(self) -> None:
         commands = render_template("backup_json")
-        assert commands[-1]["tool"] == "cad_json_export_scene"
+        assert commands[-1]["tool"] == "cad_json"
 
     def test_render_with_j2_extension(self) -> None:
         commands = render_template("cleanup.j2")
-        assert commands[0]["tool"] == "cad_logs_clear"
+        assert commands[0]["tool"] == "cad_logs"
 
     def test_render_unknown_template_rejected(self) -> None:
         with pytest.raises(SchedulerError):

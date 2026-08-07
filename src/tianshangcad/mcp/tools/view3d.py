@@ -324,6 +324,7 @@ def cad_view_3d_render(input: ViewRenderInput) -> ViewRenderOutput:
 
     以指定视图的相机位姿渲染当前文档为 PNG 图片，返回 base64 data URI。
     """
+    # Deprecated, merged into cad_render (mode=view_3d)
     try:
         view = _resolve_view(input.view_id)
         doc = _doc()
@@ -384,6 +385,7 @@ def cad_view_section(input: ViewSectionInput) -> ViewRenderOutput:
 
     渲染平面剖切视图。``plane`` 为 XY/YZ/XZ，``offset`` 为沿法向偏移。
     """
+    # Deprecated, merged into cad_render (mode=section)
     try:
         if input.plane not in ("XY", "YZ", "XZ"):
             raise CADValidationError("plane must be one of XY, YZ, XZ", code="invalid_plane")
@@ -424,6 +426,7 @@ def cad_view_explode(input: ViewExplodeInput) -> ViewRenderOutput:
 
     渲染爆炸视图。各轴偏移量是模型半径的倍数。
     """
+    # Deprecated, merged into cad_render (mode=explode)
     try:
         doc = _doc()
         records = doc.entities.list()
@@ -463,6 +466,7 @@ def cad_view_animation(input: ViewAnimationInput) -> ViewAnimationOutput:
 
     渲染绕模型旋转的 GIF 动画。``mode`` 为 orbit 或 turntable。
     """
+    # Deprecated, merged into cad_render (mode=animation)
     try:
         if input.mode not in ("orbit", "turntable"):
             raise CADValidationError("mode must be orbit or turntable", code="invalid_mode")
@@ -510,6 +514,7 @@ def cad_webgl_sync(input: WebGLSyncInput) -> WebGLSyncOutput:
     返回 WebGL 增量同步数据：对比客户端已持有的对象 id，产出新增/删除/
     更新的对象清单，供浏览器端增量更新场景。
     """
+    # Deprecated, merged into cad_render (mode=webgl)
     try:
         doc = _doc()
         records = doc.entities.list()
@@ -552,9 +557,4 @@ TOOLS: list[tuple[str, Any]] = [
     ("cad_view_3d_list", cad_view_3d_list),
     ("cad_view_3d_update", cad_view_3d_update),
     ("cad_view_3d_delete", cad_view_3d_delete),
-    ("cad_view_3d_render", cad_view_3d_render),
-    ("cad_view_section", cad_view_section),
-    ("cad_view_explode", cad_view_explode),
-    ("cad_view_animation", cad_view_animation),
-    ("cad_webgl_sync", cad_webgl_sync),
 ]

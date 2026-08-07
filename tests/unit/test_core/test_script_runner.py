@@ -80,7 +80,7 @@ class TestScrAndBatch:
 
     def test_scr_commands_execute(self) -> None:
         result = run_script(
-            script="cad_metrics_get\ncad_status_check", script_type="scr"
+            script="cad_metrics_get\ncad_status", script_type="scr"
         )
         assert result["ok"] is True
         assert result["success_count"] == 2

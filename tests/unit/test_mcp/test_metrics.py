@@ -94,7 +94,7 @@ class TestServerInstrumentation:
         server = build_server()
         assert server.name == SERVER_NAME
         assert "cad_object_create" in get_registry()
-        assert "cad_webgl_sync" in get_registry()
+        assert "cad_render" in get_registry()
 
     def test_instrumented_tool_records_metrics(self) -> None:
         cad_file_create(FileCreateInput(filename="m.json"))

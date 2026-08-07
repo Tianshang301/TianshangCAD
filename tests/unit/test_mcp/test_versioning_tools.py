@@ -13,9 +13,15 @@ from tianshangcad.mcp.tools.crud import (
 )
 from tianshangcad.mcp.tools.versioning import (
     VersionDiffInput,
+    VersionDiffParams,
+    VersionInput,
     VersionListInput,
+    VersionListParams,
     VersionRestoreInput,
+    VersionRestoreParams,
     VersionSaveInput,
+    VersionSaveParams,
+    cad_version,
     cad_version_diff,
     cad_version_list,
     cad_version_restore,
@@ -186,3 +192,94 @@ class TestVersionTools:
     def test_restore_missing_error(self) -> None:
         result = cad_version_restore(VersionRestoreInput(version_id="v_nope"))
         assert result.status == "error"
+
+
+class TestVersionAggregate:
+    """Aggregate cad_version tool (discriminated action)."""
+
+    def test_action_save_success_and_no_doc(self) -> None:
+        _seed()
+        ok = cad_version(
+            VersionInput(version=VersionSaveParams(label="checkpoint"))
+        )
+        assert ok.status == "success"
+        assert ok.action == "save"
+        assert ok.version_id.startswith("v_")
+        from tianshangcad.mcp.tools.status import SessionManager
+
+        SessionManager().reset()
+        missing = cad_version(VersionInput(version=VersionSaveParams()))
+        assert missing.status == "error"
+
+    def test_action_list_and_filter(self) -> None:
+        _seed()
+        cad_version(VersionInput(version=VersionSaveParams(label="a")))
+        cad_file_create(FileCreateInput(filename="other.json"))
+        cad_version(VersionInput(version=VersionSaveParams(label="b")))
+        listed = cad_version(VersionInput(version=VersionListParams()))
+        assert listed.status == "success"
+        assert listed.count == 2
+        filtered = cad_version(
+            VersionInput(version=VersionListParams(file_id=listed.versions[0].file_id))
+        )
+        assert filtered.count == 1
+
+    def test_action_diff_identical_and_changed(self) -> None:
+        _seed()
+        v1 = cad_version(VersionInput(version=VersionSaveParams()))
+        v2 = cad_version(VersionInput(version=VersionSaveParams()))
+        identical = cad_version(
+            VersionInput(
+                version=VersionDiffParams(
+                    version_a=v1.version_id, version_b=v2.version_id
+                )
+            )
+        )
+        assert identical.status == "success"
+        assert identical.identical is True
+        cad_object_create(
+            ObjectCreateInput(
+                type="sphere",
+                params={"center": [0, 0, 0], "radius": 4},
+                layer="0",
+            )
+        )
+        v3 = cad_version(VersionInput(version=VersionSaveParams()))
+        changed = cad_version(
+            VersionInput(
+                version=VersionDiffParams(
+                    version_a=v1.version_id, version_b=v3.version_id
+                )
+            )
+        )
+        assert changed.identical is False
+        assert changed.added_count > 0
+
+    def test_action_diff_error(self) -> None:
+        result = cad_version(
+            VersionInput(version=VersionDiffParams(version_a="v_x", version_b="v_y"))
+        )
+        assert result.status == "error"
+
+    def test_action_restore_success_and_missing(self) -> None:
+        _seed()
+        saved = cad_version(VersionInput(version=VersionSaveParams(label="base")))
+        cad_object_create(
+            ObjectCreateInput(
+                type="line",
+                params={"start": [0, 0, 0], "end": [5, 5, 0]},
+                layer="0",
+            )
+        )
+        restored = cad_version(
+            VersionInput(version=VersionRestoreParams(version_id=saved.version_id))
+        )
+        assert restored.status == "success"
+        assert restored.file_id.startswith("file_")
+        from tianshangcad.core.document import DocumentManager
+
+        assert DocumentManager().get_current().entities.count() == 1
+        missing = cad_version(
+            VersionInput(version=VersionRestoreParams(version_id="v_nope"))
+        )
+        assert missing.status == "error"

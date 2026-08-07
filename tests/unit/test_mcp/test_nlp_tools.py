@@ -70,25 +70,30 @@ class TestNLPCommand:
         result = cad_nlp_command(NLPCommandInput(text="查看状态"))
         assert result.status == "success"
         assert result.intent == "check_status"
-        assert result.tool == "cad_status_health"
+        assert result.tool == "cad_status"
+        assert result.arguments["status"]["target"] == "health"
 
     def test_render_side_view(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="render the side view"))
         assert result.status == "success"
         assert result.intent == "render_view"
-        assert result.arguments["view"] == "side"
+        assert result.tool == "cad_render"
+        assert result.arguments["render"]["mode"] == "ortho"
+        assert result.arguments["render"]["view"] == "side"
 
     def test_render_front_chinese(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="渲染前视图"))
         assert result.status == "success"
         assert result.intent == "render_view"
-        assert result.arguments["view"] == "front"
+        assert result.arguments["render"]["mode"] == "ortho"
+        assert result.arguments["render"]["view"] == "front"
 
     def test_save_version(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="save a version"))
         assert result.status == "success"
         assert result.intent == "save_version"
-        assert result.tool == "cad_version_save"
+        assert result.tool == "cad_version"
+        assert result.arguments["version"]["action"] == "save"
 
     def test_ambiguous_request(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="delete and render"))

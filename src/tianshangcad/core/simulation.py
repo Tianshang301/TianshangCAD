@@ -541,6 +541,11 @@ class SimulationManager:
         """Return the JSON-safe summary of a simulation."""
         return self.get(sim_id).summary()
 
+    def delete(self, sim_id: str) -> None:
+        """Delete a registered simulation."""
+        self.get(sim_id)
+        del self._results[sim_id]
+
     def list(self) -> list[dict[str, Any]]:
         """Return summaries of every registered simulation."""
         return [result.summary() for result in self._results.values()]

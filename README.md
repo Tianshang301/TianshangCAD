@@ -18,7 +18,7 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 103 JSON-RPC tools over stdio, streamable HTTP or
+- **MCP Server** — 77 JSON-RPC tools over stdio, streamable HTTP or
   WebSocket (collaboration), callable
   from Claude, Cursor and other MCP clients
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
@@ -138,24 +138,24 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `TIANSHANGCAD_RATE_LIMIT_MAX` and `TIANSHANGCAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (103 total)
+### Tools (77 total)
 
 | Group | Tools |
 |-------|-------|
-| Files | `cad_file_create`, `cad_file_open`, `cad_file_save`, `cad_file_close`, `cad_file_list`, `cad_file_export`, `cad_file_import` |
+| Files | `cad_file_create`, `cad_file_open`, `cad_file_save`, `cad_file_close`, `cad_file_list`, `cad_file_io` (action: export/import) |
 | Objects | `cad_object_create`, `cad_object_read`, `cad_object_update`, `cad_object_delete`, `cad_object_list` |
 | Boolean | `cad_boolean_union`, `cad_boolean_subtract`, `cad_boolean_intersect`, `cad_object_boolean` |
-| Variables | `cad_variable_set`, `cad_variable_list` |
+| Variables | `cad_variable` (action: set/list) |
 | Layers | `cad_layer_create`, `cad_layer_read`, `cad_layer_update`, `cad_layer_delete`, `cad_layer_list` |
 | JSON | `cad_json_load`, `cad_json_parse`, `cad_json_validate`, `cad_json_import_geometry`, `cad_json_export_geometry`, `cad_json_import_scene`, `cad_json_export_scene`, `cad_json_save` |
-| Status | `cad_status_check`, `cad_status_file`, `cad_status_object`, `cad_status_layer`, `cad_status_health`, `cad_logs_get`, `cad_logs_clear` |
+| Status | `cad_status` (target: check/file/object/layer/health), `cad_logs` (action: get/clear) |
 | Validation | `cad_validate_geometry`, `cad_validate_interference`, `cad_validate_topology`, `cad_metrics_get` |
 | Render | `cad_render_view` |
 | 3D Views | `cad_view_3d_create`, `cad_view_3d_read`, `cad_view_3d_list`, `cad_view_3d_update`, `cad_view_3d_delete`, `cad_view_3d_render`, `cad_view_section`, `cad_view_explode`, `cad_view_animation`, `cad_webgl_sync` |
-| Version | `cad_version_save`, `cad_version_list`, `cad_version_diff`, `cad_version_restore` |
+| Version | `cad_version` (action: save/list/diff/restore) |
 | NLP | `cad_nlp_command`, `cad_nlp_chat` |
-| Batch | `cad_batch_execute`, `cad_batch_schedule`, `cad_batch_status`, `cad_batch_cancel`, `cad_batch_list`, `cad_batch_templates`, `cad_batch_run_script` |
-| Constraints | `cad_constraint_add`, `cad_constraint_remove`, `cad_constraint_list`, `cad_constraint_solve` |
+| Batch | `cad_batch` (action: execute/schedule/status/cancel/list/templates/run_script) |
+| Constraints | `cad_constraint` (action: add/remove/list/solve) |
 | Assembly | `cad_assembly_create`, `cad_assembly_add_part`, `cad_assembly_add_subasm`, `cad_assembly_add_mate`, `cad_assembly_solve`, `cad_assembly_bom`, `cad_assembly_explode` |
 | Drawing | `cad_drawing_create`, `cad_drawing_add_view`, `cad_drawing_add_section`, `cad_drawing_add_dimension`, `cad_drawing_add_tolerance`, `cad_drawing_export` |
 | Features | `cad_feature_sweep`, `cad_feature_loft`, `cad_feature_fillet`, `cad_feature_chamfer`, `cad_feature_pattern_linear`, `cad_feature_pattern_circular`, `cad_feature_pattern_mirror` |
@@ -185,7 +185,7 @@ tianshangcad render views
 "new file design.dwg"        -> cad_file_create  {filename: design.dwg}
 "draw a line from 0,0 to 10,10" -> cad_object_create (line)
 "render the side view"       -> cad_render_view  {view: side}
-"save a version"             -> cad_version_save
+"save a version"             -> cad_version  {version: {action: save}}
 ```
 
 `cad_nlp_chat` adds multi-turn dialogue with anaphora resolution: each
@@ -291,7 +291,8 @@ Example MCP client configuration (Claude Desktop `~/.config/claude/mcp.json`):
       "autoApprove": [
         "cad_object_read",
         "cad_object_list",
-        "cad_status_check",
+        "cad_status",
+        "cad_logs",
         "cad_json_load",
         "cad_json_validate",
         "cad_validate_geometry",
@@ -342,7 +343,7 @@ Space.
 src/tianshangcad/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (103 tools)
+|   |-- server.py       # MCPServer wiring (77 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication

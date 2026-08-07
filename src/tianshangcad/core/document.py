@@ -74,6 +74,10 @@ class DocumentState:
             self._drawing = DrawingDocument(paper=paper, title=title)
         return self._drawing
 
+    def reset_drawing(self) -> None:
+        """Drop the current drawing sheet so a fresh one can be created."""
+        self._drawing = None
+
     def features(self) -> Any:
         """Return a feature manager bound to this document's entities."""
         from tianshangcad.core.features import FeatureManager
@@ -234,6 +238,14 @@ class DocumentManager:
 
     def close(self, file_id: str | None = None) -> None:
         """Close a document."""
+        doc = self._require(file_id)
+        doc.close()
+        del self._session.active_files[doc.file_id]
+        if self._session.current_file_id == doc.file_id:
+            self._session.current_file_id = None
+
+    def delete(self, file_id: str) -> None:
+        """Delete an open document from the session."""
         doc = self._require(file_id)
         doc.close()
         del self._session.active_files[doc.file_id]

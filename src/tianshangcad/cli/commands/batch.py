@@ -247,20 +247,25 @@ def cmd_logs(
     limit: int = typer.Option(50, "--limit", "-n", help="Maximum entries"),
 ) -> None:
     """Query structured batch logs."""
-    from tianshangcad.mcp.tools.status import LogsGetInput, cad_logs_get
+    from tianshangcad.mcp.tools.status import LogsGetParams, LogsInput, cad_logs
 
-    result = cad_logs_get(LogsGetInput(source=source, job_id=job_id, level=level, limit=limit))
+    result = cad_logs(
+        LogsInput(logs=LogsGetParams(source=source, job_id=job_id, level=level, limit=limit))
+    )
     if not result.logs:
         typer.echo("No log entries match")
         return
     for entry in result.logs:
-        details = entry.details or {}
+        details = entry.get("details") or {}
         extra = (
             f" job_id={details.get('job_id')}"
             f" tool={details.get('tool_name')}"
             f" dur={details.get('duration_ms')}ms"
         )
-        typer.echo(f"{entry.timestamp} [{entry.level}] {entry.source}: {entry.message}{extra}")
+        typer.echo(
+            f"{entry['timestamp']} [{entry['level']}] {entry['source']}: "
+            f"{entry['message']}{extra}"
+        )
 
 
 @app.command("demo")

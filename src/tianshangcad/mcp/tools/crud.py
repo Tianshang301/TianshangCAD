@@ -74,6 +74,20 @@ class FileCloseOutput(BaseModel):
     message: str | None = Field(None, description="Status description")
 
 
+class FileDeleteInput(BaseModel):
+    """Input for deleting a file from the session."""
+
+    file_id: str = Field(..., description="File id to delete")
+
+
+class FileDeleteOutput(BaseModel):
+    """Output for deleting a file."""
+
+    file_id: str = Field(..., description="Deleted file id")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
 def cad_file_create(input: FileCreateInput) -> FileCreateOutput:
     """Create a new CAD file.
 
@@ -129,6 +143,18 @@ def cad_file_close(input: FileCloseInput) -> FileCloseOutput:
         return FileCloseOutput(file_id=file_id, status="success", message="Closed")
     except CADError as exc:
         return FileCloseOutput(file_id="", status="error", message=str(exc))
+
+
+def cad_file_delete(input: FileDeleteInput) -> FileDeleteOutput:
+    """Delete a document from the session (does not touch the file on disk).
+
+    从会话中删除文档（不删除磁盘文件）。不可撤销，请谨慎使用。
+    """
+    try:
+        DocumentManager().delete(input.file_id)
+        return FileDeleteOutput(file_id=input.file_id, status="success", message="Deleted")
+    except CADError as exc:
+        return FileDeleteOutput(file_id="", status="error", message=str(exc))
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +236,37 @@ class ObjectDeleteOutput(BaseModel):
     """Output for deleting an object."""
 
     object_id: str = Field(..., description="Deleted object id")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+class ObjectCopyInput(BaseModel):
+    """Input for copying an object."""
+
+    object_id: str = Field(..., description="Object unique identifier")
+    new_id: str | None = Field(None, description="Id for the copy (auto-generated if empty)")
+
+
+class ObjectCopyOutput(BaseModel):
+    """Output for copying an object."""
+
+    object_id: str = Field(..., description="New object id")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+class ObjectTransformInput(BaseModel):
+    """Input for transforming an object with a 4x4 matrix."""
+
+    object_id: str = Field(..., description="Object unique identifier")
+    matrix: list[list[float]] = Field(..., description="4x4 transformation matrix")
+
+
+class ObjectTransformOutput(BaseModel):
+    """Output for transforming an object."""
+
+    object_id: str = Field(..., description="Object unique identifier")
+    bbox: dict[str, list[float]] = Field(..., description="Bounding box after transform")
     status: str = Field(..., description="Operation status")
     message: str | None = Field(None, description="Status description")
 
@@ -297,6 +354,43 @@ def cad_object_delete(input: ObjectDeleteInput) -> ObjectDeleteOutput:
         )
     except CADError as exc:
         return ObjectDeleteOutput(object_id="", status="error", message=str(exc))
+
+
+def cad_object_copy(input: ObjectCopyInput) -> ObjectCopyOutput:
+    """Copy an object, returning the new object's id."""
+    try:
+        doc = DocumentManager().get_current()
+        target_id = doc.entities.copy(input.object_id, new_id=input.new_id)
+        return ObjectCopyOutput(object_id=target_id, status="success", message="Copied")
+    except CADError as exc:
+        return ObjectCopyOutput(object_id="", status="error", message=str(exc))
+
+
+def cad_object_transform(input: ObjectTransformInput) -> ObjectTransformOutput:
+    """Apply a 4x4 matrix to an object's geometry.
+
+    对对象应用 4x4 变换矩阵（平移/旋转/缩放）。列向量约定：平移量位于
+    第四列（matrix[0][3]、matrix[1][3]、matrix[2][3]）。
+    """
+    try:
+        import numpy as np
+
+        matrix = np.asarray(input.matrix, dtype=float)
+        if matrix.shape != (4, 4):
+            raise CADError("matrix must be 4x4", code="invalid_matrix")
+        doc = DocumentManager().get_current()
+        doc.entities.transform(input.object_id, matrix)
+        bbox = doc.entities.get_bbox(input.object_id)
+        return ObjectTransformOutput(
+            object_id=input.object_id, bbox=bbox, status="success", message="Transformed"
+        )
+    except CADError as exc:
+        return ObjectTransformOutput(
+            object_id=input.object_id,
+            bbox={"min": [0.0, 0.0, 0.0], "max": [0.0, 0.0, 0.0]},
+            status="error",
+            message=str(exc),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -531,11 +625,14 @@ TOOLS: list[tuple[str, Any]] = [
     ("cad_file_open", cad_file_open),
     ("cad_file_save", cad_file_save),
     ("cad_file_close", cad_file_close),
+    ("cad_file_delete", cad_file_delete),
     ("cad_file_list", cad_file_list),
     ("cad_object_create", cad_object_create),
     ("cad_object_read", cad_object_read),
     ("cad_object_update", cad_object_update),
     ("cad_object_delete", cad_object_delete),
+    ("cad_object_copy", cad_object_copy),
+    ("cad_object_transform", cad_object_transform),
     ("cad_object_list", cad_object_list),
     ("cad_layer_create", cad_layer_create),
     ("cad_layer_read", cad_layer_read),

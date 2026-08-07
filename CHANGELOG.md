@@ -2,6 +2,38 @@
 
 Notable changes to TianshangCAD (tianshangcad on PyPI), newest first.
 
+## v0.11.0 - 2026-08-07
+
+Tool-surface consolidation. The number of registered MCP tools drops from
+103 to **77** by merging low-value, per-action tools into aggregate tools
+using discriminated-union input models (`action` / `target` discriminator).
+
+### Added
+- Aggregate tools (each replaces several legacy tools):
+  - `cad_render` (mode: ortho/view_3d/section/explode/animation/webgl)
+  - `cad_json` (action: load/parse/validate/import_geometry/export_geometry/
+    import_scene/export_scene/save)
+  - `cad_object_boolean` (operation: union/subtract/intersect)
+  - `cad_status` (target: check/file/object/layer/health)
+  - `cad_logs` (action: get/clear)
+  - `cad_variable` (action: set/list)
+  - `cad_version` (action: save/list/diff/restore)
+  - `cad_file_io` (action: export/import)
+  - `cad_constraint` (action: add/remove/list/solve)
+  - `cad_batch` (action: execute/schedule/status/cancel/list/templates/
+    run_script)
+
+### Changed
+- Legacy per-action tools (`cad_status_health`, `cad_logs_get`, ...) are no
+  longer registered. They remain importable and functional with a
+  `# Deprecated, merged into cad_xxx` marker, so existing tests and CLI code
+  keep working unchanged.
+- Aggregate inputs use strict Pydantic validation with a discriminated
+  union, so each action exposes only its own parameters.
+- Batch templates and the NLP rules that referenced removed tools now emit
+  the aggregate names (`cad_batch`, `cad_status`, `cad_logs`).
+- `docs/mcp_tools.md` re-synced to the 77-tool surface.
+
 ## v0.10.0 - 2026-08-04
 
 First PyPI release. Package installable via `pip install tianshangcad`.

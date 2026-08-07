@@ -229,6 +229,35 @@ def cad_assembly_add_mate(input: AssemblyAddMateInput) -> AssemblyAddMateOutput:
         )
 
 
+class AssemblyRemovePartInput(BaseModel):
+    """Input for removing a node from an assembly."""
+
+    node_id: str = Field(..., description="Assembly node id to remove (and its subtree)")
+
+
+class AssemblyRemovePartOutput(BaseModel):
+    """Output for removing a node."""
+
+    node_id: str = Field(..., description="Removed node id")
+    status: str = Field(..., description="Operation status: success / error")
+    message: str | None = Field(None, description="Status description")
+
+
+def cad_assembly_remove_part(input: AssemblyRemovePartInput) -> AssemblyRemovePartOutput:
+    """Remove a node (part or sub-assembly) and its subtree.
+
+    移除装配中的一个节点（零件或子装配）及其子树。触碰的配合约束会一并删除。
+    """
+    try:
+        assembly = _require_assembly()
+        assembly.remove_node(input.node_id)
+        return AssemblyRemovePartOutput(
+            node_id=input.node_id, status="success", message="Removed node"
+        )
+    except AssemblyError as exc:
+        return AssemblyRemovePartOutput(node_id="", status="error", message=str(exc))
+
+
 def cad_assembly_solve(input: AssemblySolveInput) -> AssemblySolveOutput:
     """Solve the assembly and return every node's world transform.
 
@@ -301,6 +330,7 @@ TOOLS: list[tuple[str, Any]] = [
     ("cad_assembly_add_part", cad_assembly_add_part),
     ("cad_assembly_add_subasm", cad_assembly_add_subasm),
     ("cad_assembly_add_mate", cad_assembly_add_mate),
+    ("cad_assembly_remove_part", cad_assembly_remove_part),
     ("cad_assembly_solve", cad_assembly_solve),
     ("cad_assembly_bom", cad_assembly_bom),
     ("cad_assembly_explode", cad_assembly_explode),

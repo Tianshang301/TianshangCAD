@@ -14,12 +14,14 @@ from tianshangcad.mcp.tools.drawing import (
     DrawingAddToleranceInput,
     DrawingAddViewInput,
     DrawingCreateInput,
+    DrawingDeleteInput,
     DrawingExportInput,
     cad_drawing_add_dimension,
     cad_drawing_add_section,
     cad_drawing_add_tolerance,
     cad_drawing_add_view,
     cad_drawing_create,
+    cad_drawing_delete,
     cad_drawing_export,
 )
 
@@ -134,3 +136,16 @@ class TestDrawingTools:
         result = cad_drawing_export(DrawingExportInput(format="svg", path=str(out)))
         assert result.status == "success"
         assert out.exists()
+
+    def test_delete(self) -> None:
+        self._setup()
+        result = cad_drawing_delete(DrawingDeleteInput(confirm=True))
+        assert result.status == "success"
+        recreated = cad_drawing_create(DrawingCreateInput(name="new", paper="A4"))
+        assert recreated.status == "success"
+        assert recreated.paper == "A4"
+
+    def test_delete_not_confirmed(self) -> None:
+        self._setup()
+        result = cad_drawing_delete(DrawingDeleteInput(confirm=False))
+        assert result.status == "error"

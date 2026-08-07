@@ -166,6 +166,34 @@ def cad_drawing_create(input: DrawingCreateInput) -> DrawingCreateOutput:
         )
 
 
+class DrawingDeleteInput(BaseModel):
+    """Input for deleting the current drawing sheet."""
+
+    confirm: bool = Field(True, description="Set to true to confirm deletion")
+
+
+class DrawingDeleteOutput(BaseModel):
+    """Output for deleting a drawing."""
+
+    status: str = Field(..., description="Operation status: success / error")
+    message: str | None = Field(None, description="Status description")
+
+
+def cad_drawing_delete(input: DrawingDeleteInput) -> DrawingDeleteOutput:
+    """Delete the current drawing sheet from the document.
+
+    删除当前文档中的工程图。视图、尺寸与 GD&T 一并丢弃，不可撤销。
+    """
+    try:
+        if not input.confirm:
+            raise DrawingError("Deletion requires confirm=true", code="not_confirmed")
+        doc = DocumentManager().get_current()
+        doc.reset_drawing()
+        return DrawingDeleteOutput(status="success", message="Drawing deleted")
+    except CADError as exc:
+        return DrawingDeleteOutput(status="error", message=str(exc))
+
+
 def cad_drawing_add_view(input: DrawingAddViewInput) -> DrawingAddViewOutput:
     """Add a view (main/projection/section/detail/isometric) to the sheet."""
     try:
@@ -296,5 +324,6 @@ TOOLS: list[tuple[str, Any]] = [
     ("cad_drawing_add_section", cad_drawing_add_section),
     ("cad_drawing_add_dimension", cad_drawing_add_dimension),
     ("cad_drawing_add_tolerance", cad_drawing_add_tolerance),
+    ("cad_drawing_delete", cad_drawing_delete),
     ("cad_drawing_export", cad_drawing_export),
 ]

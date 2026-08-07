@@ -6,6 +6,7 @@ import json
 
 from tianshangcad.mcp.tools.crud import (
     FileCreateInput,
+    FileDeleteInput,
     FileListInput,
     FileSaveInput,
     LayerCreateInput,
@@ -13,12 +14,15 @@ from tianshangcad.mcp.tools.crud import (
     LayerListInput,
     LayerReadInput,
     LayerUpdateInput,
+    ObjectCopyInput,
     ObjectCreateInput,
     ObjectDeleteInput,
     ObjectListInput,
     ObjectReadInput,
+    ObjectTransformInput,
     ObjectUpdateInput,
     cad_file_create,
+    cad_file_delete,
     cad_file_list,
     cad_file_save,
     cad_layer_create,
@@ -26,10 +30,12 @@ from tianshangcad.mcp.tools.crud import (
     cad_layer_list,
     cad_layer_read,
     cad_layer_update,
+    cad_object_copy,
     cad_object_create,
     cad_object_delete,
     cad_object_list,
     cad_object_read,
+    cad_object_transform,
     cad_object_update,
 )
 
@@ -166,6 +172,75 @@ class TestObjectTools:
         result = cad_object_list(ObjectListInput(layer="A"))
         assert result.status == "success"
         assert [obj["object_id"] for obj in result.objects] == [first.object_id]
+
+
+class TestObjectCopyTransform:
+    """Object copy / transform tools."""
+
+    def _seed_line(self) -> str:
+        cad_file_create(FileCreateInput(filename="draw.json"))
+        result = cad_object_create(
+            ObjectCreateInput(
+                type="line",
+                params={"start": [0, 0, 0], "end": [10, 0, 0]},
+                layer="0",
+            )
+        )
+        return result.object_id
+
+    def test_copy(self) -> None:
+        source = self._seed_line()
+        result = cad_object_copy(ObjectCopyInput(object_id=source))
+        assert result.status == "success"
+        assert result.object_id != source
+        listed = cad_object_list(ObjectListInput())
+        assert len(listed.objects) == 2
+
+    def test_copy_missing_object(self) -> None:
+        cad_file_create(FileCreateInput(filename="draw.json"))
+        result = cad_object_copy(ObjectCopyInput(object_id="nope"))
+        assert result.status == "error"
+
+    def test_transform_translation(self) -> None:
+        source = self._seed_line()
+        matrix = [
+            [1, 0, 0, 5],
+            [0, 1, 0, 5],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+        result = cad_object_transform(ObjectTransformInput(object_id=source, matrix=matrix))
+        assert result.status == "success"
+        assert result.bbox["min"] == [5, 5, 0]
+        assert result.bbox["max"] == [15, 5, 0]
+
+    def test_transform_missing_object(self) -> None:
+        cad_file_create(FileCreateInput(filename="draw.json"))
+        identity = [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, 1],
+        ]
+        result = cad_object_transform(
+            ObjectTransformInput(object_id="nope", matrix=identity)
+        )
+        assert result.status == "error"
+
+
+class TestFileDeleteTool:
+    """cad_file_delete tool behaviour."""
+
+    def test_delete(self) -> None:
+        created = cad_file_create(FileCreateInput(filename="drop.json"))
+        result = cad_file_delete(FileDeleteInput(file_id=created.file_id))
+        assert result.status == "success"
+        listed = cad_file_list(FileListInput())
+        assert created.file_id not in [f["file_id"] for f in listed.files]
+
+    def test_delete_missing(self) -> None:
+        result = cad_file_delete(FileDeleteInput(file_id="nope"))
+        assert result.status == "error"
 
 
 class TestLayerTools:

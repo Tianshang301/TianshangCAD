@@ -384,8 +384,8 @@ async def run_all(
             step_path = out_dir / f"{sample.sample_id}.step"
             try:
                 export_out = await call_tool(
-                    session, "cad_file_export",
-                    {"format": "step", "path": str(step_path)}
+                    session, "cad_file_io",
+                    {"file": {"action": "export", "format": "step", "path": str(step_path)}}
                 )
                 if export_out.get("status") == "error":
                     state.update({

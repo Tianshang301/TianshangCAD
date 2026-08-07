@@ -58,8 +58,14 @@ class TestBatchOperations:
             BatchExecuteInput(
                 commands=[
                     BatchCommand(
-                        tool="cad_json_import_geometry",
-                        arguments={"json_data": geometry, "coordinate_system": "world"},
+                        tool="cad_json",
+                        arguments={
+                            "params": {
+                                "action": "import_geometry",
+                                "json_data": geometry,
+                                "coordinate_system": "world",
+                            }
+                        },
                     ),
                     BatchCommand(tool="cad_metrics_get", arguments={}),
                 ]

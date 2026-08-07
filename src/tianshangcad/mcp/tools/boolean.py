@@ -98,6 +98,7 @@ def cad_boolean_union(input: BooleanInput) -> BooleanOutput:
     leaving the source objects unchanged. Requires the optional ``boolean``
     extra (``pip install -e '.[boolean]'``).
     """
+    # Deprecated, merged into cad_object_boolean
     try:
         return _run_boolean(
             "union", input.target_id, input.tool_id, input.new_id or "", input.layer
@@ -112,6 +113,7 @@ def cad_boolean_subtract(input: BooleanInput) -> BooleanOutput:
     Removes the material of ``tool_id`` from ``target_id`` and returns a new
     mesh object. The source objects are left untouched.
     """
+    # Deprecated, merged into cad_object_boolean
     try:
         return _run_boolean(
             "subtract", input.target_id, input.tool_id, input.new_id or "", input.layer
@@ -126,6 +128,7 @@ def cad_boolean_intersect(input: BooleanInput) -> BooleanOutput:
     Returns the shared volume of ``target_id`` and ``tool_id`` as a new mesh
     object without modifying the sources.
     """
+    # Deprecated, merged into cad_object_boolean
     try:
         return _run_boolean(
             "intersect", input.target_id, input.tool_id, input.new_id or "", input.layer
@@ -190,8 +193,5 @@ def cad_object_boolean(input: ObjectBooleanInput) -> ObjectBooleanOutput:
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_boolean_union", cad_boolean_union),
-    ("cad_boolean_subtract", cad_boolean_subtract),
-    ("cad_boolean_intersect", cad_boolean_intersect),
     ("cad_object_boolean", cad_object_boolean),
 ]

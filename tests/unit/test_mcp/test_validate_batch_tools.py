@@ -6,13 +6,22 @@ import time
 
 from tianshangcad.mcp.tools.batch import (
     BatchCancelInput,
+    BatchCancelParams,
     BatchCommand,
     BatchExecuteInput,
+    BatchExecuteParams,
+    BatchInput,
     BatchListInput,
+    BatchListParams,
     BatchRunScriptInput,
+    BatchRunScriptParams,
     BatchScheduleInput,
+    BatchScheduleParams,
     BatchStatusInput,
+    BatchStatusParams,
     BatchTemplatesInput,
+    BatchTemplatesParams,
+    cad_batch,
     cad_batch_cancel,
     cad_batch_execute,
     cad_batch_list,
@@ -28,9 +37,10 @@ from tianshangcad.mcp.tools.crud import (
     cad_object_create,
 )
 from tianshangcad.mcp.tools.status import (
-    LogsGetInput,
-    cad_logs_clear,
-    cad_logs_get,
+    LogsClearParams,
+    LogsGetParams,
+    LogsInput,
+    cad_logs,
 )
 from tianshangcad.mcp.tools.validate import (
     MetricsGetInput,
@@ -280,12 +290,12 @@ class TestBatchExecute:
         assert result.failed_count == 1
 
     def test_execute_emits_structured_logs(self) -> None:
-        cad_logs_clear(LogsGetInput())
+        cad_logs(LogsInput(logs=LogsClearParams()))
         cad_batch_execute(BatchExecuteInput(commands=_METRICS))
-        logs = cad_logs_get(LogsGetInput(source="batch"))
+        logs = cad_logs(LogsInput(logs=LogsGetParams(source="batch")))
         assert logs.total >= 1
         assert any(
-            entry.details and entry.details.get("tool_name") == "cad_metrics_get"
+            entry["details"].get("tool_name") == "cad_metrics_get"
             for entry in logs.logs
         )
 
@@ -421,7 +431,7 @@ class TestBatchRunScript:
 
     def test_run_scr(self) -> None:
         result = cad_batch_run_script(
-            BatchRunScriptInput(script="cad_metrics_get\ncad_status_check", script_type="scr")
+            BatchRunScriptInput(script="cad_metrics_get\ncad_status", script_type="scr")
         )
         assert result.ok is True
         assert result.success_count == 2
@@ -442,3 +452,90 @@ class TestBatchRunScript:
             )
         )
         assert result.timed_out is True
+
+
+class TestBatchAggregate:
+    """Aggregate cad_batch tool (discriminated action)."""
+
+    def test_action_execute_success_and_stop_on_error(self) -> None:
+        ok = cad_batch(
+            BatchInput(batch=BatchExecuteParams(commands=_METRICS))
+        )
+        assert ok.status == "success"
+        assert ok.action == "execute"
+        assert ok.success_count == 1
+        failed = cad_batch(
+            BatchInput(
+                batch=BatchExecuteParams(
+                    commands=[
+                        BatchCommand(tool="cad_does_not_exist", arguments={}),
+                        BatchCommand(tool="cad_does_not_exist_2", arguments={}),
+                    ],
+                    stop_on_error=True,
+                )
+            )
+        )
+        assert failed.status == "error"
+        assert failed.failed_count == 1
+
+    def test_action_schedule_and_status(self) -> None:
+        scheduled = cad_batch(
+            BatchInput(
+                batch=BatchScheduleParams(
+                    name="agg", commands=_METRICS, cron_expression="0 2 * * *"
+                )
+            )
+        )
+        assert scheduled.status == "success"
+        assert scheduled.job_id != ""
+        status = cad_batch(
+            BatchInput(batch=BatchStatusParams(job_id=scheduled.job_id))
+        )
+        assert status.status == "success"
+        assert status.state == "pending"
+        missing = cad_batch(
+            BatchInput(batch=BatchStatusParams(job_id="nope"))
+        )
+        assert missing.status == "error"
+        assert "not found" in missing.message
+
+    def test_action_cancel(self) -> None:
+        scheduled = cad_batch(
+            BatchInput(
+                batch=BatchScheduleParams(
+                    name="c", commands=_METRICS, cron_expression="0 2 * * *"
+                )
+            )
+        )
+        cancelled = cad_batch(
+            BatchInput(batch=BatchCancelParams(job_id=scheduled.job_id))
+        )
+        assert cancelled.status == "success"
+        missing = cad_batch(BatchInput(batch=BatchCancelParams(job_id="nope")))
+        assert missing.status == "error"
+
+    def test_action_list_and_templates(self) -> None:
+        listed = cad_batch(BatchInput(batch=BatchListParams()))
+        assert listed.status == "success"
+        assert isinstance(listed.jobs, list)
+        templates = cad_batch(BatchInput(batch=BatchTemplatesParams()))
+        assert templates.status == "success"
+        assert "cleanup" in templates.templates
+
+    def test_action_run_script_scr(self) -> None:
+        result = cad_batch(
+            BatchInput(
+                batch=BatchRunScriptParams(
+                    script="cad_metrics_get", script_type="scr"
+                )
+            )
+        )
+        assert result.ok is True
+        assert result.success_count == 1
+        bad = cad_batch(
+            BatchInput(
+                batch=BatchRunScriptParams(script="x", script_type="powershell")
+            )
+        )
+        assert bad.status == "error"
+        assert "script_type" in bad.message

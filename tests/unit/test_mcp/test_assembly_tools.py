@@ -9,6 +9,7 @@ from tianshangcad.mcp.tools.assembly import (
     AssemblyBomInput,
     AssemblyCreateInput,
     AssemblyExplodeInput,
+    AssemblyRemovePartInput,
     AssemblySolveInput,
     cad_assembly_add_mate,
     cad_assembly_add_part,
@@ -16,6 +17,7 @@ from tianshangcad.mcp.tools.assembly import (
     cad_assembly_bom,
     cad_assembly_create,
     cad_assembly_explode,
+    cad_assembly_remove_part,
     cad_assembly_solve,
 )
 from tianshangcad.mcp.tools.crud import FileCreateInput, cad_file_create
@@ -120,3 +122,15 @@ class TestAssemblyTools:
         assert result.status == "success"
         assert len(result.records) == 2
         assert result.records[0]["translation"][2] == 5.0
+
+    def test_remove_part(self) -> None:
+        _, node_b = self._setup()
+        result = cad_assembly_remove_part(AssemblyRemovePartInput(node_id=node_b))
+        assert result.status == "success"
+        bom = cad_assembly_bom(AssemblyBomInput())
+        assert bom.part_count == 1
+
+    def test_remove_part_unknown(self) -> None:
+        self._setup()
+        result = cad_assembly_remove_part(AssemblyRemovePartInput(node_id="nope"))
+        assert result.status == "error"

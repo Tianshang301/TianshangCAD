@@ -170,40 +170,43 @@ _RULES: tuple[NLPRule, ...] = (
     ),
     NLPRule(
         name="check_status",
-        tool="cad_status_health",
+        tool="cad_status",
         description="Check system health / status (状态)",
         regex=re.compile(
             r"^status$|^check status|^health$|^状态$|^健康检查$|^查看状态",
             re.IGNORECASE,
         ),
-        build=lambda match, text: {},
+        build=lambda match, text: {"status": {"target": "health"}},
     ),
     NLPRule(
         name="render_view",
-        tool="cad_render_view",
+        tool="cad_render",
         description="Render an orthographic view (渲染视图)",
         regex=re.compile(r"render|渲染|预览", re.IGNORECASE),
         build=lambda match, text: {
-            "view": (
-                "side"
-                if re.search(r"\bside\b|侧", text)
-                else ("front" if re.search(r"\bfront\b|前|主视", text) else "top")
-            )
+            "render": {
+                "mode": "ortho",
+                "view": (
+                    "side"
+                    if re.search(r"\bside\b|侧", text)
+                    else ("front" if re.search(r"\bfront\b|前|主视", text) else "top")
+                ),
+            }
         },
     ),
     NLPRule(
         name="save_version",
-        tool="cad_version_save",
+        tool="cad_version",
         description="Save a document version snapshot (保存版本)",
         regex=re.compile(r"save(?: a)? version|保存版本|创建快照", re.IGNORECASE),
-        build=lambda match, text: {},
+        build=lambda match, text: {"version": {"action": "save"}},
     ),
     NLPRule(
         name="batch_execute",
-        tool="cad_batch_execute",
+        tool="cad_batch",
         description="Run a batch of commands (批量执行)",
         regex=re.compile(r"batch|批量|脚本", re.IGNORECASE),
-        build=lambda match, text: {"commands": []},
+        build=lambda match, text: {"batch": {"action": "execute", "commands": []}},
     ),
 )
 

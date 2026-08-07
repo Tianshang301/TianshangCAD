@@ -103,6 +103,20 @@ class SimListOutput(BaseModel):
     status: str = Field(..., description="Operation status")
 
 
+class SimDeleteInput(BaseModel):
+    """Input for deleting a simulation."""
+
+    sim_id: str = Field(..., description="Simulation id to delete")
+
+
+class SimDeleteOutput(BaseModel):
+    """Output for deleting a simulation."""
+
+    sim_id: str = Field(..., description="Deleted simulation id")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
 def _manager() -> SimulationManager:
     return SimulationManager()
 
@@ -207,6 +221,20 @@ def cad_sim_list(input: SimListInput) -> SimListOutput:
     return SimListOutput(simulations=_manager().list(), status="success")
 
 
+def cad_sim_delete(input: SimDeleteInput) -> SimDeleteOutput:
+    """Delete a registered simulation.
+
+    删除已注册的仿真记录，不可撤销。不影响目标实体。
+    """
+    try:
+        _manager().delete(input.sim_id)
+        return SimDeleteOutput(
+            sim_id=input.sim_id, status="success", message="Deleted simulation"
+        )
+    except CADError as exc:
+        return SimDeleteOutput(sim_id="", status="error", message=str(exc))
+
+
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -218,4 +246,5 @@ TOOLS: list[tuple[str, Any]] = [
     ("cad_sim_run", cad_sim_run),
     ("cad_sim_result", cad_sim_result),
     ("cad_sim_list", cad_sim_list),
+    ("cad_sim_delete", cad_sim_delete),
 ]

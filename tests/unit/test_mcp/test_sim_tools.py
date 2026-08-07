@@ -12,11 +12,13 @@ from tianshangcad.mcp.tools.crud import (
     cad_object_create,
 )
 from tianshangcad.mcp.tools.simulation import (
+    SimDeleteInput,
     SimListInput,
     SimMeshInput,
     SimResultInput,
     SimRunInput,
     SimSetupInput,
+    cad_sim_delete,
     cad_sim_list,
     cad_sim_mesh,
     cad_sim_result,
@@ -137,3 +139,19 @@ class TestSimResultAndList:
         result = cad_sim_list(SimListInput())
         assert result.status == "success"
         assert len(result.simulations) == 2
+
+
+class TestSimDelete:
+    """`cad_sim_delete` tests."""
+
+    def test_delete(self) -> None:
+        _doc()
+        sim_id = cad_sim_setup(SimSetupInput(name="a", kind="fea")).sim_id
+        result = cad_sim_delete(SimDeleteInput(sim_id=sim_id))
+        assert result.status == "success"
+        listed = cad_sim_list(SimListInput())
+        assert sim_id not in [s["sim_id"] for s in listed.simulations]
+
+    def test_delete_unknown(self) -> None:
+        result = cad_sim_delete(SimDeleteInput(sim_id="nope"))
+        assert result.status == "error"

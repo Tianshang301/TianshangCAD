@@ -118,19 +118,19 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 
 | 分组 | 工具 |
 |------|------|
-| 文件 | `cad_file_create`、`cad_file_open`、`cad_file_save`、`cad_file_close`、`cad_file_list`、`cad_file_export`、`cad_file_import` |
+| 文件 | `cad_file_create`、`cad_file_open`、`cad_file_save`、`cad_file_close`、`cad_file_list`、`cad_file_io`（action: export/import） |
 | 对象 | `cad_object_create`、`cad_object_read`、`cad_object_update`、`cad_object_delete`、`cad_object_list` |
 | 布尔 | `cad_boolean_union`、`cad_boolean_subtract`、`cad_boolean_intersect`、`cad_object_boolean` |
-| 参数 | `cad_variable_set`、`cad_variable_list` |
+| 参数 | `cad_variable`（action: set/list） |
 | 图层 | `cad_layer_create`、`cad_layer_read`、`cad_layer_update`、`cad_layer_delete`、`cad_layer_list` |
 | JSON | `cad_json_load`、`cad_json_parse`、`cad_json_validate`、`cad_json_import_geometry`、`cad_json_export_geometry`、`cad_json_import_scene`、`cad_json_export_scene`、`cad_json_save` |
-| 状态 | `cad_status_check`、`cad_status_file`、`cad_status_object`、`cad_status_layer`、`cad_status_health`、`cad_logs_get`、`cad_logs_clear` |
+| 状态 | `cad_status`（target: check/file/object/layer/health）、`cad_logs`（action: get/clear） |
 | 校验 | `cad_validate_geometry`、`cad_validate_interference`、`cad_validate_topology`、`cad_metrics_get` |
 | 渲染 | `cad_render_view` |
 | 3D 视图 | `cad_view_3d_create`、`cad_view_3d_read`、`cad_view_3d_list`、`cad_view_3d_update`、`cad_view_3d_delete`、`cad_view_3d_render`、`cad_view_section`、`cad_view_explode`、`cad_view_animation`、`cad_webgl_sync` |
-| 版本 | `cad_version_save`、`cad_version_list`、`cad_version_diff`、`cad_version_restore` |
+| 版本 | `cad_version`（action: save/list/diff/restore） |
 | 自然语言 | `cad_nlp_command` |
-| 批处理 | `cad_batch_execute`、`cad_batch_schedule`、`cad_batch_status`、`cad_batch_cancel`、`cad_batch_list`、`cad_batch_templates`、`cad_batch_run_script` |
+| 批处理 | `cad_batch`（action: execute/schedule/status/cancel/list/templates/run_script） |
 
 ### 校验、渲染、3D 视图与自然语言
 
@@ -138,8 +138,8 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 "new file design.dwg"            -> cad_file_create  {filename: design.dwg}
 "draw a line from 0,0 to 10,10"  -> cad_object_create（直线）
 "render the side view"           -> cad_render_view  {view: side}
-"save a version"                 -> cad_version_save
-"查看状态"                        -> cad_status_health
+"save a version"                 -> cad_version（action=save）
+"查看状态"                        -> cad_status（target=health）
 ```
 
 ```bash
@@ -210,7 +210,8 @@ MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
       "autoApprove": [
         "cad_object_read",
         "cad_object_list",
-        "cad_status_check",
+        "cad_status",
+        "cad_logs",
         "cad_json_load",
         "cad_json_validate",
         "cad_validate_geometry",

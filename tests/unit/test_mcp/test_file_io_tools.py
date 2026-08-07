@@ -11,10 +11,14 @@ from tianshangcad.mcp.tools.crud import (
 from tianshangcad.mcp.tools.file_io import (
     FileExportInput,
     FileExportOutput,
+    FileExportParams,
     FileImportInput,
     FileImportOutput,
+    FileImportParams,
+    FileIoInput,
     cad_file_export,
     cad_file_import,
+    cad_file_io,
 )
 
 
@@ -85,3 +89,45 @@ class TestFileImport:
         result = cad_file_import(FileImportInput(path=str(bogus)))
         assert result.status == "error"
         assert "Unsupported" in result.message
+
+
+class TestFileIoAggregate:
+    """Aggregate cad_file_io tool (discriminated action)."""
+
+    def test_action_export_formats_and_unsupported(self, tmp_path) -> None:
+        _new_doc()
+        for fmt, suffix in (("step", ".step"), ("dxf", ".dxf"), ("json", ".json")):
+            target = tmp_path / f"out{suffix}"
+            ok = cad_file_io(
+                FileIoInput(
+                    file=FileExportParams(format=fmt, path=str(target))
+                )
+            )
+            assert ok.status == "success"
+            assert ok.action == "export"
+            assert target.exists()
+        bad = cad_file_io(
+            FileIoInput(file=FileExportParams(format="bogus", path=str(tmp_path / "x.foo")))
+        )
+        assert bad.status == "error"
+        assert "Unsupported" in bad.message
+
+    def test_action_import_success_and_errors(self, tmp_path) -> None:
+        _new_doc()
+        step_path = tmp_path / "out.step"
+        cad_file_io(FileIoInput(file=FileExportParams(format="step", path=str(step_path))))
+        ok = cad_file_io(FileIoInput(file=FileImportParams(path=str(step_path))))
+        assert ok.status == "success"
+        assert ok.action == "import"
+        assert ok.object_count == 1
+        assert ok.file_id != ""
+        missing = cad_file_io(
+            FileIoInput(file=FileImportParams(path=str(tmp_path / "nope.step")))
+        )
+        assert missing.status == "error"
+        assert missing.object_count == 0
+        bogus = tmp_path / "file.xyz"
+        bogus.write_text("data", encoding="utf-8")
+        unsupported = cad_file_io(FileIoInput(file=FileImportParams(path=str(bogus))))
+        assert unsupported.status == "error"
+        assert "Unsupported" in unsupported.message

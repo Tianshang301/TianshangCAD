@@ -23,6 +23,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         features,
         file_io,
         json_ops,
+        measure,
         nlp,
         render,
         simulation,
@@ -53,6 +54,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         features,
         simulation,
         collab,
+        measure,
     ):
         tools.extend(module.TOOLS)
     return dict(tools)

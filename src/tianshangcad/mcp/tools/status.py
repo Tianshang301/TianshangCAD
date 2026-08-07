@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from collections import deque
 from datetime import UTC, datetime
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -170,6 +170,7 @@ _LEVEL_ORDER = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
 
 def cad_status_check(input: StatusCheckInput) -> StatusCheckOutput:
     """Return an overall status summary of the current session."""
+    # Deprecated, merged into cad_status (target=check)
     session = SessionManager().current_session
     current = session.current_file_id
     if current is None or current not in session.active_files:
@@ -192,6 +193,7 @@ def cad_status_check(input: StatusCheckInput) -> StatusCheckOutput:
 
 def cad_status_file(input: StatusFileInput) -> StatusFileOutput:
     """Return the status of a file (defaults to the current one)."""
+    # Deprecated, merged into cad_status (target=file)
     try:
         manager = DocumentManager()
         info = manager.info(input.file_id)
@@ -213,6 +215,7 @@ def cad_status_file(input: StatusFileInput) -> StatusFileOutput:
 
 def cad_status_object(input: StatusObjectInput) -> StatusObjectOutput:
     """Return the status of a single object."""
+    # Deprecated, merged into cad_status (target=object)
     try:
         doc = DocumentManager().get_current()
         record = doc.entities.read(input.object_id)
@@ -234,6 +237,7 @@ def cad_status_object(input: StatusObjectInput) -> StatusObjectOutput:
 
 def cad_status_layer(input: StatusLayerInput) -> StatusLayerOutput:
     """Return the status of a layer including its object count."""
+    # Deprecated, merged into cad_status (target=layer)
     try:
         doc = DocumentManager().get_current()
         layer = doc.layers.read(input.name)
@@ -254,6 +258,7 @@ def cad_status_layer(input: StatusLayerInput) -> StatusLayerOutput:
 
 def cad_status_health(input: StatusHealthInput) -> StatusHealthOutput:
     """Return the server health report."""
+    # Deprecated, merged into cad_status (target=health)
     from tianshangcad.mcp.tools._registry import get_registry
 
     tool_count = len(get_registry())
@@ -268,6 +273,7 @@ def cad_status_health(input: StatusHealthInput) -> StatusHealthOutput:
 
 def cad_logs_get(input: LogsGetInput) -> LogsGetOutput:
     """Return recent log entries (newest first), optionally filtered."""
+    # Deprecated, merged into cad_logs (action=get)
     entries = list(reversed(_log_buffer))
     if input.level is not None:
         minimum = _LEVEL_ORDER.get(input.level.upper(), 0)
@@ -301,17 +307,261 @@ def cad_logs_get(input: LogsGetInput) -> LogsGetOutput:
 
 def cad_logs_clear(input: LogsClearInput) -> LogsClearOutput:
     """Clear the in-memory log buffer."""
+    # Deprecated, merged into cad_logs (action=clear)
     cleared = len(_log_buffer)
     _log_buffer.clear()
     return LogsClearOutput(cleared=cleared, status="success")
 
 
+# ---------------------------------------------------------------------------
+# Aggregate cad_status / cad_logs tools
+# ---------------------------------------------------------------------------
+
+
+class StatusCheckParams(BaseModel):
+    """Overall session status summary."""
+
+    target: Literal["check"] = "check"
+
+
+class StatusFileParams(BaseModel):
+    """Status of a file (defaults to current)."""
+
+    target: Literal["file"] = "file"
+    file_id: str | None = Field(None, description="File id (defaults to current)")
+
+
+class StatusObjectParams(BaseModel):
+    """Status of a single object."""
+
+    target: Literal["object"] = "object"
+    object_id: str = Field(..., description="Object id")
+
+
+class StatusLayerParams(BaseModel):
+    """Status of a layer including object count."""
+
+    target: Literal["layer"] = "layer"
+    name: str = Field(..., description="Layer name")
+
+
+class StatusHealthParams(BaseModel):
+    """Server health report."""
+
+    target: Literal["health"] = "health"
+
+
+StatusTargetParams = Annotated[
+    StatusCheckParams
+    | StatusFileParams
+    | StatusObjectParams
+    | StatusLayerParams
+    | StatusHealthParams,
+    Field(discriminator="target"),
+]
+
+
+class StatusInput(BaseModel):
+    """Input for the aggregate status tool.
+
+    聚合状态工具。``target`` 决定查询类型：
+    - ``check``: 会话总体状态
+    - ``file``: 文件状态（``file_id`` 可选）
+    - ``object``: 对象状态（``object_id``）
+    - ``layer``: 图层状态（``name``）
+    - ``health``: 服务器健康报告
+    """
+
+    status: StatusTargetParams = Field(default_factory=StatusCheckParams)
+
+
+class StatusOutput(BaseModel):
+    """Output of the aggregate status tool."""
+
+    target: str = Field(..., description="Status target queried")
+    summary: dict[str, Any] = Field(default_factory=dict, description="Status data")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _health_report() -> dict[str, Any]:
+    from tianshangcad.mcp.tools._registry import get_registry
+
+    try:
+        from tianshangcad import __version__
+    except Exception:  # pragma: no cover - defensive
+        __version__ = _SERVER_VERSION
+    return {
+        "ok": True,
+        "version": __version__,
+        "uptime_seconds": round(time.monotonic() - _start_time, 3),
+        "tool_count": len(get_registry()),
+    }
+
+
+def cad_status(input: StatusInput) -> StatusOutput:
+    """Query session, file, object, layer or health status.
+
+    按 ``target`` 查询当前会话的各类状态（check/file/object/layer/health）。
+    """
+    params = input.status
+    try:
+        if params.target == "check":
+            session = SessionManager().current_session
+            current = session.current_file_id
+            if current is None or current not in session.active_files:
+                return StatusOutput(
+                    target="check",
+                    summary={
+                        "files_open": len(session.active_files),
+                        "current_file": None,
+                        "objects": 0,
+                        "layers": 0,
+                    },
+                    status="ok",
+                )
+            doc = session.active_files[current]
+            return StatusOutput(
+                target="check",
+                summary={
+                    "files_open": len(session.active_files),
+                    "current_file": current,
+                    "objects": doc.entities.count(),
+                    "layers": len(doc.layers.list()),
+                },
+                status="ok",
+            )
+
+        if params.target == "file":
+            info = DocumentManager().info(params.file_id)
+            return StatusOutput(
+                target="file",
+                summary={
+                    "file_id": info["file_id"],
+                    "filename": info["filename"],
+                    "unit": info["unit"],
+                    "entity_count": info["entity_count"],
+                    "dirty": info["dirty"],
+                    "path": info["path"],
+                },
+                status="success",
+            )
+
+        if params.target == "object":
+            doc = DocumentManager().get_current()
+            record = doc.entities.read(params.object_id)
+            return StatusOutput(
+                target="object",
+                summary={
+                    "object_id": record.id,
+                    "type": record.type,
+                    "layer": record.layer,
+                    "bbox": doc.entities.get_bbox(params.object_id),
+                },
+                status="success",
+            )
+
+        if params.target == "layer":
+            doc = DocumentManager().get_current()
+            layer = doc.layers.read(params.name)
+            return StatusOutput(
+                target="layer",
+                summary={
+                    "name": layer.name,
+                    "visible": layer.visible,
+                    "locked": layer.locked,
+                    "object_count": len(doc.entities.list(layer=params.name)),
+                },
+                status="success",
+            )
+
+        return StatusOutput(target="health", summary=_health_report(), status="success")
+    except CADError as exc:
+        return StatusOutput(target=params.target, status="error", message=str(exc))
+
+
+class LogsGetParams(BaseModel):
+    """Retrieve recent log entries."""
+
+    action: Literal["get"] = "get"
+    limit: int = Field(50, description="Maximum entries", ge=1, le=200)
+    level: str | None = Field(None, description="Minimum level filter")
+    source: str | None = Field(None, description="Source filter")
+    job_id: str | None = Field(None, description="Job id filter")
+
+
+class LogsClearParams(BaseModel):
+    """Clear the in-memory log buffer."""
+
+    action: Literal["clear"] = "clear"
+
+
+LogsActionParams = Annotated[LogsGetParams | LogsClearParams, Field(discriminator="action")]
+
+
+class LogsInput(BaseModel):
+    """Input for the aggregate logs tool.
+
+    聚合日志工具。``action`` 为 ``get``（读取，支持 limit/level/source/job_id
+    过滤）或 ``clear``（清空）。
+    """
+
+    logs: LogsActionParams = Field(default_factory=LogsGetParams)
+
+
+class LogsOutput(BaseModel):
+    """Output of the aggregate logs tool."""
+
+    action: str = Field(..., description="Log action")
+    logs: list[dict[str, Any]] = Field(default_factory=list, description="Log entries")
+    total: int = Field(0, description="Number of entries")
+    cleared: int = Field(0, description="Number of cleared entries")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def cad_logs(input: LogsInput) -> LogsOutput:
+    """Read or clear the in-memory log buffer.
+
+    按 ``action`` 读取（get）或清空（clear）内存日志。
+    """
+    params = input.logs
+    if params.action == "clear":
+        cleared = len(_log_buffer)
+        _log_buffer.clear()
+        return LogsOutput(action="clear", cleared=cleared, status="success")
+
+    entries = list(reversed(_log_buffer))
+    if params.level is not None:
+        minimum = _LEVEL_ORDER.get(params.level.upper(), 0)
+        entries = [entry for entry in entries if _LEVEL_ORDER.get(entry["level"], 0) >= minimum]
+    if params.source is not None:
+        entries = [entry for entry in entries if entry.get("source") == params.source]
+    if params.job_id is not None:
+        entries = [entry for entry in entries if entry.get("job_id") == params.job_id]
+    selected = entries[: params.limit]
+    return LogsOutput(
+        action="get",
+        logs=[
+            {
+                "timestamp": entry["timestamp"],
+                "level": entry["level"],
+                "source": entry["source"],
+                "message": entry["message"],
+                "details": {
+                    key: value
+                    for key, value in entry.items()
+                    if key not in ("timestamp", "level", "source", "message")
+                },
+            }
+            for entry in selected
+        ],
+        total=len(selected),
+        status="success",
+    )
+
+
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_status_check", cad_status_check),
-    ("cad_status_file", cad_status_file),
-    ("cad_status_object", cad_status_object),
-    ("cad_status_layer", cad_status_layer),
-    ("cad_status_health", cad_status_health),
-    ("cad_logs_get", cad_logs_get),
-    ("cad_logs_clear", cad_logs_clear),
+    ("cad_status", cad_status),
+    ("cad_logs", cad_logs),
 ]
