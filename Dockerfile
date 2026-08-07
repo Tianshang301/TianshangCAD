@@ -3,6 +3,10 @@
 # This root-level Dockerfile lets registries (e.g. Glama) auto-detect a
 # buildable container image. It is equivalent to ``docker/Dockerfile``; the
 # latter is kept for docker-compose use with the ``docker/`` context.
+#
+# Glama note: prefer configuring the registry with this same pip install
+# path (python:3.12-slim) instead of uv; see
+# docs/community/glama_dockerfile.md for the exact dashboard JSON.
 
 # ---- Builder stage: compile + install to a user-local site-packages ----
 FROM python:3.12-slim AS builder

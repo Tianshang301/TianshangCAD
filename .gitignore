@@ -46,4 +46,5 @@ docs/community/*
 !docs/community/awesome_mcp_entry.md
 !docs/community/post_hn.md
 !docs/community/post_reddit.md
+!docs/community/glama_dockerfile.md
 docs/_build/
