@@ -208,7 +208,14 @@ def cad_feature_loft(input: FeatureLoftInput) -> FeatureLoftOutput:
 
     Lofts between two or more profile entities. The OCCT kernel supports
     circle/rectangle profiles; the analytic fallback supports two
-    concentric circles (represented as a cone).
+    concentric circles (represented as a cone). ``profile_ids`` are ordered
+    bottom-to-top and ``sections`` place each profile (defaults to Z
+    stacking).
+
+    When not to use: for a single profile extruded along a path use
+    ``cad_feature_sweep``; loft is only for transitions between two or more
+    stacked profiles. On the analytic kernel non-concentric profiles report
+    ``requires_occ``.
     """
     try:
         object_id = _require_features().loft(

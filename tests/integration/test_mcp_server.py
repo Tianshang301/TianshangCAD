@@ -171,6 +171,17 @@ class TestMCPServer:
         assert "type" in schemas["cad_object_create"]["properties"]
         assert "batch" in schemas["cad_batch"]["properties"]
 
+        # Pydantic field descriptions must survive flattening so clients
+        # (and registry scorecards like Glama) see parameter documentation.
+        assert schemas["cad_file_create"]["properties"]["filename"]["description"]
+        assert "description" in schemas["cad_file_save"]["properties"]["path"]
+        assert "description" in schemas["cad_object_update"]["properties"]["object_id"]
+        assert "description" in schemas["cad_layer_update"]["properties"]["name"]
+        assert "description" in schemas["cad_collab_history"]["properties"]["session_id"]
+        assert "description" in schemas["cad_collab_resolve"]["properties"]["resolution"]
+        assert "description" in schemas["cad_variable"]["properties"]["variable"]
+        assert "description" in schemas["cad_batch"]["properties"]["batch"]
+
     def test_create_object_roundtrip(self) -> None:
         outputs = _call_tools(
             [

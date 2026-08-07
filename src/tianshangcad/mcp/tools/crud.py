@@ -110,7 +110,15 @@ def cad_file_create(input: FileCreateInput) -> FileCreateOutput:
 
 
 def cad_file_open(input: FileOpenInput) -> FileOpenOutput:
-    """Open an existing JSON scene file."""
+    """Open an existing JSON scene file.
+
+    打开一个 JSON 场景文件并设为当前文档。The file must be a scene snapshot
+    written by ``cad_file_save`` or ``cad_json`` (save/export_scene).
+
+    When not to use: for DXF/STEP/STL import use ``cad_file_io`` (import)
+    instead — this tool only reads JSON scenes. Opening replaces the
+    current document.
+    """
     try:
         file_id = DocumentManager().open(input.path)
         doc = DocumentManager().get_current()
@@ -125,7 +133,15 @@ def cad_file_open(input: FileOpenInput) -> FileOpenOutput:
 
 
 def cad_file_save(input: FileSaveInput) -> FileSaveOutput:
-    """Save a document to disk (defaults to the current document)."""
+    """Save a document to disk.
+
+    保存文档到磁盘。Defaults to the current document; pass ``file_id`` to
+    save another open file and ``path`` to override the destination. The
+    saved file is a JSON scene snapshot that ``cad_file_open`` can reload.
+
+    When not to use: to export to STEP/DXF/STL use ``cad_file_io``
+    (export) — ``cad_file_save`` always writes the JSON scene format.
+    """
     try:
         path = DocumentManager().save(file_id=input.file_id, path=input.path)
         return FileSaveOutput(path=path, status="success", message="Saved")
@@ -328,7 +344,16 @@ def cad_object_read(input: ObjectReadInput) -> ObjectReadOutput:
 
 
 def cad_object_update(input: ObjectUpdateInput) -> ObjectUpdateOutput:
-    """Update an object's geometry, layer and/or properties."""
+    """Update an object's geometry, layer and/or properties.
+
+    更新对象。Only the fields you pass change: ``params`` replaces geometry,
+    ``layer`` moves the object, ``properties`` overrides appearance. Pass
+    ``None`` for a field to leave it untouched.
+
+    When not to use: to translate/rotate/scale use ``cad_object_transform``
+    (matrix-based) — this tool edits parameters directly. To create a
+    derived copy use ``cad_object_copy``.
+    """
     try:
         doc = DocumentManager().get_current()
         doc.entities.update(
@@ -468,7 +493,14 @@ class LayerDeleteOutput(BaseModel):
 
 
 def cad_layer_create(input: LayerCreateInput) -> LayerCreateOutput:
-    """Create a layer in the current document."""
+    """Create a layer in the current document.
+
+    创建图层。Accepts an optional color/linetype/linewidth; layers are used
+    to group objects for display and selection.
+
+    When not to use: if you only need one group, the default ``0`` layer is
+    created implicitly — create a layer only when grouping matters.
+    """
     try:
         doc = DocumentManager().get_current()
         doc.layers.create(
@@ -483,7 +515,13 @@ def cad_layer_create(input: LayerCreateInput) -> LayerCreateOutput:
 
 
 def cad_layer_read(input: LayerReadInput) -> LayerReadOutput:
-    """Read a layer's definition from the current document."""
+    """Read a layer's definition from the current document.
+
+    读取图层定义（颜色、线型、线宽、可见/锁定状态）。
+
+    When not to use: to enumerate all layers use ``cad_layer_list``; this
+    tool returns a single named layer and errors if it is missing.
+    """
     try:
         doc = DocumentManager().get_current()
         layer = doc.layers.read(input.name)
@@ -510,7 +548,16 @@ def cad_layer_read(input: LayerReadInput) -> LayerReadOutput:
 
 
 def cad_layer_update(input: LayerUpdateInput) -> LayerUpdateOutput:
-    """Update a layer's attributes."""
+    """Update a layer's attributes.
+
+    更新图层属性。Only the fields you pass are changed; provide the layer
+    ``name`` plus any of color, linetype, linewidth, visible or locked to
+    override. Returns the updated definition.
+
+    When not to use: to rename a layer you must update its ``name`` field
+    directly; there is no separate rename operation. Deleting a layer is
+    ``cad_layer_delete`` (destructive).
+    """
     try:
         doc = DocumentManager().get_current()
         kwargs: dict[str, Any] = {}
@@ -531,7 +578,14 @@ def cad_layer_update(input: LayerUpdateInput) -> LayerUpdateOutput:
 
 
 def cad_layer_delete(input: LayerDeleteInput) -> LayerDeleteOutput:
-    """Delete a layer from the current document."""
+    """Delete a layer from the current document.
+
+    删除图层。Objects on the layer are removed with it; this is destructive
+    and cannot be undone.
+
+    When not to use: to hide a layer without losing its objects use
+    ``cad_layer_update`` (visible=false) instead of deleting it.
+    """
     try:
         doc = DocumentManager().get_current()
         doc.layers.delete(input.name)
@@ -581,7 +635,13 @@ class LayerListOutput(BaseModel):
 
 
 def cad_file_list(input: FileListInput) -> FileListOutput:
-    """List the currently open files."""
+    """List the currently open files.
+
+    列出会话中打开的所有文档（file id、文件名、单位、实体数）。
+
+    When not to use: to query one file's detail use ``cad_status``
+    (target=file); this tool returns the open-file overview only.
+    """
     files = DocumentManager().list()
     return FileListOutput(files=files, status="success")
 
@@ -606,7 +666,13 @@ def cad_object_list(input: ObjectListInput) -> ObjectListOutput:
 
 
 def cad_layer_list(input: LayerListInput) -> LayerListOutput:
-    """List the layers of the current document."""
+    """List the layers of the current document.
+
+    列出当前文档的全部图层及其属性（颜色、线型、可见/锁定状态）。
+
+    When not to use: for a single layer's detail use ``cad_layer_read``;
+    for per-layer object counts use ``cad_status`` (target=layer).
+    """
     try:
         doc = DocumentManager().get_current()
         layers = [layer.to_dict() for layer in doc.layers.list()]

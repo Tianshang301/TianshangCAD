@@ -182,7 +182,13 @@ class RenderInput(BaseModel):
     - ``webgl``: ``previous_ids``/``include_full``
     """
 
-    render: RenderParams
+    render: RenderParams = Field(
+        ...,
+        description=(
+            "Render request, discriminated by `mode`: ortho, view_3d, "
+            "section, explode, animation or webgl."
+        ),
+    )
 
 
 class RenderOutput(BaseModel):

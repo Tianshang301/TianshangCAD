@@ -524,7 +524,13 @@ def cad_nlp_command(input: NLPCommandInput) -> NLPCommandOutput:
 
     将自然语言请求解析为 CAD 工具调用。Supports 12 intent patterns in English
     and Chinese. Ambiguous requests are reported with candidate suggestions
-    rather than an arbitrary guess.
+    rather than an arbitrary guess. ``tool_whitelist`` restricts which tool
+    the request may resolve to.
+
+    When not to use: this tool only parses — it does NOT execute the
+    matched call. To run the resolved tool you must dispatch the returned
+    ``tool``/``arguments`` yourself; for multi-turn dialogue with memory
+    use ``cad_nlp_chat`` instead.
     """
     text = input.text.strip()
     whitelist = set(input.tool_whitelist or [])

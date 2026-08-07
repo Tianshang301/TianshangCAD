@@ -376,7 +376,14 @@ class JsonInput(BaseModel):
     - ``save``: ``json_string`` / ``path``
     """
 
-    params: JsonActionParams
+    params: JsonActionParams = Field(
+        ...,
+        description=(
+            "JSON action, discriminated by `action`: load, parse, validate, "
+            "import_geometry, export_geometry, import_scene, export_scene "
+            "or save."
+        ),
+    )
 
 
 class JsonOutput(BaseModel):

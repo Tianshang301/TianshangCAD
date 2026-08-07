@@ -170,7 +170,14 @@ class FileIoInput(BaseModel):
     format: step/dxf/stl/dwg/json）或 ``import``（导入文件为新文档）。
     """
 
-    file: FileIoActionParams
+    file: FileIoActionParams = Field(
+        ...,
+        description=(
+            "File IO action, discriminated by `action`: export the current "
+            "document (step/dxf/stl/dwg/json) or import a file as a new "
+            "document."
+        ),
+    )
 
 
 class FileIoOutput(BaseModel):
@@ -247,6 +254,12 @@ def cad_file_io(input: FileIoInput) -> FileIoOutput:
     """Export or import a document file.
 
     按 ``action`` 导出（export）当前文档或导入（import）文件为新文档。
+    Export formats: step (recommended), dxf, stl, dwg, json. Import
+    accepts json/dxf/step/dwg.
+
+    When not to use: to save/load the in-memory scene as JSON use
+    ``cad_file_save`` / ``cad_file_open``; ``cad_file_io`` is for
+    interop formats. DWG requires the ODA converter (``ODAFC_PATH``).
     """
     params = input.file
     try:

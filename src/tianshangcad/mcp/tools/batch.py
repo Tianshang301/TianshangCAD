@@ -564,7 +564,14 @@ class BatchInput(BaseModel):
     ``templates``（列出模板）或 ``run_script``（运行脚本）。
     """
 
-    batch: BatchActionParams = Field(default_factory=BatchListParams)
+    batch: BatchActionParams = Field(
+        default_factory=BatchListParams,
+        description=(
+            "Batch action to perform, discriminated by `action`: execute "
+            "(run commands synchronously), schedule, status, cancel, list, "
+            "templates or run_script."
+        ),
+    )
 
 
 class BatchOutput(BaseModel):

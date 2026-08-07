@@ -372,7 +372,13 @@ class StatusInput(BaseModel):
     - ``health``: 服务器健康报告
     """
 
-    status: StatusTargetParams = Field(default_factory=StatusCheckParams)
+    status: StatusTargetParams = Field(
+        default_factory=StatusCheckParams,
+        description=(
+            "Status query, discriminated by `target`: check, file, object, "
+            "layer or health."
+        ),
+    )
 
 
 class StatusOutput(BaseModel):
@@ -506,7 +512,13 @@ class LogsInput(BaseModel):
     过滤）或 ``clear``（清空）。
     """
 
-    logs: LogsActionParams = Field(default_factory=LogsGetParams)
+    logs: LogsActionParams = Field(
+        default_factory=LogsGetParams,
+        description=(
+            "Log action, discriminated by `action`: get (read entries with "
+            "limit/level/source/job_id filters) or clear."
+        ),
+    )
 
 
 class LogsOutput(BaseModel):

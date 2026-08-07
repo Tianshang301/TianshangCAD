@@ -198,7 +198,18 @@ def _scopes_from_keys() -> dict[str, ResourceScope]:
 
 
 def cad_collab_session(input: CollabSessionInput) -> CollabSessionOutput:
-    """Manage collaboration sessions (create / list / join / leave / info)."""
+    """Manage collaboration sessions.
+
+    管理协作会话。``action`` 为 create（需 document_id）、list、join、
+    info 或 leave。A session groups multiple users editing one document via
+    CRDT operations; ``session_id`` returned here feeds the other
+    ``cad_collab_*`` tools.
+
+    When not to use: for single-user work you do NOT need a session — use
+    the plain CRUD tools (``cad_file_create`` / ``cad_object_create``)
+    instead. ``action=create`` requires a document id from
+    ``cad_file_list``; joining a session that does not exist is an error.
+    """
     try:
         manager = _manager()
         if input.action == "create":
@@ -248,7 +259,17 @@ def cad_collab_session(input: CollabSessionInput) -> CollabSessionOutput:
 
 
 def cad_collab_branch(input: CollabBranchInput) -> CollabBranchOutput:
-    """Fork, edit, merge and list document branches."""
+    """Fork, edit, merge and list document branches.
+
+    文档分支操作。``action`` 为 fork（新建分支）、edit（写入/删除 register
+    键值）、merge（合并，可返回冲突）或 list。Branches let concurrent
+    editors isolate changes before reconciling via ``cad_collab_resolve``.
+
+    When not to use: branches add overhead; prefer a single shared session
+    (``cad_collab_sync``) unless you genuinely need isolated edits. A merge
+    that finds conflicts does not auto-apply — call ``cad_collab_resolve``
+    for each conflict id first.
+    """
     try:
         session = _manager().get_session(input.session_id)
         if input.action == "fork":
@@ -292,7 +313,16 @@ def cad_collab_branch(input: CollabBranchInput) -> CollabBranchOutput:
 
 
 def cad_collab_annotation(input: CollabAnnotationInput) -> CollabAnnotationOutput:
-    """Add, list and close annotations on a session."""
+    """Add, list and close annotations on a session.
+
+    会话批注。``action`` 为 add（文本 + 可选 scope/ref）、list 或 close。
+    Annotations are lightweight review comments attached to a session scope
+    (e.g. a geometry key), independent of the CRDT register data.
+
+    When not to use: for content changes use ``cad_collab_branch`` (edit)
+    or the document CRUD tools; annotations are only for comments. Closing
+    an annotation that does not exist is an error.
+    """
     try:
         session = _manager().get_session(input.session_id)
         if input.action == "add":
@@ -327,7 +357,16 @@ def cad_collab_annotation(input: CollabAnnotationInput) -> CollabAnnotationOutpu
 
 
 def cad_collab_presence(input: CollabPresenceInput) -> CollabPresenceOutput:
-    """Set, get and list presence across a session."""
+    """Set, get and list presence across a session.
+
+    会话在线状态。``action`` 为 set（更新 status/cursor）、get（查单用户）
+    或 list（全部）。Presence drives who-is-online indicators; it is
+    ephemeral and not part of the document state.
+
+    When not to use: presence is not persisted and does not affect
+    geometry — for actual edits use ``cad_collab_sync``. ``action=set``
+    requires ``user_id``.
+    """
     try:
         session = _manager().get_session(input.session_id)
         if input.action == "set":
@@ -360,7 +399,16 @@ def cad_collab_presence(input: CollabPresenceInput) -> CollabPresenceOutput:
 
 
 def cad_collab_history(input: CollabHistoryInput) -> CollabHistoryOutput:
-    """Return the applied operation history of a session."""
+    """Return the applied operation history of a session.
+
+    会话操作历史。Returns CRDT operations applied since ``after_seq``
+    (0 = all), capped by ``limit``, newest included. Useful for auditing
+    who changed what and for incremental ``cad_collab_sync`` catch-up.
+
+    When not to use: to get the current document state (not the edit log)
+    use ``cad_collab_sync`` with ``include_state=true``. History is bounded
+    to the in-memory ring; very old operations may already be evicted.
+    """
     try:
         session = _manager().get_session(input.session_id)
         session.require(
@@ -378,7 +426,17 @@ def cad_collab_history(input: CollabHistoryInput) -> CollabHistoryOutput:
 
 
 def cad_collab_resolve(input: CollabResolveInput) -> CollabResolveOutput:
-    """Resolve a branch-merge conflict explicitly."""
+    """Resolve a branch-merge conflict explicitly.
+
+    解决分支合并冲突。``resolution`` 为 ours（保留本地）、theirs（采用合并
+    分支）或 latest（采用较新的操作）。After resolving, remaining conflicts
+    are returned in ``pending``.
+
+    When not to use: if there are no pending conflicts this is a no-op that
+    errors on an unknown ``conflict_id`` — check ``cad_collab_branch``
+    (merge) output first. For normal non-conflicting edits you never need
+    this tool.
+    """
     try:
         session = _manager().get_session(input.session_id)
         conflict = session.resolve_conflict(input.by_user, input.conflict_id, input.resolution)
@@ -399,7 +457,16 @@ def cad_collab_resolve(input: CollabResolveInput) -> CollabResolveOutput:
 
 
 def cad_collab_permission(input: CollabPermissionInput) -> CollabPermissionOutput:
-    """List, grant and check roles within a session."""
+    """List, grant and check roles within a session.
+
+    会话 RBAC。``action`` 为 list、grant（给用户分配 role:
+    viewer/editor/admin/owner）或 check（按 scope+permission 判定是否允许）。
+    RBAC gates which operations a user may run in a session.
+
+    When not to use: for single-user sessions RBAC is unnecessary — the
+    acting user defaults to ``owner``. Roles only matter when multiple
+    users join via ``cad_collab_session``.
+    """
     try:
         session = _manager().get_session(input.session_id)
         if input.action == "list":

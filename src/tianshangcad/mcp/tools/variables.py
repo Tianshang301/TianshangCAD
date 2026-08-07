@@ -122,7 +122,13 @@ class VariableInput(BaseModel):
     expr）或 ``list``（列出全部变量）。
     """
 
-    variable: VariableActionParams = Field(default_factory=VariableListParams)
+    variable: VariableActionParams = Field(
+        default_factory=VariableListParams,
+        description=(
+            "Variable action, discriminated by `action`: set (define/update "
+            "with value, unit or expr) or list."
+        ),
+    )
 
 
 class VariableOutput(BaseModel):
@@ -141,7 +147,14 @@ class VariableOutput(BaseModel):
 def cad_variable(input: VariableInput) -> VariableOutput:
     """Set or list parametric variables in the current document.
 
-    按 ``action`` 设置（set）或列出（list）当前文档的参数变量。
+    按 ``action`` 设置（set）或列出（list）当前文档的参数变量。Set with
+    ``value`` and/or ``expr`` (expressions may reference other variables,
+    e.g. ``width * 2``); ``{name}`` tokens in CLI draw arguments interpolate
+    the resolved value.
+
+    When not to use: variables are document-scoped bookkeeping — do NOT use
+    them to store free-form strings (only numeric values), and use
+    ``cad_object_update`` for geometry changes rather than variables.
     """
     params = input.variable
     try:

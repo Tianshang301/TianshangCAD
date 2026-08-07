@@ -96,6 +96,66 @@ class TestServerInstrumentation:
         assert "cad_object_create" in get_registry()
         assert "cad_render" in get_registry()
 
+    def test_flattened_schema_keeps_field_descriptions(self) -> None:
+        """Flattened tool input schemas must preserve Pydantic field docs.
+
+        `_flatten_tool` builds a flat signature from the input model; without
+        carrying the field descriptions across, `tools/list` publishes bare
+        type-only schemas and registry scorecards cannot see any parameter
+        documentation.
+        """
+        from mcp.server.mcpserver.utilities.func_metadata import func_metadata
+
+        from tianshangcad.mcp.server import _flatten_tool
+        from tianshangcad.mcp.tools.collab import cad_collab_history
+        from tianshangcad.mcp.tools.crud import cad_layer_update
+
+        flattened = _flatten_tool(cad_layer_update, "cad_layer_update")
+        schema = func_metadata(flattened).arg_model.model_json_schema()
+        props = schema["properties"]
+        assert "description" in props["name"]
+        assert "description" in props["locked"]
+
+        collab_flattened = _flatten_tool(cad_collab_history, "cad_collab_history")
+        collab_schema = func_metadata(collab_flattened).arg_model.model_json_schema()
+        assert "description" in collab_schema["properties"]["session_id"]
+
+    def test_tool_annotations_hints_published(self) -> None:
+        """Every tool publishes read_only/destructive/idempotent hints.
+
+        Behavior-transparency hints let clients and registry scorecards
+        classify tools without parsing the free-text description.
+        """
+        import asyncio
+
+        from tianshangcad.mcp.server import build_server
+
+        async def collect() -> dict[str, tuple[bool | None, bool | None, bool | None]]:
+            server = build_server()
+            result = await server.list_tools()
+            tools = result if isinstance(result, list) else result.tools
+            out: dict[str, tuple[bool | None, bool | None, bool | None]] = {}
+            for t in tools:
+                a = t.annotations
+                out[t.name] = (a.read_only_hint, a.destructive_hint, a.idempotent_hint)
+            return out
+
+        hints = asyncio.run(collect())
+        assert len(hints) >= 77
+        # read-only queries
+        assert hints["cad_object_read"][0] is True
+        assert hints["cad_object_read"][2] is True
+        assert hints["cad_metrics_get"][0] is True
+        # destructive deletes
+        assert hints["cad_object_delete"][1] is True
+        assert hints["cad_layer_delete"][1] is True
+        # idempotent set-like updates
+        assert hints["cad_object_update"][2] is True
+        assert hints["cad_layer_update"][2] is True
+        # non-idempotent creates
+        assert hints["cad_object_create"][2] is False
+        assert hints["cad_file_create"][2] is False
+
     def test_instrumented_tool_records_metrics(self) -> None:
         cad_file_create(FileCreateInput(filename="m.json"))
         cad_object_create(

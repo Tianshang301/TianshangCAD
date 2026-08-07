@@ -2,6 +2,31 @@
 
 Notable changes to TianshangCAD (tianshangcad on PyPI), newest first.
 
+## v0.11.1 - 2026-08-07
+
+Tool-description quality pass to improve MCP discoverability (registry
+scorecards such as Glama) without changing the tool surface (still 77
+tools).
+
+### Added
+- **Tool annotations (hints)**. Every registered tool now publishes
+  `readOnlyHint` / `destructiveHint` / `idempotentHint` via
+  `ToolAnnotations`, derived from the permission table and operation kind.
+  Clients and scorecards can classify tools without parsing descriptions.
+- **Field descriptions in `tools/list`**. `_flatten_tool` now carries each
+  Pydantic field's `description` (plus examples / extra schema keywords)
+  into the flat input schema, so every one of the 215 input parameters and
+  367 output fields is documented. Previously descriptions were dropped,
+  publishing bare type-only schemas.
+- **Usage guidelines in tool descriptions**. The previously under-documented
+  tools (collab, drawing, layer, file, variable, file_io, sim, feature,
+  nlp) now explain when NOT to use them and which alternative tool to pick
+  (e.g. `cad_drawing_add_view` vs `cad_drawing_add_section`, or
+  `cad_file_save` vs `cad_file_io`).
+
+### Changed
+- Version bumped to 0.11.1.
+
 ## v0.11.0 - 2026-08-07
 
 Tool-surface consolidation. The number of registered MCP tools drops from

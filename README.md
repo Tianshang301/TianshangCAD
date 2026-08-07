@@ -14,7 +14,7 @@ command line and as standardized tools callable by any MCP client (AI agent).
 [![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 
-> **Status**: v0.11.0 — MCP tool surface consolidated from 103 to 77 tools.
+> **Status**: v0.11.1 — tool descriptions + annotations quality pass (77 MCP tools).
 > 919 tests passing, ~87% coverage (measured with optional extras
 > installed), `ruff` and `mypy` clean.
 
@@ -105,7 +105,7 @@ tianshangcad measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `tianshangcad l 0,0 100,0` equals `tianshangcad draw line 0,0 100,0`.
-`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.11.0`).
+`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.11.1`).
 
 ### Command groups
 

@@ -238,7 +238,13 @@ class ConstraintInput(BaseModel):
     ``list``（列出约束）或 ``solve``（求解约束系统）。
     """
 
-    constraint: ConstraintActionParams = Field(default_factory=ConstraintListParams)
+    constraint: ConstraintActionParams = Field(
+        default_factory=ConstraintListParams,
+        description=(
+            "Constraint action, discriminated by `action`: add, remove, "
+            "list or solve."
+        ),
+    )
 
 
 class ConstraintOutput(BaseModel):

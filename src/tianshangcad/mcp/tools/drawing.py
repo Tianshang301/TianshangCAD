@@ -195,7 +195,17 @@ def cad_drawing_delete(input: DrawingDeleteInput) -> DrawingDeleteOutput:
 
 
 def cad_drawing_add_view(input: DrawingAddViewInput) -> DrawingAddViewOutput:
-    """Add a view (main/projection/section/detail/isometric) to the sheet."""
+    """Add a view (main/projection/section/detail/isometric) to the sheet.
+
+    添加工程图视图。``view_type`` 为 main/projection/section/detail/
+    isometric；可选 ``scale``、``translation``、``direction`` 控制布局。
+    Views reference the document geometry via ``entity_ids``.
+
+    When not to use: for a clipping plane view use ``cad_drawing_add_section``
+    (not ``view_type=section``) and for ISO dimensions use
+    ``cad_drawing_add_dimension``. A sheet must exist first
+    (``cad_drawing_create``).
+    """
     try:
         drawing = _require_drawing()
         view_id = drawing.add_view(
@@ -214,7 +224,15 @@ def cad_drawing_add_view(input: DrawingAddViewInput) -> DrawingAddViewOutput:
 
 
 def cad_drawing_add_section(input: DrawingAddSectionInput) -> DrawingAddSectionOutput:
-    """Add a section view clipped by a plane (XY / YZ / XZ)."""
+    """Add a section view clipped by a plane (XY / YZ / XZ).
+
+    添加剖视图。``plane`` 为 XY/YZ/XZ，``offset`` 沿法向偏移切割面，
+    ``entity_ids`` 限定参与剖切的几何。Generates a section view on the sheet.
+
+    When not to use: for a plain unscaled projection use
+    ``cad_drawing_add_view`` (``view_type=main/projection``); sections are
+    only for clipped, plane-cut views. Requires an existing sheet.
+    """
     try:
         drawing = _require_drawing()
         view_id = drawing.add_section(
@@ -237,6 +255,10 @@ def cad_drawing_add_dimension(input: DrawingAddDimensionInput) -> DrawingAddDime
     ``dim_type`` is one of linear, angular, radial, diameter or ordinate.
     ``value`` is the nominal dimension value; ``points`` optionally anchor
     it to geometry.
+
+    When not to use: for tolerance annotations use
+    ``cad_drawing_add_tolerance`` (GD&T), not a dimension. Dimensions need
+    an existing view on the sheet.
     """
     try:
         drawing = _require_drawing()
@@ -263,7 +285,15 @@ def cad_drawing_add_dimension(input: DrawingAddDimensionInput) -> DrawingAddDime
 
 
 def cad_drawing_add_tolerance(input: DrawingAddToleranceInput) -> DrawingAddToleranceOutput:
-    """Add a GD&T feature-control frame to the drawing."""
+    """Add a GD&T feature-control frame to the drawing.
+
+    添加 GD&T 形位公差框。``symbol`` 为 position/flatness/parallelism/
+    perpendicularity/concentricity 等，可配 ``value`` 与基准 ``datum``。
+
+    When not to use: for plain size dimensions (no tolerance) use
+    ``cad_drawing_add_dimension``. GD&T frames annotate a referenced
+    feature; without a reference the frame is placed at ``position``.
+    """
     try:
         drawing = _require_drawing()
         gdt_id = drawing.add_tolerance(
@@ -287,7 +317,15 @@ def cad_drawing_add_tolerance(input: DrawingAddToleranceInput) -> DrawingAddTole
 
 
 def cad_drawing_export(input: DrawingExportInput) -> DrawingExportOutput:
-    """Export the drawing to an SVG, DXF or PDF file."""
+    """Export the drawing to an SVG, DXF or PDF file.
+
+    导出工程图。``format`` 为 svg（矢量）、dxf（CAD 交换）或 pdf（打印）。
+    Exports the current sheet with its views, dimensions and GD&T frames.
+
+    When not to use: to share geometry rather than a drawing sheet use
+    ``cad_file_io`` (export step/dxf) or ``cad_render``. Requires an
+    existing drawing with at least one view.
+    """
     try:
         drawing = _require_drawing()
         records = _records_from_document()

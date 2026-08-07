@@ -199,7 +199,15 @@ def cad_sim_run(input: SimRunInput) -> SimRunOutput:
 
 
 def cad_sim_result(input: SimResultInput) -> SimResultOutput:
-    """Fetch the current state and metrics of a simulation."""
+    """Fetch the current state and metrics of a simulation.
+
+    读取仿真结果。Returns the lifecycle state (pending/running/done/error)
+    and the computed metrics (e.g. max displacement / stress for FEA).
+
+    When not to use: to enumerate simulations use ``cad_sim_list``; to
+    launch one use ``cad_sim_run``. A result for an unknown ``sim_id``
+    errors — check the list first.
+    """
     try:
         summary = _manager().result(input.sim_id)
         return SimResultOutput(

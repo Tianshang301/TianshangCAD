@@ -226,7 +226,13 @@ class VersionInput(BaseModel):
     ``diff``（对比两个快照）或 ``restore``（恢复快照）。
     """
 
-    version: VersionActionParams = Field(default_factory=VersionListParams)
+    version: VersionActionParams = Field(
+        default_factory=VersionListParams,
+        description=(
+            "Version action, discriminated by `action`: save, list, diff "
+            "or restore a document snapshot."
+        ),
+    )
 
 
 class VersionOutput(BaseModel):

@@ -14,7 +14,7 @@ MCP 客户端（AI 智能体）直接调用。
 [![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 
-> **当前状态**：v0.11.0 — MCP 工具由 103 精简到 77（工具面整合）。
+> **当前状态**：v0.11.1 — 工具描述与注解质量优化（77 个 MCP 工具）。
 > 919 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
@@ -82,7 +82,7 @@ tianshangcad measure distance 0,0 100,100
 ```
 
 短命令别名会被自动展开：`tianshangcad l 0,0 100,0` 等价于 `tianshangcad draw line 0,0 100,0`。
-`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.11.0`）。
+`tianshangcad --version` 显示当前版本（例如 `tianshangcad 0.11.1`）。
 
 ### 命令组
 
