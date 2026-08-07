@@ -4,13 +4,15 @@ A modern **CAD CLI + MCP Server** system. 2D/3D drawing, editing,
 measurement, validation and JSON-driven workflows are available both from the
 command line and as standardized tools callable by any MCP client (AI agent).
 
+[![TianshangCAD MCP server](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/card.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
+
+[![MCP Score](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/score.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
 [![CI](https://img.shields.io/github/actions/workflow/status/Tianshang301/TianshangCAD/ci.yml?branch=main&label=CI)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/pypi/pyversions/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![Version](https://img.shields.io/pypi/v/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![License](https://img.shields.io/github/license/Tianshang301/TianshangCAD)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
-[![MCP Score](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD/badges/score.svg)](https://glama.ai/mcp/servers/Tianshang301/TianshangCAD)
 
 > **Status**: v0.11.1 — tool descriptions + annotations quality pass (77 MCP tools).
 > 919 tests passing, ~87% coverage (measured with optional extras
