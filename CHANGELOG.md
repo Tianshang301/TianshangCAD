@@ -29,15 +29,38 @@ operation.
 
 ### Added
 - **Tool Search**: `tools/list` accepts a `query` string and returns only
-  tools whose name or description matches (substring + keyword scoring), per
-  SEP-1821 progressive-discovery thinking.
+  tools whose name or description match (substring + keyword scoring), per
+  SEP-1821 progressive-discovery thinking. Registered via a custom
+  `tools/list` request handler (the SDK's built-in params model drops the
+  `query` field).
+- **Tool-description quality pass (five-dimension review)**. Every one of
+  the 19 aggregate tools now: front-loads a unified purpose statement,
+  explains each action's parameters and behavior in per-kind bullets,
+  distinguishes itself from similar tools (`cad_file` vs `cad_json`,
+  `cad_view` vs `cad_render`, `cad_validate` vs `cad_status`, `cad_measure`
+  vs `cad_validate`, ...), and documents "When not to use" with concrete
+  alternative tools.
+- **Discriminator field descriptions**. All 21 discriminator fields
+  (`cad_status` `target`, `cad_render` `mode`, `cad_collab` `tool`, ...)
+  gained `description`s, so `tools/list` input schemas now carry parameter
+  documentation for 100% of fields (previously the `$defs`-nested
+  discriminators were undocumented).
 - Per-action permission table (`ACTION_PERMISSIONS`) in `security.py`; tool
   hints (`readOnly` / `destructive` / `idempotent`) derived per aggregate.
 - Aggregate `cad_nlp` mapping emits the new aggregate tool names.
+- SCR scripts accept dotted keys (`cad_file file.action=create
+  file.filename=a.json`) which expand into nested dicts matching the
+  aggregate input shape.
+- `SimulationManager.submit` schedules async runs through `cad_sim`
+  (action=run) instead of the removed `cad_sim_run` granular tool.
 
 ### Changed
 - Version bumped to 0.12.0.
 - `docs/mcp_tools.md` re-synced to the 19-tool surface.
+- Test count updated to **1012** (added Tool Search unit + integration
+  tests). Enriched descriptions make a search query return ranked related
+  tools (e.g. `measure` → `cad_measure` first) rather than a single exact
+  match.
 
 ## v0.11.1 - 2026-08-07
 
