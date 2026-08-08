@@ -113,7 +113,10 @@ class TestAsyncSubmit:
 
         job = get_scheduler().get_job(job_id)
         assert job is not None
-        assert job["commands"][0]["tool"] == "cad_sim_run"
+        assert job["commands"][0]["tool"] == "cad_sim"
+        assert job["commands"][0]["arguments"] == {
+            "sim": {"action": "run", "sim_id": sim_id}
+        }
         _wait_for_scheduler(get_scheduler(), job_id)
 
     def test_submit_completed_rejected(self) -> None:

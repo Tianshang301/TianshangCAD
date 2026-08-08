@@ -31,7 +31,7 @@ from tianshangcad.utils.errors import SchedulerError
 class BatchCommand(BaseModel):
     """A single tool invocation inside a batch."""
 
-    tool: str = Field(..., description="Tool name, e.g. cad_object_create")
+    tool: str = Field(..., description="Tool name, e.g. cad_object")
     arguments: dict[str, Any] = Field(default_factory=dict, description="Tool arguments")
 
 
@@ -605,6 +605,18 @@ def cad_batch(input: BatchInput) -> BatchOutput:
 
     按 ``action`` 执行批处理操作：execute / schedule / status / cancel / list /
     templates / run_script。
+    - ``execute``: run a list of tool calls synchronously (each ``command``
+      has ``tool`` + ``arguments``); ``stop_on_error`` halts on the first
+      failure.
+    - ``schedule`` / ``status`` / ``cancel`` / ``list``: create and manage
+      one-off / cron / dependency-chained jobs (durable across restarts).
+    - ``templates``: list reusable Jinja2 command templates.
+    - ``run_script``: execute a sandboxed script (python / scr / batch).
+
+    When not to use: ``cad_batch`` sequences *other* tools. For a single
+    operation call the concrete aggregate directly (``cad_object``,
+    ``cad_file``, ...). ``execute`` is synchronous — use ``schedule`` for
+    long-running work.
     """
     params = input.batch
     if params.action == "execute":

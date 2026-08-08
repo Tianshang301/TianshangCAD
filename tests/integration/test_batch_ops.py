@@ -14,10 +14,11 @@ from tianshangcad.mcp.tools.batch import (
     cad_batch_schedule,
     cad_batch_status,
 )
-from tianshangcad.mcp.tools.crud import FileCreateInput, cad_file_create
+from tianshangcad.mcp.tools.crud import FileCreateParams, FileInput, cad_file
 from tianshangcad.mcp.tools.json_ops import (
-    JsonExportGeometryInput,
-    cad_json_export_geometry,
+    JsonExportGeometryParams,
+    JsonInput,
+    cad_json,
 )
 
 
@@ -36,7 +37,7 @@ class TestBatchOperations:
     """Batch workflow covering the core Phase 2 loop."""
 
     def test_batch_import_measure_export(self) -> None:
-        cad_file_create(FileCreateInput(filename="batch.json", unit="mm"))
+        cad_file(FileInput(file=FileCreateParams(filename="batch.json", unit="mm")))
 
         geometry = json.dumps(
             [
@@ -67,7 +68,10 @@ class TestBatchOperations:
                             }
                         },
                     ),
-                    BatchCommand(tool="cad_metrics_get", arguments={}),
+                    BatchCommand(
+                        tool="cad_validate",
+                        arguments={"query": {"action": "metrics"}},
+                    ),
                 ]
             )
         )
@@ -78,14 +82,19 @@ class TestBatchOperations:
         assert metrics["objects"] == 5
         assert metrics["kinds"]["circle"] == 5
 
-        exported = cad_json_export_geometry(JsonExportGeometryInput())
-        assert exported.count == 5
+        exported = cad_json(JsonInput(params=JsonExportGeometryParams()))
+        assert exported.object_count == 5
 
     def test_scheduled_then_executed(self) -> None:
         scheduled = cad_batch_schedule(
             BatchScheduleInput(
                 name="report",
-                commands=[BatchCommand(tool="cad_metrics_get", arguments={})],
+                commands=[
+                    BatchCommand(
+                        tool="cad_validate",
+                        arguments={"query": {"action": "metrics"}},
+                    )
+                ],
             )
         )
         job_id = scheduled.job_id

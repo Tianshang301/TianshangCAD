@@ -335,13 +335,4 @@ class TestSyncTool:
 
 def test_tools_registered() -> None:
     names = {name for name, _ in TOOLS}
-    assert names == {
-        "cad_collab_session",
-        "cad_collab_branch",
-        "cad_collab_annotation",
-        "cad_collab_presence",
-        "cad_collab_history",
-        "cad_collab_resolve",
-        "cad_collab_permission",
-        "cad_collab_sync",
-    }
+    assert names == {"cad_collab"}

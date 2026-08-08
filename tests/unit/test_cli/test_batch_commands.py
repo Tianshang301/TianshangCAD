@@ -27,7 +27,10 @@ class TestBatchCommands:
     def test_schedule_and_logs(self, tmp_path) -> None:
         commands_file = tmp_path / "commands.json"
         commands_file.write_text(
-            '[{"tool": "cad_metrics_get", "arguments": {}}]', encoding="utf-8"
+            (
+                '[{"tool": "cad_validate", "arguments": '
+                '{"query": {"action": "metrics"}}}]'
+            ),
         )
         scheduled = runner.invoke(
             app, ["batch", "schedule", str(commands_file), "--name", "cli-test"]
@@ -62,7 +65,10 @@ class TestBatchCommands:
     def test_run_executes_synchronously(self, tmp_path) -> None:
         commands_file = tmp_path / "commands.json"
         commands_file.write_text(
-            '[{"tool": "cad_metrics_get", "arguments": {}}]', encoding="utf-8"
+            (
+                '[{"tool": "cad_validate", "arguments": '
+                '{"query": {"action": "metrics"}}}]'
+            ),
         )
         result = runner.invoke(app, ["batch", "run", str(commands_file)])
         assert result.exit_code == 0
@@ -81,7 +87,10 @@ class TestBatchCommands:
     def test_schedule_wait_runs_one_shot(self, tmp_path) -> None:
         commands_file = tmp_path / "commands.json"
         commands_file.write_text(
-            '[{"tool": "cad_metrics_get", "arguments": {}}]', encoding="utf-8"
+            (
+                '[{"tool": "cad_validate", "arguments": '
+                '{"query": {"action": "metrics"}}}]'
+            ),
         )
         result = runner.invoke(
             app,

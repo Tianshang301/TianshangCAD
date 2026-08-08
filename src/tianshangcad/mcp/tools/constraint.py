@@ -270,6 +270,13 @@ def cad_constraint(input: ConstraintInput) -> ConstraintOutput:
     """Add, remove, list or solve geometric constraints.
 
     按 ``action`` 执行约束操作：add / remove / list / solve。
+    Adds 2D sketch constraints between entities (e.g. coincidence, distance,
+    angle). ``solve`` runs the constraint solver and reports residual error;
+    the optional ``planegcs`` backend is used when installed.
+
+    When not to use: ``cad_constraint`` constrains *geometry*; for assembly
+    mating (parts) use ``cad_assembly`` (action=add_mate/solve). For direct
+    transforms use ``cad_object`` (action=transform).
     """
     params = input.constraint
     try:

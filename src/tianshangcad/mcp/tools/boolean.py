@@ -145,6 +145,7 @@ def cad_object_boolean(input: ObjectBooleanInput) -> ObjectBooleanOutput:
     intersect combine them cumulatively. Requires the optional ``boolean``
     extra (``pip install -e '.[boolean]'``).
     """
+    # Deprecated, merged into cad_object (action=boolean)
     try:
         if not input.tool_ids:
             return ObjectBooleanOutput(
@@ -192,6 +193,4 @@ def cad_object_boolean(input: ObjectBooleanInput) -> ObjectBooleanOutput:
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
-TOOLS: list[tuple[str, Any]] = [
-    ("cad_object_boolean", cad_object_boolean),
-]
+TOOLS: list[tuple[str, Any]] = []

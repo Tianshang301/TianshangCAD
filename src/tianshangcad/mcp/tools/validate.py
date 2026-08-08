@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -313,9 +313,123 @@ def cad_metrics_get(input: MetricsGetInput) -> MetricsGetOutput:
         )
 
 
+# ---------------------------------------------------------------------------
+# Aggregate cad_validate tool
+# ---------------------------------------------------------------------------
+
+
+class ValidateGeometryParams(ValidateGeometryInput):
+    """Validate geometry."""
+
+    action: Literal["geometry"] = "geometry"
+
+
+class ValidateInterferenceParams(ValidateInterferenceInput):
+    """Detect interferences."""
+
+    action: Literal["interference"] = "interference"
+
+
+class ValidateTopologyParams(ValidateTopologyInput):
+    """Inspect topology."""
+
+    action: Literal["topology"] = "topology"
+
+
+class MetricsGetParams(MetricsGetInput):
+    """Fetch document metrics."""
+
+    action: Literal["metrics"] = "metrics"
+
+
+ValidateActionParams = Annotated[
+    ValidateGeometryParams
+    | ValidateInterferenceParams
+    | ValidateTopologyParams
+    | MetricsGetParams,
+    Field(discriminator="action"),
+]
+
+
+class ValidateInput(BaseModel):
+    """Input for the aggregate validation tool.
+
+    聚合校验工具。``action`` 决定操作：geometry / interference / topology / metrics。
+    """
+
+    query: ValidateActionParams = Field(
+        ...,
+        description=(
+            "Validation action to perform, discriminated by `action`: geometry, "
+            "interference, topology or metrics."
+        ),
+    )
+
+
+class ValidateOutput(BaseModel):
+    """Output of the aggregate validation tool."""
+
+    action: str = Field(..., description="Validation action executed")
+    valid: bool = Field(False, description="Whether all checked objects are valid")
+    checked: int = Field(0, description="Number of objects checked")
+    issues: list[GeometryIssue] = Field(default_factory=list, description="Detected issues")
+    interference_count: int = Field(0, description="Number of interfering pairs")
+    pairs: list[InterferencePair] = Field(default_factory=list, description="Interfering pairs")
+    total_volume: float = Field(0.0, description="Sum of all overlap volumes")
+    object_count: int = Field(0, description="Number of objects")
+    kinds: dict[str, int] = Field(default_factory=dict, description="Object count by kind")
+    summaries: list[TopologySummary] = Field(
+        default_factory=list, description="Per-object topology"
+    )
+    warnings: list[str] = Field(default_factory=list, description="Topology warnings")
+    files: int = Field(0, description="Open files")
+    objects: int = Field(0, description="Total objects")
+    layers: int = Field(0, description="Total layers")
+    bbox: dict[str, list[float]] = Field(
+        default_factory=lambda: {"min": [0.0, 0.0, 0.0], "max": [0.0, 0.0, 0.0]},
+        description="Document bounding box",
+    )
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _validate_result(action: str, result: BaseModel) -> ValidateOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return ValidateOutput(**data)
+
+
+def cad_validate(input: ValidateInput) -> ValidateOutput:
+    """Validate geometry, detect interference, inspect topology or fetch metrics.
+
+    聚合校验操作。按 ``action`` 派发：geometry / interference / topology / metrics。
+    - ``geometry``: check objects for self-intersections, degenerate faces and
+      non-manifold edges (optional ``object_ids`` filter); returns issues with
+      ``type`` / ``location`` / ``fix_suggestion``.
+    - ``interference``: detect box-box overlaps between objects, with overlap
+      volume per pair.
+    - ``topology``: per-object vertex/edge/face counts and manifold status.
+    - ``metrics``: aggregate document stats (files, objects, layers, bbox,
+      kinds) for the current session.
+
+    When not to use: ``cad_validate`` analyzes correctness and aggregates.
+    For simple geometric measurements (distance / area) use ``cad_measure``;
+    for live server/file/object status use ``cad_status``; for JSON scene
+    validation against the schema use ``cad_json`` (action=validate).
+    """
+    params = input.query
+    if params.action == "geometry":
+        return _validate_result("geometry", cad_validate_geometry(params))
+    if params.action == "interference":
+        return _validate_result("interference", cad_validate_interference(params))
+    if params.action == "topology":
+        return _validate_result("topology", cad_validate_topology(params))
+    if params.action == "metrics":
+        return _validate_result("metrics", cad_metrics_get(params))
+    return ValidateOutput(action=params.action, status="error", message="Unknown action")
+
+
+#: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_validate_geometry", cad_validate_geometry),
-    ("cad_validate_interference", cad_validate_interference),
-    ("cad_validate_topology", cad_validate_topology),
-    ("cad_metrics_get", cad_metrics_get),
+    ("cad_validate", cad_validate),
 ]

@@ -14,8 +14,8 @@ MCP 客户端（AI 智能体）直接调用。
 [![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 
-> **当前状态**：v0.11.1 — 工具描述与注解质量优化（77 个 MCP 工具）。
-> 919 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
+> **当前状态**：v0.12.0 — MCP 工具面收敛为 19 个聚合工具，并新增 Tool Search。
+> 990 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
 
@@ -23,8 +23,9 @@ MCP 客户端（AI 智能体）直接调用。
 
 - **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer`、`batch`
   等命令组，支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
-- **MCP Server** — 103 个 JSON-RPC 工具，支持 stdio 与 streamable HTTP 两种
-  传输方式，可供 Claude、Cursor 等 MCP 客户端调用
+- **MCP Server** — 19 个 JSON-RPC 聚合工具（每个带 `action` 判别参数），支持
+  stdio、streamable HTTP 与 WebSocket（协作）传输方式，可供 Claude、Cursor
+  等 MCP 客户端调用
 - **3D 视图** — JSON 定义的 `View3DDefinition`，支持球面相机位姿、命名视图
   （iso / top / front / side / back / bottom）、透视 / 正交投影、平面剖切
   （XY / YZ / XZ）、爆炸视图与轨道 GIF 动画；支持面向浏览器客户端的增量
@@ -122,32 +123,38 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 `TIANSHANGCAD_RATE_LIMIT_MAX` 与 `TIANSHANGCAD_RATE_LIMIT_WINDOW` 调整），超限返回 `429`。
 `/health` 与 `/metrics` 始终公开。stdio 模式不受影响。
 
-### 工具列表（共 65 个）
+### 工具列表（共 19 个聚合工具）
 
 | 分组 | 工具 |
 |------|------|
-| 文件 | `cad_file_create`、`cad_file_open`、`cad_file_save`、`cad_file_close`、`cad_file_list`、`cad_file_io`（action: export/import） |
-| 对象 | `cad_object_create`、`cad_object_read`、`cad_object_update`、`cad_object_delete`、`cad_object_list` |
-| 布尔 | `cad_boolean_union`、`cad_boolean_subtract`、`cad_boolean_intersect`、`cad_object_boolean` |
-| 参数 | `cad_variable`（action: set/list） |
-| 图层 | `cad_layer_create`、`cad_layer_read`、`cad_layer_update`、`cad_layer_delete`、`cad_layer_list` |
-| JSON | `cad_json_load`、`cad_json_parse`、`cad_json_validate`、`cad_json_import_geometry`、`cad_json_export_geometry`、`cad_json_import_scene`、`cad_json_export_scene`、`cad_json_save` |
-| 状态 | `cad_status`（target: check/file/object/layer/health）、`cad_logs`（action: get/clear） |
-| 校验 | `cad_validate_geometry`、`cad_validate_interference`、`cad_validate_topology`、`cad_metrics_get` |
-| 渲染 | `cad_render_view` |
-| 3D 视图 | `cad_view_3d_create`、`cad_view_3d_read`、`cad_view_3d_list`、`cad_view_3d_update`、`cad_view_3d_delete`、`cad_view_3d_render`、`cad_view_section`、`cad_view_explode`、`cad_view_animation`、`cad_webgl_sync` |
+| 文件 | `cad_file`（action: create/open/save/close/delete/list/import/export） |
+| 对象 | `cad_object`（action: create/read/update/delete/copy/transform/list/boolean） |
+| 图层 | `cad_layer`（action: create/read/update/delete/list） |
+| JSON | `cad_json`（action: load/parse/validate/save/import_geometry/export_geometry/import_scene/export_scene） |
+| 测量 | `cad_measure`（action: distance/area） |
+| 校验 | `cad_validate`（action: geometry/interference/topology/metrics） |
+| 状态 | `cad_status`（target: check/file/object/layer/health/logs_get/logs_clear） |
+| 渲染 | `cad_render`（mode: ortho/view_3d/section/explode/animation/webgl） |
+| 3D 视图 | `cad_view`（action: create/read/list/update/delete） |
 | 版本 | `cad_version`（action: save/list/diff/restore） |
-| 自然语言 | `cad_nlp_command` |
+| 参数 | `cad_variable`（action: set/list） |
+| 自然语言 | `cad_nlp`（action: command/chat） |
 | 批处理 | `cad_batch`（action: execute/schedule/status/cancel/list/templates/run_script） |
+| 约束 | `cad_constraint`（action: add/remove/list/solve） |
+| 装配 | `cad_assembly`（action: create/add_part/add_subasm/add_mate/remove_part/solve/bom/explode） |
+| 工程图 | `cad_drawing`（action: create/add_view/add_section/add_dimension/add_tolerance/delete/export） |
+| 特征 | `cad_feature`（action: sweep/loft/fillet/chamfer/pattern_linear/pattern_circular/pattern_mirror） |
+| 仿真 | `cad_sim`（action: mesh/setup/run/result/list/delete） |
+| 协作 | `cad_collab`（tool: session/branch/annotation/presence/history/resolve/permission/sync） |
 
 ### 校验、渲染、3D 视图与自然语言
 
 ```text
-"new file design.dwg"            -> cad_file_create  {filename: design.dwg}
-"draw a line from 0,0 to 10,10"  -> cad_object_create（直线）
-"render the side view"           -> cad_render_view  {view: side}
-"save a version"                 -> cad_version（action=save）
-"查看状态"                        -> cad_status（target=health）
+"new file design.dwg"            -> cad_file（file.action=create, filename=design.dwg）
+"draw a line from 0,0 to 10,10"  -> cad_object（object.action=create，直线）
+"render the side view"           -> cad_render（render.mode=ortho, view=side）
+"save a version"                 -> cad_version（version.action=save）
+"查看状态"                        -> cad_status（status.target=health）
 ```
 
 ```bash

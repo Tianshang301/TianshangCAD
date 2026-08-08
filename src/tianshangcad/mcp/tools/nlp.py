@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -73,100 +73,122 @@ def _points_of(text: str) -> list[list[float]]:
 _RULES: tuple[NLPRule, ...] = (
     NLPRule(
         name="create_file",
-        tool="cad_file_create",
+        tool="cad_file",
         description="Create a new CAD file (新建文件)",
         regex=re.compile(
             r"^(?:new|create)(?:\s+a)?(?:\s+drawing)?\s+file\s+(?P<name>[^\s]+)"
             r"|^新建(?:文件|图纸)?[：: ]?\s*(?P<name2>[^\s]+)",
             re.IGNORECASE,
         ),
-        build=lambda match, text: {"filename": match.group("name") or match.group("name2")},
+        build=lambda match, text: {
+            "file": {
+                "action": "create",
+                "filename": match.group("name") or match.group("name2"),
+            }
+        },
     ),
     NLPRule(
         name="open_file",
-        tool="cad_file_open",
+        tool="cad_file",
         description="Open an existing CAD file (打开文件)",
         regex=re.compile(
             r"^open\s+(?P<path>\S+)|^打开(?:文件|图纸)?[：: ]?\s*(?P<path2>\S+)",
             re.IGNORECASE,
         ),
-        build=lambda match, text: {"path": match.group("path") or match.group("path2")},
+        build=lambda match, text: {
+            "file": {"action": "open", "path": match.group("path") or match.group("path2")}
+        },
     ),
     NLPRule(
         name="draw_line",
-        tool="cad_object_create",
+        tool="cad_object",
         description="Draw a line between two points (画线)",
         regex=re.compile(
             r"(?:draw|make|create|add)\s*(?:a\s+|an\s+)?line|画(?:一条|一根)?线",
             re.IGNORECASE,
         ),
         build=lambda match, text: {
-            "type": "line",
-            "params": {},
-            "layer": "0",
-            "_parse": _points_of(text)[:2],
+            "object": {
+                "action": "create",
+                "type": "line",
+                "params": {},
+                "layer": "0",
+                "_parse": _points_of(text)[:2],
+            }
         },
     ),
     NLPRule(
         name="draw_circle",
-        tool="cad_object_create",
+        tool="cad_object",
         description="Draw a circle with a centre and radius (画圆)",
         regex=re.compile(
             r"(?:draw|make|create|add)\s*(?:a\s+|an\s+)?circle|画(?:个|一个)?圆",
             re.IGNORECASE,
         ),
         build=lambda match, text: {
-            "type": "circle",
-            "params": {"radius": _radius_of(text)},
-            "layer": "0",
-            "_parse": _points_of(text)[:1],
+            "object": {
+                "action": "create",
+                "type": "circle",
+                "params": {"radius": _radius_of(text)},
+                "layer": "0",
+                "_parse": _points_of(text)[:1],
+            }
         },
     ),
     NLPRule(
         name="draw_box",
-        tool="cad_object_create",
+        tool="cad_object",
         description="Create a box / cuboid (长方体)",
         regex=re.compile(
             r"(?:draw|make|create|add)\s*(?:a\s+|an\s+)?(?:box|cuboid)|画(?:个|个)?(?:长方体|立方体)",
             re.IGNORECASE,
         ),
         build=lambda match, text: {
-            "type": "box",
-            "params": {"dimensions": [1.0, 1.0, 1.0]},
-            "layer": "0",
-            "_parse": _points_of(text)[:1],
+            "object": {
+                "action": "create",
+                "type": "box",
+                "params": {"dimensions": [1.0, 1.0, 1.0]},
+                "layer": "0",
+                "_parse": _points_of(text)[:1],
+            }
         },
     ),
     NLPRule(
         name="delete_object",
-        tool="cad_object_delete",
+        tool="cad_object",
         description="Delete an object (删除对象)",
         regex=re.compile(r"delete|remove|删除|移除", re.IGNORECASE),
-        build=lambda match, text: {"object_id": _delete_object_id(text)},
+        build=lambda match, text: {
+            "object": {"action": "delete", "object_id": _delete_object_id(text)}
+        },
     ),
     NLPRule(
         name="move_object",
-        tool="cad_object_update",
+        tool="cad_object",
         description="Move an object to a new location (移动对象)",
         regex=re.compile(r"\bmove\b|移动|平移|搬到|挪到|移到", re.IGNORECASE),
-        build=lambda match, text: {"_target": _points_of(text)[:1]},
+        build=lambda match, text: {
+            "object": {"action": "update", "_target": _points_of(text)[:1]}
+        },
     ),
     NLPRule(
         name="list_objects",
-        tool="cad_object_list",
+        tool="cad_object",
         description="List objects in the document (列出对象)",
         regex=re.compile(
             r"^list (?:all |the )?objects?$|^列出对象|^对象列表|^what objects",
             re.IGNORECASE,
         ),
-        build=lambda match, text: {},
+        build=lambda match, text: {"object": {"action": "list"}},
     ),
     NLPRule(
         name="measure_distance",
-        tool="cad_measure_distance",
+        tool="cad_measure",
         description="Measure distance between two points (测量距离)",
         regex=re.compile(r"distance|measure|距离|测量", re.IGNORECASE),
-        build=lambda match, text: {"_parse": _points_of(text)[:2]},
+        build=lambda match, text: {
+            "measure": {"action": "distance", "_parse": _points_of(text)[:2]}
+        },
     ),
     NLPRule(
         name="check_status",
@@ -239,6 +261,16 @@ class NLPCommandOutput(BaseModel):
 def _clean_arguments(rule_name: str, arguments: dict[str, Any], text: str) -> dict[str, Any]:
     """Materialize parsed coordinates into concrete arguments."""
     result = dict(arguments)
+    for key in ("file", "object", "measure", "layer", "status", "render", "version", "batch"):
+        nested = result.get(key)
+        if isinstance(nested, dict):
+            result[key] = _clean_nested_arguments(rule_name, nested, text)
+    return result
+
+
+def _clean_nested_arguments(rule_name: str, nested: dict[str, Any], text: str) -> dict[str, Any]:
+    """Materialize ``_parse`` / ``_target`` markers inside a nested action dict."""
+    result = dict(nested)
     parsed = result.pop("_parse", None)
     target = result.pop("_target", None)
     if result.get("type") == "line" and isinstance(parsed, list) and len(parsed) >= 2:
@@ -253,10 +285,10 @@ def _clean_arguments(rule_name: str, arguments: dict[str, Any], text: str) -> di
     elif result.get("type") == "box":
         result["params"] = {"origin": [0.0, 0.0, 0.0], "dimensions": [1.0, 1.0, 1.0]}
     elif rule_name == "measure_distance" and isinstance(parsed, list):
-        result["start"] = parsed[0] if parsed else [0.0, 0.0, 0.0]
-        result["end"] = parsed[1] if len(parsed) > 1 else [0.0, 0.0, 0.0]
+        result["point_a"] = parsed[0] if parsed else [0.0, 0.0, 0.0]
+        result["point_b"] = parsed[1] if len(parsed) > 1 else [0.0, 0.0, 0.0]
     elif rule_name == "move_object" and isinstance(target, list) and target:
-        result["to"] = target[0]
+        result["params"] = {"to": target[0]}
     return result
 
 
@@ -448,25 +480,25 @@ def cad_nlp_chat(input: ChatInput) -> ChatOutput:
         object_id = created.get("object_id") or None
         if object_id is not None:
             state.last_object_id = object_id
-            state.last_object_type = arguments.get("type")
+            state.last_object_type = (arguments.get("object") or {}).get("type")
 
     if parsed.intent in ("delete_object", "move_object"):
         object_id = _resolve_anaphora(text, state)
         resolved = object_id is not None
         if object_id is None:
-            object_id = str(arguments.get("object_id") or "") or None
+            action = arguments.get("object") or {}
+            object_id = str(action.get("object_id") or "") or None
         if object_id is not None:
-            arguments["object_id"] = object_id
+            action = arguments.setdefault("object", {})
+            action["object_id"] = object_id
 
     if parsed.intent == "move_object":
-        target = arguments.pop("to", None)
+        action = arguments.get("object") or {}
+        target = (action.pop("params") or {}).pop("to", None)
         if isinstance(target, list) and target:
             entity_type, params = _read_params(object_id)
             move = _move_params(entity_type, params, target) if params else {}
-            if move:
-                arguments["params"] = move
-            else:
-                arguments["params"] = {}
+            action["params"] = move or {}
 
     state.record(text, parsed.intent, parsed.tool, arguments)
 
@@ -490,12 +522,13 @@ def _execute_create(arguments: dict[str, Any]) -> dict[str, Any]:
     try:
         from tianshangcad.mcp.tools.crud import ObjectCreateInput, cad_object_create
 
+        action = arguments.get("object") or arguments
         result = cad_object_create(
             ObjectCreateInput(
-                type=str(arguments["type"]),
-                params=dict(arguments["params"]),
-                layer=str(arguments.get("layer", "0")),
-                properties=dict(arguments.get("properties") or {}),
+                type=str(action["type"]),
+                params=dict(action["params"]),
+                layer=str(action.get("layer", "0")),
+                properties=dict(action.get("properties") or {}),
             )
         )
         return {"object_id": result.object_id, "status": result.status}
@@ -587,7 +620,87 @@ def cad_nlp_command(input: NLPCommandInput) -> NLPCommandOutput:
     )
 
 
+# ---------------------------------------------------------------------------
+# Aggregate cad_nlp tool
+# ---------------------------------------------------------------------------
+
+
+class NLPCommandParams(NLPCommandInput):
+    """Map a natural language request to a tool call."""
+
+    action: Literal["command"] = "command"
+
+
+class NLPChatParams(ChatInput):
+    """Continue a multi-turn natural language dialogue."""
+
+    action: Literal["chat"] = "chat"
+
+
+NLPActionParams = Annotated[
+    NLPCommandParams | NLPChatParams,
+    Field(discriminator="action"),
+]
+
+
+class NLPInput(BaseModel):
+    """Input for the aggregate natural language tool.
+
+    聚合 NLP 工具。``action`` 决定操作：command / chat。
+    """
+
+    nlp: NLPActionParams = Field(
+        ...,
+        description=(
+            "NLP operation to perform, discriminated by `action`: command or chat."
+        ),
+    )
+
+
+class NLPOutput(BaseModel):
+    """Output of the aggregate natural language tool."""
+
+    action: str = Field(..., description="NLP action executed")
+    tool: str = Field("", description="Resolved tool name")
+    arguments: dict[str, Any] = Field(default_factory=dict, description="Resolved arguments")
+    intent: str = Field("", description="Parsed intent / rule name")
+    confidence: float = Field(0.0, description="Match confidence")
+    suggestions: list[dict[str, Any]] = Field(default_factory=list, description="Candidate intents")
+    message: str | None = Field(None, description="Status description")
+    response: str = Field("", description="Chat response text")
+
+
+def _nlp_result(action: str, result: BaseModel) -> NLPOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return NLPOutput(**data)
+
+
+def cad_nlp(input: NLPInput) -> NLPOutput:
+    """Parse a natural language request into a tool call or continue a chat.
+
+    聚合 NLP 操作。按 ``action`` 派发：command / chat。
+    - ``command``: map free-form English/Chinese text to a CAD tool call
+      (returns ``tool`` + ``arguments``; does NOT execute it). Ambiguous
+      requests return candidate ``suggestions``.
+    - ``chat``: multi-turn dialogue with anaphora resolution — a create
+      intent executes immediately and its object is remembered so "move it"
+      / "把它" resolve to that object.
+
+    When not to use: ``cad_nlp`` is a convenience dispatcher. For
+    deterministic, schema-driven control prefer calling the concrete
+    aggregate tools directly (``cad_object``, ``cad_file``, ...). ``command``
+    only parses — you must dispatch the returned call yourself.
+    """
+    params = input.nlp
+    if params.action == "command":
+        return _nlp_result("command", cad_nlp_command(params))
+    if params.action == "chat":
+        return _nlp_result("chat", cad_nlp_chat(params))
+    return NLPOutput(action=params.action, status="error", message="Unknown action")
+
+
+#: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_nlp_command", cad_nlp_command),
-    ("cad_nlp_chat", cad_nlp_chat),
+    ("cad_nlp", cad_nlp),
 ]

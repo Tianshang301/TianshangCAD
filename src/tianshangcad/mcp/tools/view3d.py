@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import base64
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -551,10 +551,110 @@ def cad_webgl_sync(input: WebGLSyncInput) -> WebGLSyncOutput:
         )
 
 
+# ---------------------------------------------------------------------------
+# Aggregate cad_view tool
+# ---------------------------------------------------------------------------
+
+
+class ViewCreateParams(ViewCreateInput):
+    """Create a 3D view definition."""
+
+    action: Literal["create"] = "create"
+
+
+class ViewReadParams(ViewReadInput):
+    """Read a 3D view definition."""
+
+    action: Literal["read"] = "read"
+
+
+class ViewListParams(ViewListInput):
+    """List 3D view definitions."""
+
+    action: Literal["list"] = "list"
+
+
+class ViewUpdateParams(ViewUpdateInput):
+    """Update a 3D view definition."""
+
+    action: Literal["update"] = "update"
+
+
+class ViewDeleteParams(ViewDeleteInput):
+    """Delete a 3D view definition."""
+
+    action: Literal["delete"] = "delete"
+
+
+ViewActionParams = Annotated[
+    ViewCreateParams
+    | ViewReadParams
+    | ViewListParams
+    | ViewUpdateParams
+    | ViewDeleteParams,
+    Field(discriminator="action"),
+]
+
+
+class ViewInput(BaseModel):
+    """Input for the aggregate 3D view tool.
+
+    聚合 3D 视图工具。``action`` 决定操作：create / read / list / update / delete。
+    """
+
+    view: ViewActionParams = Field(
+        ...,
+        description=(
+            "View action to perform, discriminated by `action`: create, read, "
+            "list, update or delete."
+        ),
+    )
+
+
+class ViewOutput(BaseModel):
+    """Output of the aggregate 3D view tool."""
+
+    action: str = Field(..., description="View action executed")
+    view: dict[str, Any] | None = Field(None, description="The view definition")
+    views: list[dict[str, Any]] = Field(default_factory=list, description="View definitions")
+    count: int = Field(0, description="Number of views")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _view_result(action: str, result: BaseModel) -> ViewOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return ViewOutput(**data)
+
+
+def cad_view(input: ViewInput) -> ViewOutput:
+    """Create, read, list, update or delete a 3D view definition.
+
+    聚合 3D 视图操作。按 ``action`` 派发：create / read / list / update / delete。
+    Manages named ``View3DDefinition`` records (camera pose, projection,
+    section plane, explode offsets). Each view has a unique ``name`` per
+    document and an optional explicit ``view_id``.
+
+    When not to use: ``cad_view`` manages view *definitions* only — it does
+    not produce images. To render a stored view (or ortho / section / explode /
+    animation / webgl output) use ``cad_render`` (mode=view_3d etc.).
+    """
+    params = input.view
+    if params.action == "create":
+        return _view_result("create", cad_view_3d_create(params))
+    if params.action == "read":
+        return _view_result("read", cad_view_3d_read(params))
+    if params.action == "list":
+        return _view_result("list", cad_view_3d_list(params))
+    if params.action == "update":
+        return _view_result("update", cad_view_3d_update(params))
+    if params.action == "delete":
+        return _view_result("delete", cad_view_3d_delete(params))
+    return ViewOutput(action=params.action, status="error", message="Unknown action")
+
+
+#: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_view_3d_create", cad_view_3d_create),
-    ("cad_view_3d_read", cad_view_3d_read),
-    ("cad_view_3d_list", cad_view_3d_list),
-    ("cad_view_3d_update", cad_view_3d_update),
-    ("cad_view_3d_delete", cad_view_3d_delete),
+    ("cad_view", cad_view),
 ]

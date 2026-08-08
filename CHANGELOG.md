@@ -2,6 +2,43 @@
 
 Notable changes to TianshangCAD (tianshangcad on PyPI), newest first.
 
+## v0.12.0 - 2026-08-08
+
+Full MCP tool-surface consolidation (77 → **19** aggregate tools) plus
+server-side Tool Search. This is a **wire-breaking** change: every tool is
+now a `cad_<domain>` aggregate whose first argument discriminates the
+operation.
+
+### Breaking
+- The MCP surface is now **19 aggregate tools** (`cad_file`, `cad_object`,
+  `cad_layer`, `cad_json`, `cad_measure`, `cad_validate`, `cad_view`,
+  `cad_render`, `cad_nlp`, `cad_assembly`, `cad_drawing`, `cad_feature`,
+  `cad_sim`, `cad_collab`, `cad_status`, `cad_batch`, `cad_constraint`,
+  `cad_variable`, `cad_version`). Each takes a discriminated input, e.g.
+  `cad_object` with `object.action` in {create, read, update, delete, copy,
+  transform, list, boolean}.
+- All 58 former granular tools (`cad_object_create`, `cad_metrics_get`,
+  `cad_view_3d_create`, ...) are **no longer registered**. Their functions
+  remain importable for internal / CLI use with a `# Deprecated` marker.
+- Folded into aggregates: boolean → `cad_object` (action=boolean),
+  file import/export → `cad_file` (import/export), logs → `cad_status`
+  (logs_get/logs_clear).
+- SCR scripts and batch JSON may use nested dotted keys
+  (`cad_file file.action=create file.filename=a.json`) so old flat-key
+  scripts need `key=` prefixes to match the aggregate input shape.
+
+### Added
+- **Tool Search**: `tools/list` accepts a `query` string and returns only
+  tools whose name or description matches (substring + keyword scoring), per
+  SEP-1821 progressive-discovery thinking.
+- Per-action permission table (`ACTION_PERMISSIONS`) in `security.py`; tool
+  hints (`readOnly` / `destructive` / `idempotent`) derived per aggregate.
+- Aggregate `cad_nlp` mapping emits the new aggregate tool names.
+
+### Changed
+- Version bumped to 0.12.0.
+- `docs/mcp_tools.md` re-synced to the 19-tool surface.
+
 ## v0.11.1 - 2026-08-07
 
 Tool-description quality pass to improve MCP discoverability (registry

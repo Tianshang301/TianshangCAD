@@ -9,7 +9,9 @@ import pytest
 from tianshangcad.core.scheduler import SchedulerService
 from tianshangcad.utils.errors import SchedulerError
 
-_METRICS = [{"tool": "cad_metrics_get", "arguments": {}}]
+_METRICS = [
+    {"tool": "cad_validate", "arguments": {"query": {"action": "metrics"}}}
+]
 
 
 def _wait_for(
@@ -87,7 +89,7 @@ class TestScheduleAndQuery:
         assert record is not None
         assert record["results"] is not None
         assert record["results"][0]["success"] is True
-        assert record["log"][0]["tool_name"] == "cad_metrics_get"
+        assert record["log"][0]["tool_name"] == "cad_validate"
         assert "duration_ms" in record["log"][0]
         assert "input_hash" in record["log"][0]
 

@@ -14,8 +14,8 @@ command line and as standardized tools callable by any MCP client (AI agent).
 [![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 [![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 
-> **Status**: v0.11.1 — tool descriptions + annotations quality pass (77 MCP tools).
-> 919 tests passing, ~87% coverage (measured with optional extras
+> **Status**: v0.12.0 — consolidated MCP surface (19 aggregate tools) + Tool Search.
+> 990 tests passing, ~87% coverage (measured with optional extras
 > installed), `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
@@ -26,7 +26,8 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 77 JSON-RPC tools over stdio, streamable HTTP or
+- **MCP Server** — 19 JSON-RPC aggregate tools (each with an `action`
+  discriminator) over stdio, streamable HTTP or
   WebSocket (collaboration), callable
   from Claude, Cursor and other MCP clients
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
@@ -105,7 +106,7 @@ tianshangcad measure distance 0,0 100,100
 
 Short aliases are expanded automatically:
 `tianshangcad l 0,0 100,0` equals `tianshangcad draw line 0,0 100,0`.
-`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.11.1`).
+`tianshangcad --version` prints the current version (e.g. `tianshangcad 0.12.0`).
 
 ### Command groups
 
@@ -146,29 +147,44 @@ sliding-window rate limit (default 100 requests / 60 s, configurable via
 `TIANSHANGCAD_RATE_LIMIT_MAX` and `TIANSHANGCAD_RATE_LIMIT_WINDOW`); exceeding it returns `429`.
 `/health` and `/metrics` are always public. stdio mode is unaffected.
 
-### Tools (77 total)
+### Tool Search (progressive discovery)
+
+`tools/list` accepts an optional `query` string and returns only the tools
+whose name or description matches, so clients can progressively discover the
+right tool before calling it:
+
+```
+tools/list  {"query": "measure"}   -> [cad_measure, cad_object, cad_status, cad_validate]  (cad_measure first)
+tools/list  {"query": "layer"}     -> [cad_layer, cad_status]  (cad_layer first)
+tools/list  {}                     -> all 19 tools
+```
+
+Name matches rank highest, then description matches; multi-word queries
+require every token to match; stopword-only queries match nothing.
+
+### Tools (19 aggregate)
 
 | Group | Tools |
 |-------|-------|
-| Files | `cad_file_create`, `cad_file_open`, `cad_file_save`, `cad_file_close`, `cad_file_list`, `cad_file_io` (action: export/import) |
-| Objects | `cad_object_create`, `cad_object_read`, `cad_object_update`, `cad_object_delete`, `cad_object_list` |
-| Boolean | `cad_boolean_union`, `cad_boolean_subtract`, `cad_boolean_intersect`, `cad_object_boolean` |
-| Variables | `cad_variable` (action: set/list) |
-| Layers | `cad_layer_create`, `cad_layer_read`, `cad_layer_update`, `cad_layer_delete`, `cad_layer_list` |
-| JSON | `cad_json_load`, `cad_json_parse`, `cad_json_validate`, `cad_json_import_geometry`, `cad_json_export_geometry`, `cad_json_import_scene`, `cad_json_export_scene`, `cad_json_save` |
-| Status | `cad_status` (target: check/file/object/layer/health), `cad_logs` (action: get/clear) |
-| Validation | `cad_validate_geometry`, `cad_validate_interference`, `cad_validate_topology`, `cad_metrics_get` |
-| Render | `cad_render_view` |
-| 3D Views | `cad_view_3d_create`, `cad_view_3d_read`, `cad_view_3d_list`, `cad_view_3d_update`, `cad_view_3d_delete`, `cad_view_3d_render`, `cad_view_section`, `cad_view_explode`, `cad_view_animation`, `cad_webgl_sync` |
+| Files | `cad_file` (action: create/open/save/close/delete/list/import/export) |
+| Objects | `cad_object` (action: create/read/update/delete/copy/transform/list/boolean) |
+| Layers | `cad_layer` (action: create/read/update/delete/list) |
+| JSON | `cad_json` (action: load/parse/validate/save/import_geometry/export_geometry/import_scene/export_scene) |
+| Measure | `cad_measure` (action: distance/area) |
+| Validate | `cad_validate` (action: geometry/interference/topology/metrics) |
+| Status | `cad_status` (target: check/file/object/layer/health/logs_get/logs_clear) |
+| Render | `cad_render` (mode: ortho/view_3d/section/explode/animation/webgl) |
+| 3D Views | `cad_view` (action: create/read/list/update/delete) |
+| NLP | `cad_nlp` (action: command/chat) |
 | Version | `cad_version` (action: save/list/diff/restore) |
-| NLP | `cad_nlp_command`, `cad_nlp_chat` |
+| Variables | `cad_variable` (action: set/list) |
 | Batch | `cad_batch` (action: execute/schedule/status/cancel/list/templates/run_script) |
 | Constraints | `cad_constraint` (action: add/remove/list/solve) |
-| Assembly | `cad_assembly_create`, `cad_assembly_add_part`, `cad_assembly_add_subasm`, `cad_assembly_add_mate`, `cad_assembly_solve`, `cad_assembly_bom`, `cad_assembly_explode` |
-| Drawing | `cad_drawing_create`, `cad_drawing_add_view`, `cad_drawing_add_section`, `cad_drawing_add_dimension`, `cad_drawing_add_tolerance`, `cad_drawing_export` |
-| Features | `cad_feature_sweep`, `cad_feature_loft`, `cad_feature_fillet`, `cad_feature_chamfer`, `cad_feature_pattern_linear`, `cad_feature_pattern_circular`, `cad_feature_pattern_mirror` |
-| Simulation | `cad_sim_mesh`, `cad_sim_setup`, `cad_sim_run`, `cad_sim_result`, `cad_sim_list` |
-| Collaboration | `cad_collab_session`, `cad_collab_branch`, `cad_collab_annotation`, `cad_collab_presence`, `cad_collab_history`, `cad_collab_resolve`, `cad_collab_permission`, `cad_collab_sync` |
+| Assembly | `cad_assembly` (action: create/add_part/add_subasm/add_mate/remove_part/solve/bom/explode) |
+| Drawing | `cad_drawing` (action: create/add_view/add_section/add_dimension/add_tolerance/delete/export) |
+| Features | `cad_feature` (action: sweep/loft/fillet/chamfer/pattern_linear/pattern_circular/pattern_mirror) |
+| Simulation | `cad_sim` (action: mesh/setup/run/result/list/delete) |
+| Collaboration | `cad_collab` (tool: session/branch/annotation/presence/history/resolve/permission/sync) |
 
 ### Validation, rendering, 3D views & NLP
 
@@ -351,7 +367,7 @@ Space.
 src/tianshangcad/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (77 tools)
+|   |-- server.py       # MCPServer wiring (19 tools)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication

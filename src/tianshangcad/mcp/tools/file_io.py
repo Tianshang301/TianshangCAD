@@ -1,8 +1,8 @@
 """File export/import tools (DXF / STL / STEP / JSON).
 
-The public surface is the single aggregate ``cad_file_io`` tool. The legacy
-``cad_file_export`` / ``cad_file_import`` functions remain importable but are
-no longer registered.
+The public surface is ``cad_file`` (action=import/export), defined in
+``crud.py``. The legacy ``cad_file_io`` / ``cad_file_export`` /
+``cad_file_import`` functions remain importable but are no longer registered.
 """
 
 from __future__ import annotations
@@ -261,6 +261,7 @@ def cad_file_io(input: FileIoInput) -> FileIoOutput:
     ``cad_file_save`` / ``cad_file_open``; ``cad_file_io`` is for
     interop formats. DWG requires the ODA converter (``ODAFC_PATH``).
     """
+    # Deprecated, merged into cad_file (action=import/export)
     params = input.file
     try:
         if params.action == "export":
@@ -288,6 +289,4 @@ def cad_file_io(input: FileIoInput) -> FileIoOutput:
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
-TOOLS: list[tuple[str, Any]] = [
-    ("cad_file_io", cad_file_io),
-]
+TOOLS: list[tuple[str, Any]] = []

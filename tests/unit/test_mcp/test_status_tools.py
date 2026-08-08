@@ -114,7 +114,7 @@ class TestStatusTools:
     def test_status_health(self) -> None:
         result = cad_status_health(StatusHealthInput())
         assert result.ok is True
-        assert result.tool_count >= 30
+        assert result.tool_count >= 19
         assert result.version
 
 
@@ -197,7 +197,7 @@ class TestStatusAggregate:
         assert result.status == "success"
         assert result.summary["ok"] is True
         assert result.summary["version"]
-        assert result.summary["tool_count"] >= 30
+        assert result.summary["tool_count"] >= 19
 
 
 class TestLogsAggregate:

@@ -54,18 +54,21 @@ class TestHTTPTransport:
                     await session.initialize()
                     tools = await session.list_tools()
                     names = [tool.name for tool in tools.tools]
-                    result = await session.call_tool("cad_metrics_get", {})
+                    result = await session.call_tool(
+                        "cad_validate", {"query": {"action": "metrics"}}
+                    )
                     return (
                         len(tools.tools),
-                        result.content[0].text[:80],
-                        "cad_file_create" in names,
+                        result.content[0].text,
+                        "cad_file" in names,
                     )
 
             import asyncio
 
-            count, text, has_create = asyncio.run(run())
-            assert count == 77
-            assert has_create
+            count, text, has_file = asyncio.run(run())
+            assert count == 19
+            assert has_file
+            assert '"action": "metrics"' in text
             assert '"files": 0' in text
         finally:
             _stop(server, thread)

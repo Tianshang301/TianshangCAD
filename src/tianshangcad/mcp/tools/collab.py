@@ -8,7 +8,7 @@ until a real identity transport is configured.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -546,14 +546,160 @@ def cad_collab_sync(input: CollabSyncInput) -> CollabSyncOutput:
         )
 
 
+# ---------------------------------------------------------------------------
+# Aggregate cad_collab tool
+# ---------------------------------------------------------------------------
+
+
+class CollabSessionParams(CollabSessionInput):
+    """Session lifecycle operations."""
+
+    tool: Literal["session"] = Field("session", description="Session lifecycle operations")
+
+
+class CollabBranchParams(CollabBranchInput):
+    """Branch operations."""
+
+    tool: Literal["branch"] = Field("branch", description="Branch operations")
+
+
+class CollabAnnotationParams(CollabAnnotationInput):
+    """Annotation operations."""
+
+    tool: Literal["annotation"] = Field("annotation", description="Annotation operations")
+
+
+class CollabPresenceParams(CollabPresenceInput):
+    """Presence operations."""
+
+    tool: Literal["presence"] = Field("presence", description="Presence operations")
+
+
+class CollabHistoryParams(CollabHistoryInput):
+    """History operations."""
+
+    tool: Literal["history"] = Field("history", description="History operations")
+
+
+class CollabResolveParams(CollabResolveInput):
+    """Conflict resolution."""
+
+    tool: Literal["resolve"] = Field("resolve", description="Conflict resolution")
+
+
+class CollabPermissionParams(CollabPermissionInput):
+    """RBAC operations."""
+
+    tool: Literal["permission"] = Field("permission", description="RBAC operations")
+
+
+class CollabSyncParams(CollabSyncInput):
+    """Push / pull session operations."""
+
+    tool: Literal["sync"] = Field("sync", description="Push / pull session operations")
+
+
+CollabActionParams = Annotated[
+    CollabSessionParams
+    | CollabBranchParams
+    | CollabAnnotationParams
+    | CollabPresenceParams
+    | CollabHistoryParams
+    | CollabResolveParams
+    | CollabPermissionParams
+    | CollabSyncParams,
+    Field(discriminator="tool"),
+]
+
+
+class CollabInput(BaseModel):
+    """Input for the aggregate collab tool.
+
+    聚合协作工具。``tool`` 决定子域：session / branch / annotation / presence /
+    history / resolve / permission / sync。
+    """
+
+    collab: CollabActionParams = Field(
+        ...,
+        description=(
+            "Collab action to perform, discriminated by `tool`: session, "
+            "branch, annotation, presence, history, resolve, permission or sync."
+        ),
+    )
+
+
+class CollabOutput(BaseModel):
+    """Output of the aggregate collab tool."""
+
+    tool: str = Field(..., description="Collab sub-domain executed")
+    session_id: str = Field("", description="Session identifier")
+    sessions: list[dict[str, Any]] = Field(default_factory=list, description="Session summaries")
+    members: list[dict[str, Any]] = Field(default_factory=list, description="Members with roles")
+    branches: list[dict[str, Any]] = Field(default_factory=list, description="Branch summaries")
+    annotations: list[dict[str, Any]] = Field(default_factory=list, description="Annotations")
+    presence: list[dict[str, Any]] = Field(default_factory=list, description="Presence list")
+    events: list[dict[str, Any]] = Field(default_factory=list, description="History events")
+    deltas: list[dict[str, Any]] = Field(default_factory=list, description="Operation deltas")
+    applied: list[dict[str, Any]] = Field(default_factory=list, description="Applied operations")
+    state: dict[str, Any] = Field(default_factory=dict, description="CRDT register state")
+    conflict_id: str = Field("", description="Resolved conflict id")
+    resolution: str = Field("", description="Conflict resolution")
+    pending: list[dict[str, Any]] = Field(default_factory=list, description="Pending conflicts")
+    allowed: bool = Field(False, description="RBAC check result")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _collab_result(tool: str, result: BaseModel) -> CollabOutput:
+    data = result.model_dump()
+    data["tool"] = tool
+    return CollabOutput(**data)
+
+
+def cad_collab(input: CollabInput) -> CollabOutput:
+    """Session, branch, annotation, presence, history, resolve, permission or sync.
+
+    聚合协作操作。按 ``tool`` 派发到协作子域：session / branch / annotation /
+    presence / history / resolve / permission / sync。
+    - ``session``: create / list / join / leave / info a collaboration session
+      over a document.
+    - ``branch``: fork / edit / merge / list document branches (CRDT).
+    - ``annotation``: add / list / close review annotations.
+    - ``presence``: set / get / list user presence.
+    - ``history``: applied operation history.
+    - ``resolve``: settle a branch-merge conflict (ours / theirs / latest).
+    - ``permission``: RBAC list / grant / check (viewer/editor/admin/owner).
+    - ``sync``: push operations + pull deltas/state — the WebSocket entry point.
+
+    When not to use: ``cad_collab`` coordinates *multi-user* work on a
+    document. For single-user edits use ``cad_object`` / ``cad_layer`` /
+    ``cad_file`` directly; RBAC defaults to the session owner for unknown
+    users until an identity transport is configured.
+    """
+    params = input.collab
+    try:
+        if params.tool == "session":
+            return _collab_result("session", cad_collab_session(params))
+        if params.tool == "branch":
+            return _collab_result("branch", cad_collab_branch(params))
+        if params.tool == "annotation":
+            return _collab_result("annotation", cad_collab_annotation(params))
+        if params.tool == "presence":
+            return _collab_result("presence", cad_collab_presence(params))
+        if params.tool == "history":
+            return _collab_result("history", cad_collab_history(params))
+        if params.tool == "resolve":
+            return _collab_result("resolve", cad_collab_resolve(params))
+        if params.tool == "permission":
+            return _collab_result("permission", cad_collab_permission(params))
+        if params.tool == "sync":
+            return _collab_result("sync", cad_collab_sync(params))
+        return CollabOutput(tool=params.tool, status="error", message="Unknown tool")
+    except CADError as exc:
+        return CollabOutput(tool=params.tool, status="error", message=exc.message)
+
+
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_collab_session", cad_collab_session),
-    ("cad_collab_branch", cad_collab_branch),
-    ("cad_collab_annotation", cad_collab_annotation),
-    ("cad_collab_presence", cad_collab_presence),
-    ("cad_collab_history", cad_collab_history),
-    ("cad_collab_resolve", cad_collab_resolve),
-    ("cad_collab_permission", cad_collab_permission),
-    ("cad_collab_sync", cad_collab_sync),
+    ("cad_collab", cad_collab),
 ]

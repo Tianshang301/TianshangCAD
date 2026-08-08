@@ -9,7 +9,7 @@ scheduled as an async batch job via ``cad_batch_schedule``.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -244,15 +244,133 @@ def cad_sim_delete(input: SimDeleteInput) -> SimDeleteOutput:
 
 
 # ---------------------------------------------------------------------------
+# Aggregate cad_sim tool
+# ---------------------------------------------------------------------------
+
+
+class SimMeshParams(SimMeshInput):
+    """Mesh an entity."""
+
+    action: Literal["mesh"] = "mesh"
+
+
+class SimSetupParams(SimSetupInput):
+    """Register a simulation."""
+
+    action: Literal["setup"] = "setup"
+
+
+class SimRunParams(SimRunInput):
+    """Run a simulation."""
+
+    action: Literal["run"] = "run"
+
+
+class SimResultParams(SimResultInput):
+    """Fetch a simulation result."""
+
+    action: Literal["result"] = "result"
+
+
+class SimListParams(SimListInput):
+    """List simulations."""
+
+    action: Literal["list"] = "list"
+
+
+class SimDeleteParams(SimDeleteInput):
+    """Delete a simulation."""
+
+    action: Literal["delete"] = "delete"
+
+
+SimActionParams = Annotated[
+    SimMeshParams
+    | SimSetupParams
+    | SimRunParams
+    | SimResultParams
+    | SimListParams
+    | SimDeleteParams,
+    Field(discriminator="action"),
+]
+
+
+class SimInput(BaseModel):
+    """Input for the aggregate simulation tool.
+
+    聚合仿真工具。``action`` 决定操作：mesh / setup / run / result / list / delete。
+    """
+
+    sim: SimActionParams = Field(
+        ...,
+        description=(
+            "Simulation action to perform, discriminated by `action`: mesh, "
+            "setup, run, result, list or delete."
+        ),
+    )
+
+
+class SimOutput(BaseModel):
+    """Output of the aggregate simulation tool."""
+
+    action: str = Field(..., description="Simulation action executed")
+    sim_id: str = Field("", description="Simulation identifier")
+    name: str = Field("", description="Simulation name")
+    kind: str = Field("", description="Simulation kind")
+    state: str = Field("", description="Simulation state")
+    node_count: int = Field(0, description="Mesh node count")
+    element_count: int = Field(0, description="Mesh element count")
+    element_type: str = Field("", description="Element type")
+    bbox: dict[str, Any] = Field(default_factory=dict, description="Meshed bounding box")
+    results: list[dict[str, Any]] = Field(default_factory=list, description="Simulation summaries")
+    result: dict[str, Any] = Field(default_factory=dict, description="Simulation result payload")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _sim_result(action: str, result: BaseModel) -> SimOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return SimOutput(**data)
+
+
+def cad_sim(input: SimInput) -> SimOutput:
+    """Mesh, setup, run, inspect or delete a simulation.
+
+    聚合仿真操作。按 ``action`` 派发：mesh / setup / run / result / list / delete。
+    - ``mesh``: generate a hexa8 hex mesh of an entity's bounding box (pure
+      Python, always available).
+    - ``setup``: register a simulation (``kind`` = fea or kinematics).
+    - ``run``: execute synchronously, or schedule an async batch job with
+      ``async_run``. FEA (CalculiX) and kinematics (PyBullet) backends are
+      optional — absent engines report ``requires_sim``.
+    - ``result`` / ``list`` / ``delete``: inspect or remove simulations.
+
+    When not to use: ``cad_sim`` analyzes physical behavior. For geometric
+    *validity* checks use ``cad_validate`` (geometry/interference); for
+    meshing previews that are pure geometry use ``cad_object`` (read).
+    """
+    params = input.sim
+    if params.action == "mesh":
+        return _sim_result("mesh", cad_sim_mesh(params))
+    if params.action == "setup":
+        return _sim_result("setup", cad_sim_setup(params))
+    if params.action == "run":
+        return _sim_result("run", cad_sim_run(params))
+    if params.action == "result":
+        return _sim_result("result", cad_sim_result(params))
+    if params.action == "list":
+        return _sim_result("list", cad_sim_list(params))
+    if params.action == "delete":
+        return _sim_result("delete", cad_sim_delete(params))
+    return SimOutput(action=params.action, status="error", message="Unknown action")
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_sim_mesh", cad_sim_mesh),
-    ("cad_sim_setup", cad_sim_setup),
-    ("cad_sim_run", cad_sim_run),
-    ("cad_sim_result", cad_sim_result),
-    ("cad_sim_list", cad_sim_list),
-    ("cad_sim_delete", cad_sim_delete),
+    ("cad_sim", cad_sim),
 ]

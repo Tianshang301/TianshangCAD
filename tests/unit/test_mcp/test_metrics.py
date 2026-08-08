@@ -85,15 +85,15 @@ class TestServerInstrumentation:
     """Tool dispatch instrumentation through build_server."""
 
     def test_registry_has_all_tools(self) -> None:
-        assert "cad_object_create" in get_registry()
-        assert "cad_view_3d_create" in get_registry()
+        assert "cad_object" in get_registry()
+        assert "cad_view" in get_registry()
 
     def test_build_server_registers_tools(self) -> None:
         from tianshangcad.mcp.server import SERVER_NAME
 
         server = build_server()
         assert server.name == SERVER_NAME
-        assert "cad_object_create" in get_registry()
+        assert "cad_object" in get_registry()
         assert "cad_render" in get_registry()
 
     def test_flattened_schema_keeps_field_descriptions(self) -> None:
@@ -141,20 +141,21 @@ class TestServerInstrumentation:
             return out
 
         hints = asyncio.run(collect())
-        assert len(hints) >= 77
-        # read-only queries
-        assert hints["cad_object_read"][0] is True
-        assert hints["cad_object_read"][2] is True
-        assert hints["cad_metrics_get"][0] is True
-        # destructive deletes
-        assert hints["cad_object_delete"][1] is True
-        assert hints["cad_layer_delete"][1] is True
-        # idempotent set-like updates
-        assert hints["cad_object_update"][2] is True
-        assert hints["cad_layer_update"][2] is True
-        # non-idempotent creates
-        assert hints["cad_object_create"][2] is False
-        assert hints["cad_file_create"][2] is False
+        assert len(hints) >= 19
+        # read-only aggregates
+        assert hints["cad_validate"][0] is True
+        assert hints["cad_validate"][2] is True
+        assert hints["cad_measure"][0] is True
+        assert hints["cad_json"][0] is True
+        # aggregates containing destructive sub-actions
+        assert hints["cad_object"][1] is True
+        assert hints["cad_layer"][1] is True
+        assert hints["cad_file"][1] is True
+        assert hints["cad_status"][1] is True  # logs_clear is destructive
+        # non-idempotent aggregates (create/copy/boolean sub-actions)
+        assert hints["cad_object"][2] is False
+        assert hints["cad_file"][2] is False
+        assert hints["cad_assembly"][2] is False
 
     def test_instrumented_tool_records_metrics(self) -> None:
         cad_file_create(FileCreateInput(filename="m.json"))

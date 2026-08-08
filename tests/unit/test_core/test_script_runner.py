@@ -80,33 +80,39 @@ class TestScrAndBatch:
 
     def test_scr_commands_execute(self) -> None:
         result = run_script(
-            script="cad_metrics_get\ncad_status", script_type="scr"
+            script="cad_validate query.action=metrics\ncad_status", script_type="scr"
         )
         assert result["ok"] is True
         assert result["success_count"] == 2
-        assert result["results"][0]["tool"] == "cad_metrics_get"
+        assert result["results"][0]["tool"] == "cad_validate"
 
     def test_scr_failure_flagged(self) -> None:
         result = run_script(
-            script="cad_metrics_get\ncad_does_not_exist x=1", script_type="scr"
+            script="cad_validate query.action=metrics\ncad_does_not_exist x=1",
+            script_type="scr",
         )
         assert result["ok"] is False
         assert result["failed_count"] == 1
         assert "Unknown tool" in result["results"][1]["error"]
 
     def test_scr_arguments_parsed(self) -> None:
-        result = run_script(script="cad_file_create filename=scr.json unit=mm", script_type="scr")
+        result = run_script(
+            script=(
+                "cad_file file.action=create file.filename=scr.json file.unit=mm"
+            ),
+            script_type="scr",
+        )
         assert result["ok"] is True
         assert result["results"][0]["result"]["file_id"].startswith("file_")
 
     def test_batch_json_commands(self) -> None:
-        script = '{"commands":[{"tool":"cad_metrics_get","arguments":{}}]}'
+        script = '{"commands":[{"tool":"cad_validate","arguments":{"query":{"action":"metrics"}}}]}'
         result = run_script(script=script, script_type="batch")
         assert result["ok"] is True
         assert result["success_count"] == 1
 
     def test_batch_json_array(self) -> None:
-        script = '[{"tool":"cad_metrics_get","arguments":{}}]'
+        script = '[{"tool":"cad_validate","arguments":{"query":{"action":"metrics"}}}]'
         result = run_script(script=script, script_type="batch")
         assert result["ok"] is True
 

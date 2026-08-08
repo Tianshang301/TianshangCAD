@@ -77,63 +77,29 @@ class TestMCPServer:
                         await task
 
         names = asyncio.run(list_tools())
-        assert "cad_file_create" in names
-        assert "cad_object_create" in names
-        assert "cad_batch" in names
-        assert "cad_metrics_get" in names
-        assert "cad_status" in names
-        assert "cad_logs" in names
-        assert "cad_render" in names
-        assert "cad_version" in names
-        assert "cad_nlp_command" in names
-        assert "cad_view_3d_create" in names
-        assert "cad_object_boolean" in names
-        assert "cad_file_io" in names
-        assert "cad_variable" in names
-        assert "cad_constraint" in names
-        assert "cad_assembly_create" in names
-        assert "cad_assembly_add_part" in names
-        assert "cad_assembly_add_subasm" in names
-        assert "cad_assembly_add_mate" in names
-        assert "cad_assembly_solve" in names
-        assert "cad_assembly_bom" in names
-        assert "cad_assembly_explode" in names
-        assert "cad_drawing_create" in names
-        assert "cad_drawing_add_view" in names
-        assert "cad_drawing_add_section" in names
-        assert "cad_drawing_add_dimension" in names
-        assert "cad_drawing_add_tolerance" in names
-        assert "cad_drawing_export" in names
-        assert "cad_nlp_chat" in names
-        assert "cad_feature_sweep" in names
-        assert "cad_feature_loft" in names
-        assert "cad_feature_fillet" in names
-        assert "cad_feature_chamfer" in names
-        assert "cad_feature_pattern_linear" in names
-        assert "cad_feature_pattern_circular" in names
-        assert "cad_feature_pattern_mirror" in names
-        assert "cad_sim_mesh" in names
-        assert "cad_sim_setup" in names
-        assert "cad_sim_run" in names
-        assert "cad_sim_result" in names
-        assert "cad_sim_list" in names
-        assert "cad_collab_session" in names
-        assert "cad_collab_branch" in names
-        assert "cad_collab_annotation" in names
-        assert "cad_collab_presence" in names
-        assert "cad_collab_history" in names
-        assert "cad_collab_resolve" in names
-        assert "cad_collab_permission" in names
-        assert "cad_collab_sync" in names
-        assert "cad_measure_distance" in names
-        assert "cad_measure_area" in names
-        assert "cad_object_copy" in names
-        assert "cad_object_transform" in names
-        assert "cad_file_delete" in names
-        assert "cad_assembly_remove_part" in names
-        assert "cad_drawing_delete" in names
-        assert "cad_sim_delete" in names
-        assert len(names) == 77
+        expected = {
+            "cad_file",
+            "cad_object",
+            "cad_layer",
+            "cad_json",
+            "cad_measure",
+            "cad_validate",
+            "cad_nlp",
+            "cad_view",
+            "cad_render",
+            "cad_assembly",
+            "cad_drawing",
+            "cad_feature",
+            "cad_sim",
+            "cad_collab",
+            "cad_status",
+            "cad_batch",
+            "cad_constraint",
+            "cad_variable",
+            "cad_version",
+        }
+        assert set(names) == expected
+        assert len(names) == 19
 
     def test_flat_tool_schemas(self) -> None:
         """Tools expose flat input schemas (no nested ``input`` wrapper)."""
@@ -164,21 +130,19 @@ class TestMCPServer:
                         await task
 
         schemas = asyncio.run(list_schemas())
-        for name in ("cad_file_create", "cad_object_create", "cad_batch"):
+        for name in ("cad_file", "cad_object", "cad_batch"):
             props = schemas[name]["properties"]
             assert "input" not in props
-        assert "filename" in schemas["cad_file_create"]["properties"]
-        assert "type" in schemas["cad_object_create"]["properties"]
+        assert "file" in schemas["cad_file"]["properties"]
+        assert "object" in schemas["cad_object"]["properties"]
         assert "batch" in schemas["cad_batch"]["properties"]
 
         # Pydantic field descriptions must survive flattening so clients
         # (and registry scorecards like Glama) see parameter documentation.
-        assert schemas["cad_file_create"]["properties"]["filename"]["description"]
-        assert "description" in schemas["cad_file_save"]["properties"]["path"]
-        assert "description" in schemas["cad_object_update"]["properties"]["object_id"]
-        assert "description" in schemas["cad_layer_update"]["properties"]["name"]
-        assert "description" in schemas["cad_collab_history"]["properties"]["session_id"]
-        assert "description" in schemas["cad_collab_resolve"]["properties"]["resolution"]
+        assert "description" in schemas["cad_file"]["properties"]["file"]
+        assert "description" in schemas["cad_object"]["properties"]["object"]
+        assert "description" in schemas["cad_layer"]["properties"]["layer"]
+        assert "description" in schemas["cad_collab"]["properties"]["collab"]
         assert "description" in schemas["cad_variable"]["properties"]["variable"]
         assert "description" in schemas["cad_batch"]["properties"]["batch"]
 
@@ -186,18 +150,21 @@ class TestMCPServer:
         outputs = _call_tools(
             [
                 (
-                    "cad_file_create",
-                    {"filename": "e2e.json", "unit": "mm"},
+                    "cad_file",
+                    {"file": {"action": "create", "filename": "e2e.json", "unit": "mm"}},
                 ),
                 (
-                    "cad_object_create",
+                    "cad_object",
                     {
-                        "type": "box",
-                        "params": {"origin": [0, 0, 0], "dimensions": [2, 3, 4]},
-                        "layer": "0",
+                        "object": {
+                            "action": "create",
+                            "type": "box",
+                            "params": {"origin": [0, 0, 0], "dimensions": [2, 3, 4]},
+                            "layer": "0",
+                        }
                     },
                 ),
-                ("cad_metrics_get", {}),
+                ("cad_validate", {"query": {"action": "metrics"}}),
             ]
         )
         create_result = json.loads(outputs[0])
@@ -211,7 +178,10 @@ class TestMCPServer:
     def test_error_result_serialized(self) -> None:
         outputs = _call_tools(
             [
-                ("cad_object_read", {"object_id": "missing"}),
+                (
+                    "cad_object",
+                    {"object": {"action": "read", "object_id": "missing"}},
+                ),
             ]
         )
         result = json.loads(outputs[0])
@@ -228,15 +198,24 @@ class TestMCPServer:
                             "action": "execute",
                             "commands": [
                                 {
-                                    "tool": "cad_file_create",
-                                    "arguments": {"filename": "b.json", "unit": "mm"},
+                                    "tool": "cad_file",
+                                    "arguments": {
+                                        "file": {
+                                            "action": "create",
+                                            "filename": "b.json",
+                                            "unit": "mm",
+                                        }
+                                    },
                                 },
                                 {
-                                    "tool": "cad_object_create",
+                                    "tool": "cad_object",
                                     "arguments": {
-                                        "type": "circle",
-                                        "params": {"center": [0, 0, 0], "radius": 10},
-                                        "layer": "0",
+                                        "object": {
+                                            "action": "create",
+                                            "type": "circle",
+                                            "params": {"center": [0, 0, 0], "radius": 10},
+                                            "layer": "0",
+                                        }
                                     },
                                 },
                             ],
@@ -248,3 +227,31 @@ class TestMCPServer:
         result = json.loads(outputs[0])
         assert result["status"] == "success"
         assert result["success_count"] == 2
+
+    def test_tool_search_query_filter(self) -> None:
+        """tools/list honors an optional query filter (SEP-1821)."""
+        server = build_server()
+        from tianshangcad.mcp.server import ListToolsSearchParams
+
+        entry = server._lowlevel_server.get_request_handler("tools/list")
+        assert entry is not None
+
+        async def run() -> tuple[list[str], list[str], list[str], int]:
+            no_query = await entry.handler(None, ListToolsSearchParams())
+            measure = await entry.handler(None, ListToolsSearchParams(query="measure"))
+            layer = await entry.handler(None, ListToolsSearchParams(query="layer"))
+            none = await entry.handler(None, ListToolsSearchParams(query="zzz_nope"))
+            return (
+                [t.name for t in no_query.tools],
+                [t.name for t in measure.tools],
+                [t.name for t in layer.tools],
+                len(none.tools),
+            )
+
+        all_names, measure_names, layer_names, none_count = asyncio.run(run())
+        assert len(all_names) == 19
+        assert measure_names[0] == "cad_measure"
+        assert "cad_measure" in measure_names
+        assert layer_names[0] == "cad_layer"
+        assert "cad_layer" in layer_names
+        assert none_count == 0

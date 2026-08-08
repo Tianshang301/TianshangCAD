@@ -258,6 +258,14 @@ def cad_version(input: VersionInput) -> VersionOutput:
     """Save, list, diff or restore document version snapshots.
 
     按 ``action`` 执行版本快照操作：save / list / diff / restore。
+    In-memory snapshots of the current document state. ``save`` captures a
+    labeled snapshot; ``diff`` compares two snapshots with ``deepdiff`` and
+    reports changed/added/removed fields; ``restore`` rolls the document back
+    to a snapshot.
+
+    When not to use: ``cad_version`` is for in-memory undo-like versioning.
+    For durable file persistence use ``cad_file`` (save/export); for
+    collaboration branches use ``cad_collab`` (tool=branch).
     """
     params = input.version
     try:

@@ -12,7 +12,7 @@ Phase 8 (v0.8.0) introduces a backend abstraction for simulation:
 
 ``SimulationManager`` persists results in memory and supports both
 synchronous execution (``run``) and asynchronous execution by scheduling a
-``cad_sim_run`` batch job through the existing batch subsystem
+``cad_sim`` (action=run) batch job through the existing batch subsystem
 (``submit``). Heavy native dependencies stay behind optional extras; the
 interface and lifecycle are fully testable with stub backends.
 """
@@ -513,8 +513,8 @@ class SimulationManager:
     def submit(self, sim_id: str) -> str:
         """Schedule ``sim_id`` as an async batch job.
 
-        Schedules a one-off batch job invoking ``cad_sim_run`` through the
-        existing batch subsystem; returns the batch job id.
+        Schedules a one-off batch job invoking ``cad_sim`` (action=run) through
+        the existing batch subsystem; returns the batch job id.
         """
         result = self.get(sim_id)
         if result.status == SimulationStatus.DONE:
@@ -529,8 +529,8 @@ class SimulationManager:
             name=f"sim-{result.config.name}",
             commands=[
                 {
-                    "tool": "cad_sim_run",
-                    "arguments": {"sim_id": sim_id},
+                    "tool": "cad_sim",
+                    "arguments": {"sim": {"action": "run", "sim_id": sim_id}},
                 }
             ],
         )

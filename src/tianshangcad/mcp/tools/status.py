@@ -321,34 +321,50 @@ def cad_logs_clear(input: LogsClearInput) -> LogsClearOutput:
 class StatusCheckParams(BaseModel):
     """Overall session status summary."""
 
-    target: Literal["check"] = "check"
+    target: Literal["check"] = Field("check", description="Query the overall session status")
 
 
 class StatusFileParams(BaseModel):
     """Status of a file (defaults to current)."""
 
-    target: Literal["file"] = "file"
+    target: Literal["file"] = Field("file", description="Query file status")
     file_id: str | None = Field(None, description="File id (defaults to current)")
 
 
 class StatusObjectParams(BaseModel):
     """Status of a single object."""
 
-    target: Literal["object"] = "object"
+    target: Literal["object"] = Field("object", description="Query object status")
     object_id: str = Field(..., description="Object id")
 
 
 class StatusLayerParams(BaseModel):
     """Status of a layer including object count."""
 
-    target: Literal["layer"] = "layer"
+    target: Literal["layer"] = Field("layer", description="Query layer status")
     name: str = Field(..., description="Layer name")
 
 
 class StatusHealthParams(BaseModel):
     """Server health report."""
 
-    target: Literal["health"] = "health"
+    target: Literal["health"] = Field("health", description="Query server health")
+
+
+class StatusLogsGetParams(BaseModel):
+    """Retrieve recent log entries."""
+
+    target: Literal["logs_get"] = Field("logs_get", description="Read in-memory log entries")
+    limit: int = Field(50, description="Maximum entries", ge=1, le=200)
+    level: str | None = Field(None, description="Minimum level filter")
+    source: str | None = Field(None, description="Source filter")
+    job_id: str | None = Field(None, description="Job id filter")
+
+
+class StatusLogsClearParams(BaseModel):
+    """Clear the in-memory log buffer."""
+
+    target: Literal["logs_clear"] = Field("logs_clear", description="Clear in-memory log entries")
 
 
 StatusTargetParams = Annotated[
@@ -356,7 +372,9 @@ StatusTargetParams = Annotated[
     | StatusFileParams
     | StatusObjectParams
     | StatusLayerParams
-    | StatusHealthParams,
+    | StatusHealthParams
+    | StatusLogsGetParams
+    | StatusLogsClearParams,
     Field(discriminator="target"),
 ]
 
@@ -370,13 +388,15 @@ class StatusInput(BaseModel):
     - ``object``: 对象状态（``object_id``）
     - ``layer``: 图层状态（``name``）
     - ``health``: 服务器健康报告
+    - ``logs_get``: 读取内存日志
+    - ``logs_clear``: 清空内存日志
     """
 
     status: StatusTargetParams = Field(
         default_factory=StatusCheckParams,
         description=(
             "Status query, discriminated by `target`: check, file, object, "
-            "layer or health."
+            "layer, health, logs_get or logs_clear."
         ),
     )
 
@@ -406,9 +426,20 @@ def _health_report() -> dict[str, Any]:
 
 
 def cad_status(input: StatusInput) -> StatusOutput:
-    """Query session, file, object, layer or health status.
+    """Query session, file, object, layer, health or logs status.
 
-    按 ``target`` 查询当前会话的各类状态（check/file/object/layer/health）。
+    按 ``target`` 查询当前会话的各类状态（check/file/object/layer/health/
+    logs_get/logs_clear）。
+    - ``check``: overall session summary (open files, current document).
+    - ``file`` / ``object`` / ``layer``: live detail for one entity.
+    - ``health``: server version, uptime and registered tool count.
+    - ``logs_get`` / ``logs_clear``: read (with limit/level/source/job_id
+      filters) or clear the in-memory log buffer.
+
+    When not to use: ``cad_status`` reports live session/server state. For
+    geometric *validation* (manifold checks, interference) or aggregate
+    document statistics use ``cad_validate`` (geometry/metrics); for
+    measuring distances/areas use ``cad_measure``.
     """
     params = input.status
     try:
@@ -481,6 +512,48 @@ def cad_status(input: StatusInput) -> StatusOutput:
                 status="success",
             )
 
+        if params.target == "logs_clear":
+            cleared = len(_log_buffer)
+            _log_buffer.clear()
+            return StatusOutput(
+                target="logs_clear",
+                summary={"cleared": cleared},
+                status="success",
+                message=f"Cleared {cleared} log entries",
+            )
+
+        if params.target == "logs_get":
+            entries = list(reversed(_log_buffer))
+            if params.level is not None:
+                minimum = _LEVEL_ORDER.get(params.level.upper(), 0)
+                entries = [e for e in entries if _LEVEL_ORDER.get(e["level"], 0) >= minimum]
+            if params.source is not None:
+                entries = [e for e in entries if e.get("source") == params.source]
+            if params.job_id is not None:
+                entries = [e for e in entries if e.get("job_id") == params.job_id]
+            selected = entries[: params.limit]
+            return StatusOutput(
+                target="logs_get",
+                summary={
+                    "logs": [
+                        {
+                            "timestamp": entry["timestamp"],
+                            "level": entry["level"],
+                            "source": entry["source"],
+                            "message": entry["message"],
+                            "details": {
+                                key: value
+                                for key, value in entry.items()
+                                if key not in ("timestamp", "level", "source", "message")
+                            },
+                        }
+                        for entry in selected
+                    ],
+                    "total": len(selected),
+                },
+                status="success",
+            )
+
         return StatusOutput(target="health", summary=_health_report(), status="success")
     except CADError as exc:
         return StatusOutput(target=params.target, status="error", message=str(exc))
@@ -537,6 +610,7 @@ def cad_logs(input: LogsInput) -> LogsOutput:
 
     按 ``action`` 读取（get）或清空（clear）内存日志。
     """
+    # Deprecated, merged into cad_status (target=logs_get/logs_clear)
     params = input.logs
     if params.action == "clear":
         cleared = len(_log_buffer)
@@ -575,5 +649,4 @@ def cad_logs(input: LogsInput) -> LogsOutput:
 
 TOOLS: list[tuple[str, Any]] = [
     ("cad_status", cad_status),
-    ("cad_logs", cad_logs),
 ]

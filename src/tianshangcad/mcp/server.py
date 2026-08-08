@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import inspect
+import re
 from collections.abc import Callable
 from functools import wraps
 from typing import Annotated, Any, cast, get_type_hints
 
 from mcp.server import MCPServer
-from mcp.types import ToolAnnotations
+from mcp.types import RequestParams, ToolAnnotations
 from pydantic import BaseModel, Field
 
-from tianshangcad.mcp.security import TOOL_PERMISSIONS, PermissionLevel
+from tianshangcad.mcp.security import is_destructive, is_read_only
 from tianshangcad.mcp.tools._registry import get_registry
 from tianshangcad.utils.metrics import track_operation
 
@@ -112,45 +113,26 @@ def _instrumented(fn: Callable[..., Any], name: str) -> Callable[..., Any]:
 
 
 #: Tools that create fresh identifiers on every call and therefore are NOT
-#: idempotent even though they are write operations. Tools not listed here
-#: that are non-read-only default to idempotent when they perform set-like
-#: updates (update/save/delete/transform) and to non-idempotent when they
-#: are create/schedule/sync operations. Read-only tools are always
-#: idempotent.
+#: idempotent even though they are write operations. With the aggregate
+#: surface this is expressed per tool name: a tool is flagged non-idempotent
+#: when any of its sub-actions creates fresh identifiers (create / open /
+#: schedule / sync / copy / boolean). Read-only aggregates stay idempotent.
 _NON_IDEMPOTENT = frozenset(
     {
-        "cad_file_create",
-        "cad_file_open",
-        "cad_object_create",
-        "cad_object_copy",
-        "cad_object_boolean",
-        "cad_layer_create",
-        "cad_assembly_create",
-        "cad_assembly_add_part",
-        "cad_assembly_add_subasm",
-        "cad_assembly_add_mate",
-        "cad_drawing_create",
-        "cad_drawing_add_view",
-        "cad_drawing_add_section",
-        "cad_drawing_add_dimension",
-        "cad_drawing_add_tolerance",
-        "cad_feature_sweep",
-        "cad_feature_loft",
-        "cad_feature_fillet",
-        "cad_feature_chamfer",
-        "cad_feature_pattern_linear",
-        "cad_feature_pattern_circular",
-        "cad_feature_pattern_mirror",
-        "cad_view_3d_create",
-        "cad_sim_setup",
-        "cad_sim_mesh",
-        "cad_collab_session",
-        "cad_collab_branch",
-        "cad_collab_annotation",
-        "cad_collab_sync",
+        "cad_file",
+        "cad_object",
+        "cad_layer",
+        "cad_view",
+        "cad_assembly",
+        "cad_drawing",
+        "cad_feature",
+        "cad_sim",
+        "cad_collab",
+        "cad_batch",
         "cad_variable",
         "cad_version",
         "cad_constraint",
+        "cad_nlp",
     }
 )
 
@@ -162,9 +144,8 @@ def _tool_annotations(name: str) -> ToolAnnotations:
     reading its full description: read_only_hint for queries, destructive_hint
     for deletions, and idempotent_hint for calls safe to retry.
     """
-    level = TOOL_PERMISSIONS.get(name, PermissionLevel.STANDARD)
-    read_only = level == PermissionLevel.READ_ONLY
-    destructive = level == PermissionLevel.DESTRUCTIVE
+    read_only = is_read_only(name)
+    destructive = is_destructive(name)
     if name == "cad_batch":
         # ADMIN aggregate covering schedule/cancel in addition to read-only
         # sub-actions; it can mutate the job store.
@@ -198,4 +179,92 @@ def build_server(version: str = "0.9.0") -> MCPServer:
             name=name,
             annotations=_tool_annotations(name),
         )
+    _install_tool_search(server)
     return server
+
+
+# ---------------------------------------------------------------------------
+# Tool Search (tools/list query filtering, SEP-1821)
+# ---------------------------------------------------------------------------
+
+#: Tokens ignored when ranking results so ``measure`` matches ``cad_measure``
+#: rather than every tool mentioning the word in its description.
+_STOPWORDS = frozenset({"tool", "tools", "cad", "the", "a", "an", "and"})
+
+
+class ListToolsSearchParams(RequestParams):
+    """Params for ``tools/list`` with an optional ``query`` filter."""
+
+    query: str | None = Field(
+        None, description="Return only tools whose name or description match"
+    )
+    cursor: str | None = Field(None, description="Pagination cursor (unsupported)")
+
+
+def _query_tokens(query: str) -> list[str]:
+    """Lower-cased, whitespace-split query tokens minus stopwords."""
+    tokens = [token.lower() for token in re.split(r"[\s_,./-]+", query)]
+    return [token for token in tokens if token and token not in _STOPWORDS]
+
+
+def _score_tool(name: str, description: str, tokens: list[str]) -> int:
+    """Rank a tool against the query tokens.
+
+    Name substring matches score highest (whole-word prefix first), then
+    description substring matches. ``0`` means no match.
+    """
+    if not tokens:
+        return 1
+    name_lower = name.lower()
+    desc_lower = description.lower()
+    score = 0
+    for token in tokens:
+        if name_lower == token:
+            score += 100
+        elif name_lower.startswith(token):
+            score += 60
+        elif token in name_lower:
+            score += 40
+        elif token in desc_lower:
+            score += 10
+        else:
+            return 0
+    return score
+
+
+def _list_tools_result(tools: list[Any]) -> Any:
+    """Build the ``ListToolsResult`` for the given tools."""
+    from mcp.types import ListToolsResult
+
+    return ListToolsResult(tools=tools)
+
+
+def _install_tool_search(server: MCPServer) -> None:
+    """Replace the default ``tools/list`` handler with a query-filtering one.
+
+    The MCP SDK validates request params against a model before invoking a
+    handler, and its built-in ``PaginatedRequestParams`` drops unknown fields
+    such as ``query``. We therefore register a handler whose params model
+    carries ``query``; the handler closes over ``server`` to list + filter.
+    """
+
+    async def handler(ctx: Any, params: ListToolsSearchParams) -> Any:
+        del ctx
+        tools = await server.list_tools()
+        query = (params.query or "").strip()
+        if not query:
+            return _list_tools_result(tools)
+        tokens = _query_tokens(query)
+        if not tokens:
+            # A query made only of stopwords matches nothing.
+            return _list_tools_result([])
+        scored = sorted(
+            ((_score_tool(tool.name, tool.description or "", tokens), tool) for tool in tools),
+            key=lambda pair: (-pair[0], pair[1].name),
+        )
+        matched = [tool for score, tool in scored if score > 0]
+        return _list_tools_result(matched)
+
+    server._lowlevel_server.add_request_handler(
+        "tools/list", ListToolsSearchParams, handler
+    )

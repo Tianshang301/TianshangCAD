@@ -413,6 +413,12 @@ def cad_json(input: JsonInput) -> JsonOutput:
     - import_scene：以 JSON 场景创建新文档
     - export_scene：导出当前文档为 JSON 场景
     - save：将 JSON 字符串写入文件
+
+    When not to use: ``cad_json`` operates on JSON text and scene data in
+    memory. To read/write the JSON scene as a whole file use ``cad_file``
+    (open/save); for interop formats (STEP/DXF/STL/DWG) use ``cad_file``
+    (import/export); for creating/editing individual geometry objects use
+    ``cad_object``.
     """
     params = input.params
     try:

@@ -207,7 +207,12 @@ def run_python(code: str, timeout: int, args: list[str] | None = None) -> dict[s
 
 
 def _parse_scr_line(line: str) -> dict[str, Any]:
-    """Parse ``tool key=value key=value`` into a BatchCommand dict."""
+    """Parse ``tool key=value key=value`` into a BatchCommand dict.
+
+    Dotted keys build nested dictionaries, e.g. ``query.action=metrics``
+    becomes ``{"query": {"action": "metrics"}}``, matching the aggregate
+    tool input shape.
+    """
     parts = shlex.split(line)
     if not parts:
         return {"tool": "", "arguments": {}}
@@ -218,9 +223,14 @@ def _parse_scr_line(line: str) -> dict[str, Any]:
             continue
         key, raw = token.split("=", 1)
         try:
-            arguments[key] = json.loads(raw)
+            value: Any = json.loads(raw)
         except json.JSONDecodeError:
-            arguments[key] = raw
+            value = raw
+        segments = key.split(".")
+        target = arguments
+        for segment in segments[:-1]:
+            target = target.setdefault(segment, {})
+        target[segments[-1]] = value
     return {"tool": tool, "arguments": arguments}
 
 

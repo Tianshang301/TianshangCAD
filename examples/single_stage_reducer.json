@@ -3,8 +3,8 @@
   "version": "1.0",
   "commands": [
     {
-      "tool": "cad_file_create",
-      "arguments": { "filename": "reducer.json", "unit": "mm" }
+      "tool": "cad_file",
+      "arguments": { "file": { "action": "create", "filename": "reducer.json", "unit": "mm" } }
     },
     {
       "tool": "cad_assembly_create",

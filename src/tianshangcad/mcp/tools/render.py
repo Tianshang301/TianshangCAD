@@ -97,7 +97,7 @@ def cad_render_view(input: RenderViewInput) -> RenderViewOutput:
 class RenderOrthoParams(BaseModel):
     """Orthographic 2D PNG render."""
 
-    mode: Literal["ortho"] = "ortho"
+    mode: Literal["ortho"] = Field("ortho", description="Render an orthographic 2D view")
     view: str = Field("top", description="View: top / front / side")
     dpi: int = Field(96, description="Resolution in DPI within [72, 300]")
     output: str | None = Field(None, description="Optional output PNG path")
@@ -107,7 +107,7 @@ class RenderOrthoParams(BaseModel):
 class RenderView3DParams(BaseModel):
     """Render a stored 3D view definition to PNG."""
 
-    mode: Literal["view_3d"] = "view_3d"
+    mode: Literal["view_3d"] = Field("view_3d", description="Render a stored 3D view")
     view_id: str = Field(..., description="View id or name to render")
     dpi: int = Field(96, description="Resolution in DPI within [72, 300]")
     output: str | None = Field(None, description="Optional output PNG path")
@@ -117,7 +117,7 @@ class RenderView3DParams(BaseModel):
 class RenderSectionParams(BaseModel):
     """Render a plane-section view of the document."""
 
-    mode: Literal["section"] = "section"
+    mode: Literal["section"] = Field("section", description="Render a plane section")
     plane: str = Field(..., description="Section plane: XY / YZ / XZ")
     offset: float = Field(0.0, description="Plane offset along its normal")
     dpi: int = Field(96, description="Resolution in DPI within [72, 300]")
@@ -128,7 +128,7 @@ class RenderSectionParams(BaseModel):
 class RenderExplodeParams(BaseModel):
     """Render an exploded view of the document."""
 
-    mode: Literal["explode"] = "explode"
+    mode: Literal["explode"] = Field("explode", description="Render an exploded view")
     offset_x: float = Field(0.0, ge=0, description="X explode factor")
     offset_y: float = Field(0.0, ge=0, description="Y explode factor")
     offset_z: float = Field(0.0, ge=0, description="Z explode factor")
@@ -140,7 +140,7 @@ class RenderExplodeParams(BaseModel):
 class RenderAnimationParams(BaseModel):
     """Render an orbit / turntable GIF animation."""
 
-    mode: Literal["animation"] = "animation"
+    mode: Literal["animation"] = Field("animation", description="Render an orbit animation")
     frames: int = Field(48, description="Number of frames within [2, 96]")
     fps: int = Field(10, description="Frames per second within [1, 30]")
     anim_mode: str = Field("orbit", description="Animation mode: orbit / turntable")
@@ -152,7 +152,7 @@ class RenderAnimationParams(BaseModel):
 class RenderWebglParams(BaseModel):
     """Return an incremental WebGL synchronization delta."""
 
-    mode: Literal["webgl"] = "webgl"
+    mode: Literal["webgl"] = Field("webgl", description="Emit a WebGL sync delta")
     previous_ids: list[str] = Field(
         default_factory=list, description="Object ids the client already holds"
     )
@@ -219,6 +219,12 @@ def cad_render(input: RenderInput) -> RenderOutput:
     - explode：爆炸视图 PNG
     - animation：orbit/turntable GIF 动画
     - webgl：WebGL 增量同步 delta
+
+    When not to use: ``cad_render`` produces images / sync deltas only. To
+    store or edit a named view *definition* before rendering use
+    ``cad_view``; for drawing-sheet exports (SVG/DXF/PDF) use
+    ``cad_drawing`` (action=export); for interop geometry files use
+    ``cad_file`` (export).
     """
     try:
         params = input.render

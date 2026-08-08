@@ -8,8 +8,8 @@ Design
   restart.
 - A separate *records* store keeps the authoritative history of every job
   (state, commands, results, per-command logs). APScheduler evicts one-shot
-  jobs once they fire, so records are required to answer ``cad_batch_list`` /
-  ``cad_batch_status`` with a consistent state, and to re-register cron jobs
+  jobs once they fire, so records are required to answer ``cad_batch``
+  (action=list/status) with a consistent state, and to re-register cron jobs
   after a restart. Records are persisted to ``batch_jobs.json`` under the
   configured temp directory.
 

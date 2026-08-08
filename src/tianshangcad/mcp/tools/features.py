@@ -9,7 +9,7 @@ every kernel.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -341,16 +341,138 @@ def _empty_bbox() -> dict[str, list[float]]:
 
 
 # ---------------------------------------------------------------------------
+# Aggregate cad_feature tool
+# ---------------------------------------------------------------------------
+
+
+class FeatureSweepParams(FeatureSweepInput):
+    """Sweep a profile along a path."""
+
+    action: Literal["sweep"] = "sweep"
+
+
+class FeatureLoftParams(FeatureLoftInput):
+    """Loft between profiles."""
+
+    action: Literal["loft"] = "loft"
+
+
+class FeatureFilletParams(FeatureFilletInput):
+    """Fillet an edge."""
+
+    action: Literal["fillet"] = "fillet"
+
+
+class FeatureChamferParams(FeatureChamferInput):
+    """Chamfer an edge."""
+
+    action: Literal["chamfer"] = "chamfer"
+
+
+class FeaturePatternLinearParams(FeaturePatternLinearInput):
+    """Linear pattern."""
+
+    action: Literal["pattern_linear"] = "pattern_linear"
+
+
+class FeaturePatternCircularParams(FeaturePatternCircularInput):
+    """Circular pattern."""
+
+    action: Literal["pattern_circular"] = "pattern_circular"
+
+
+class FeaturePatternMirrorParams(FeaturePatternMirrorInput):
+    """Mirror pattern."""
+
+    action: Literal["pattern_mirror"] = "pattern_mirror"
+
+
+FeatureActionParams = Annotated[
+    FeatureSweepParams
+    | FeatureLoftParams
+    | FeatureFilletParams
+    | FeatureChamferParams
+    | FeaturePatternLinearParams
+    | FeaturePatternCircularParams
+    | FeaturePatternMirrorParams,
+    Field(discriminator="action"),
+]
+
+
+class FeatureInput(BaseModel):
+    """Input for the aggregate feature tool.
+
+    聚合特征工具。``action`` 决定操作：sweep / loft / fillet / chamfer /
+    pattern_linear / pattern_circular / pattern_mirror。
+    """
+
+    feature: FeatureActionParams = Field(
+        ...,
+        description=(
+            "Feature action to perform, discriminated by `action`: sweep, loft, "
+            "fillet, chamfer, pattern_linear, pattern_circular or pattern_mirror."
+        ),
+    )
+
+
+class FeatureOutput(BaseModel):
+    """Output of the aggregate feature tool."""
+
+    action: str = Field(..., description="Feature action executed")
+    object_id: str = Field("", description="Result object id")
+    object_ids: list[str] = Field(default_factory=list, description="Result object ids")
+    count: int = Field(0, description="Number of created instances")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _feature_result(action: str, result: BaseModel) -> FeatureOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return FeatureOutput(**data)
+
+
+def cad_feature(input: FeatureInput) -> FeatureOutput:
+    """Sweep, loft, fillet, chamfer or pattern geometry.
+
+    聚合特征操作。按 ``action`` 派发：sweep / loft / fillet / chamfer /
+    pattern_linear / pattern_circular / pattern_mirror。
+    - ``sweep`` / ``loft``: create new solids from a profile (sweep along a
+      ``path``) or between ``profile_ids`` (loft). OCCT-backed when the
+      ``occ`` extra is installed, with analytic fallbacks otherwise.
+    - ``fillet`` / ``chamfer``: round or bevel edges — exact on the OCCT
+      kernel, otherwise report ``requires_occ``.
+    - ``pattern_linear`` / ``pattern_circular`` / ``pattern_mirror``: copy an
+      entity into an array (rigid transforms, available on every kernel).
+
+    When not to use: ``cad_feature`` derives new geometry from existing
+    entities. For editing a single object's parameters use ``cad_object``
+    (update/transform); for boolean combination use ``cad_object``
+    (action=boolean).
+    """
+    params = input.feature
+    if params.action == "sweep":
+        return _feature_result("sweep", cad_feature_sweep(params))
+    if params.action == "loft":
+        return _feature_result("loft", cad_feature_loft(params))
+    if params.action == "fillet":
+        return _feature_result("fillet", cad_feature_fillet(params))
+    if params.action == "chamfer":
+        return _feature_result("chamfer", cad_feature_chamfer(params))
+    if params.action == "pattern_linear":
+        return _feature_result("pattern_linear", cad_feature_pattern_linear(params))
+    if params.action == "pattern_circular":
+        return _feature_result("pattern_circular", cad_feature_pattern_circular(params))
+    if params.action == "pattern_mirror":
+        return _feature_result("pattern_mirror", cad_feature_pattern_mirror(params))
+    return FeatureOutput(action=params.action, status="error", message="Unknown action")
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_feature_sweep", cad_feature_sweep),
-    ("cad_feature_loft", cad_feature_loft),
-    ("cad_feature_fillet", cad_feature_fillet),
-    ("cad_feature_chamfer", cad_feature_chamfer),
-    ("cad_feature_pattern_linear", cad_feature_pattern_linear),
-    ("cad_feature_pattern_circular", cad_feature_pattern_circular),
-    ("cad_feature_pattern_mirror", cad_feature_pattern_mirror),
+    ("cad_feature", cad_feature),
 ]

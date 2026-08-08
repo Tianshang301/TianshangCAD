@@ -53,7 +53,9 @@ from tianshangcad.mcp.tools.validate import (
     cad_validate_topology,
 )
 
-_METRICS = [BatchCommand(tool="cad_metrics_get", arguments={})]
+_METRICS = [
+    BatchCommand(tool="cad_validate", arguments={"query": {"action": "metrics"}})
+]
 
 
 def _wait_for(job_id: str, states: set[str], timeout: float = 5.0) -> str:
@@ -248,15 +250,20 @@ class TestBatchExecute:
             BatchExecuteInput(
                 commands=[
                     BatchCommand(
-                        tool="cad_file_create",
-                        arguments={"filename": "a.dwg", "unit": "mm"},
+                        tool="cad_file",
+                        arguments={
+                            "file": {"action": "create", "filename": "a.dwg", "unit": "mm"}
+                        },
                     ),
                     BatchCommand(
-                        tool="cad_object_create",
+                        tool="cad_object",
                         arguments={
-                            "type": "circle",
-                            "params": {"center": [1, 1, 0], "radius": 3},
-                            "layer": "0",
+                            "object": {
+                                "action": "create",
+                                "type": "circle",
+                                "params": {"center": [1, 1, 0], "radius": 3},
+                                "layer": "0",
+                            }
                         },
                     ),
                 ]
@@ -295,7 +302,7 @@ class TestBatchExecute:
         logs = cad_logs(LogsInput(logs=LogsGetParams(source="batch")))
         assert logs.total >= 1
         assert any(
-            entry["details"].get("tool_name") == "cad_metrics_get"
+            entry["details"].get("tool_name") == "cad_validate"
             for entry in logs.logs
         )
 
@@ -431,7 +438,9 @@ class TestBatchRunScript:
 
     def test_run_scr(self) -> None:
         result = cad_batch_run_script(
-            BatchRunScriptInput(script="cad_metrics_get\ncad_status", script_type="scr")
+            BatchRunScriptInput(
+                script="cad_validate query.action=metrics\ncad_status", script_type="scr"
+            )
         )
         assert result.ok is True
         assert result.success_count == 2
@@ -526,7 +535,7 @@ class TestBatchAggregate:
         result = cad_batch(
             BatchInput(
                 batch=BatchRunScriptParams(
-                    script="cad_metrics_get", script_type="scr"
+                    script="cad_validate query.action=metrics", script_type="scr"
                 )
             )
         )

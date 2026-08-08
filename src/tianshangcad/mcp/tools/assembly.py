@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -321,17 +321,157 @@ def cad_assembly_explode(input: AssemblyExplodeInput) -> AssemblyExplodeOutput:
 
 
 # ---------------------------------------------------------------------------
+# Aggregate cad_assembly tool
+# ---------------------------------------------------------------------------
+
+
+class AssemblyCreateParams(AssemblyCreateInput):
+    """Create an assembly."""
+
+    action: Literal["create"] = "create"
+
+
+class AssemblyAddPartParams(AssemblyAddPartInput):
+    """Add a part to the assembly."""
+
+    action: Literal["add_part"] = "add_part"
+
+
+class AssemblyAddSubasmParams(AssemblyAddSubasmInput):
+    """Add a sub-assembly container."""
+
+    action: Literal["add_subasm"] = "add_subasm"
+
+
+class AssemblyAddMateParams(AssemblyAddMateInput):
+    """Add a mate between two nodes."""
+
+    action: Literal["add_mate"] = "add_mate"
+
+
+class AssemblyRemovePartParams(AssemblyRemovePartInput):
+    """Remove a node and its subtree."""
+
+    action: Literal["remove_part"] = "remove_part"
+
+
+class AssemblySolveParams(AssemblySolveInput):
+    """Solve the assembly."""
+
+    action: Literal["solve"] = "solve"
+
+
+class AssemblyBomParams(AssemblyBomInput):
+    """Generate a bill of materials."""
+
+    action: Literal["bom"] = "bom"
+
+
+class AssemblyExplodeParams(AssemblyExplodeInput):
+    """Compute an exploded view."""
+
+    action: Literal["explode"] = "explode"
+
+
+AssemblyActionParams = Annotated[
+    AssemblyCreateParams
+    | AssemblyAddPartParams
+    | AssemblyAddSubasmParams
+    | AssemblyAddMateParams
+    | AssemblyRemovePartParams
+    | AssemblySolveParams
+    | AssemblyBomParams
+    | AssemblyExplodeParams,
+    Field(discriminator="action"),
+]
+
+
+class AssemblyInput(BaseModel):
+    """Input for the aggregate assembly tool.
+
+    聚合装配工具。``action`` 决定操作：create / add_part / add_subasm /
+    add_mate / remove_part / solve / bom / explode。
+    """
+
+    assembly: AssemblyActionParams = Field(
+        ...,
+        description=(
+            "Assembly action to perform, discriminated by `action`: create, "
+            "add_part, add_subasm, add_mate, remove_part, solve, bom or explode."
+        ),
+    )
+
+
+class AssemblyOutput(BaseModel):
+    """Output of the aggregate assembly tool."""
+
+    action: str = Field(..., description="Assembly action executed")
+    assembly_id: str = Field("", description="Assembly identifier")
+    name: str = Field("", description="Assembly / node name")
+    node_id: str = Field("", description="Assembly node identifier")
+    mate_id: str = Field("", description="Mate identifier")
+    mate_type: str = Field("", description="Mate type")
+    transforms: dict[str, dict[str, list[float]]] = Field(
+        default_factory=dict, description="World transform of every node"
+    )
+    mate_count: int = Field(0, description="Number of mates solved")
+    bom: list[dict[str, Any]] = Field(default_factory=list, description="BOM rows")
+    csv: str | None = Field(None, description="CSV text when requested")
+    part_count: int = Field(0, description="Total number of parts")
+    records: list[dict[str, Any]] = Field(default_factory=list, description="Exploded positions")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _assembly_result(action: str, result: BaseModel) -> AssemblyOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return AssemblyOutput(**data)
+
+
+def cad_assembly(input: AssemblyInput) -> AssemblyOutput:
+    """Create, edit, solve or analyze an assembly.
+
+    聚合装配操作。按 ``action`` 派发：create / add_part / add_subasm /
+    add_mate / remove_part / solve / bom / explode。
+    - ``create``: initialize the document's assembly container.
+    - ``add_part`` / ``add_subasm``: build the tree; parts may reference a
+      document ``entity_id`` and nest under a ``parent_id``.
+    - ``add_mate``: constrain two nodes (coincident / concentric / parallel /
+      perpendicular / distance / angle).
+    - ``solve``: apply mates in order and return every node's world transform.
+    - ``bom``: flattened bill of materials (``format`` json or csv).
+    - ``explode``: radial offsets by tree depth (``direction`` x/y/z).
+
+    When not to use: ``cad_assembly`` composes *parts*, not geometry. Create
+    part geometry first with ``cad_object`` (create), then add it to the
+    assembly. For drawings of an assembly use ``cad_drawing``.
+    """
+    params = input.assembly
+    if params.action == "create":
+        return _assembly_result("create", cad_assembly_create(params))
+    if params.action == "add_part":
+        return _assembly_result("add_part", cad_assembly_add_part(params))
+    if params.action == "add_subasm":
+        return _assembly_result("add_subasm", cad_assembly_add_subasm(params))
+    if params.action == "add_mate":
+        return _assembly_result("add_mate", cad_assembly_add_mate(params))
+    if params.action == "remove_part":
+        return _assembly_result("remove_part", cad_assembly_remove_part(params))
+    if params.action == "solve":
+        return _assembly_result("solve", cad_assembly_solve(params))
+    if params.action == "bom":
+        return _assembly_result("bom", cad_assembly_bom(params))
+    if params.action == "explode":
+        return _assembly_result("explode", cad_assembly_explode(params))
+    return AssemblyOutput(action=params.action, status="error", message="Unknown action")
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_assembly_create", cad_assembly_create),
-    ("cad_assembly_add_part", cad_assembly_add_part),
-    ("cad_assembly_add_subasm", cad_assembly_add_subasm),
-    ("cad_assembly_add_mate", cad_assembly_add_mate),
-    ("cad_assembly_remove_part", cad_assembly_remove_part),
-    ("cad_assembly_solve", cad_assembly_solve),
-    ("cad_assembly_bom", cad_assembly_bom),
-    ("cad_assembly_explode", cad_assembly_explode),
+    ("cad_assembly", cad_assembly),
 ]

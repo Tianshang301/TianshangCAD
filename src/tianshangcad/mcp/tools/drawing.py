@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -352,16 +352,145 @@ def cad_drawing_export(input: DrawingExportInput) -> DrawingExportOutput:
 
 
 # ---------------------------------------------------------------------------
+# Aggregate cad_drawing tool
+# ---------------------------------------------------------------------------
+
+
+class DrawingCreateParams(DrawingCreateInput):
+    """Create a drawing sheet."""
+
+    action: Literal["create"] = "create"
+
+
+class DrawingAddViewParams(DrawingAddViewInput):
+    """Add a view."""
+
+    action: Literal["add_view"] = "add_view"
+
+
+class DrawingAddSectionParams(DrawingAddSectionInput):
+    """Add a section view."""
+
+    action: Literal["add_section"] = "add_section"
+
+
+class DrawingAddDimensionParams(DrawingAddDimensionInput):
+    """Add a dimension."""
+
+    action: Literal["add_dimension"] = "add_dimension"
+
+
+class DrawingAddToleranceParams(DrawingAddToleranceInput):
+    """Add a GD&T tolerance frame."""
+
+    action: Literal["add_tolerance"] = "add_tolerance"
+
+
+class DrawingDeleteParams(DrawingDeleteInput):
+    """Delete the current drawing."""
+
+    action: Literal["delete"] = "delete"
+
+
+class DrawingExportParams(DrawingExportInput):
+    """Export the drawing."""
+
+    action: Literal["export"] = "export"
+
+
+DrawingActionParams = Annotated[
+    DrawingCreateParams
+    | DrawingAddViewParams
+    | DrawingAddSectionParams
+    | DrawingAddDimensionParams
+    | DrawingAddToleranceParams
+    | DrawingDeleteParams
+    | DrawingExportParams,
+    Field(discriminator="action"),
+]
+
+
+class DrawingInput(BaseModel):
+    """Input for the aggregate drawing tool.
+
+    聚合工程图工具。``action`` 决定操作：create / add_view / add_section /
+    add_dimension / add_tolerance / delete / export。
+    """
+
+    drawing: DrawingActionParams = Field(
+        ...,
+        description=(
+            "Drawing action to perform, discriminated by `action`: create, "
+            "add_view, add_section, add_dimension, add_tolerance, delete or export."
+        ),
+    )
+
+
+class DrawingOutput(BaseModel):
+    """Output of the aggregate drawing tool."""
+
+    action: str = Field(..., description="Drawing action executed")
+    drawing_id: str = Field("", description="Drawing identifier")
+    paper: str = Field("", description="Paper size")
+    width: float = Field(0.0, description="Sheet width in mm")
+    height: float = Field(0.0, description="Sheet height in mm")
+    view_id: str = Field("", description="View identifier")
+    dimension_id: str = Field("", description="Dimension identifier")
+    tolerance_id: str = Field("", description="Tolerance identifier")
+    path: str = Field("", description="Exported path")
+    format: str = Field("", description="Export format")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _drawing_result(action: str, result: BaseModel) -> DrawingOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return DrawingOutput(**data)
+
+
+def cad_drawing(input: DrawingInput) -> DrawingOutput:
+    """Create, edit or export an engineering drawing.
+
+    聚合工程图操作。按 ``action`` 派发：create / add_view / add_section /
+    add_dimension / add_tolerance / delete / export。
+    - ``create``: a sheet (paper A0-A4, title block).
+    - ``add_view`` / ``add_section``: main / projection / section / detail /
+      isometric views over referenced entities.
+    - ``add_dimension``: ISO 129-1 dimensions (linear / angular / radial /
+      diameter / ordinate).
+    - ``add_tolerance``: GD&T feature-control frames (position / flatness /
+      parallelism / perpendicularity / concentricity).
+    - ``export``: write the sheet as svg / dxf / pdf at ``path``.
+
+    When not to use: ``cad_drawing`` produces engineering drawing sheets.
+    For plain 2D/3D preview images use ``cad_render``; for interop geometry
+    files use ``cad_file`` (export step/dxf/stl); for object geometry edits
+    use ``cad_object``.
+    """
+    params = input.drawing
+    if params.action == "create":
+        return _drawing_result("create", cad_drawing_create(params))
+    if params.action == "add_view":
+        return _drawing_result("add_view", cad_drawing_add_view(params))
+    if params.action == "add_section":
+        return _drawing_result("add_section", cad_drawing_add_section(params))
+    if params.action == "add_dimension":
+        return _drawing_result("add_dimension", cad_drawing_add_dimension(params))
+    if params.action == "add_tolerance":
+        return _drawing_result("add_tolerance", cad_drawing_add_tolerance(params))
+    if params.action == "delete":
+        return _drawing_result("delete", cad_drawing_delete(params))
+    if params.action == "export":
+        return _drawing_result("export", cad_drawing_export(params))
+    return DrawingOutput(action=params.action, status="error", message="Unknown action")
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_drawing_create", cad_drawing_create),
-    ("cad_drawing_add_view", cad_drawing_add_view),
-    ("cad_drawing_add_section", cad_drawing_add_section),
-    ("cad_drawing_add_dimension", cad_drawing_add_dimension),
-    ("cad_drawing_add_tolerance", cad_drawing_add_tolerance),
-    ("cad_drawing_delete", cad_drawing_delete),
-    ("cad_drawing_export", cad_drawing_export),
+    ("cad_drawing", cad_drawing),
 ]

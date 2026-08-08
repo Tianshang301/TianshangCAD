@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -682,27 +682,431 @@ def cad_layer_list(input: LayerListInput) -> LayerListOutput:
 
 
 # ---------------------------------------------------------------------------
+# Aggregate cad_file / cad_object / cad_layer tools
+# ---------------------------------------------------------------------------
+
+
+class FileCreateParams(FileCreateInput):
+    """Create a new CAD file."""
+
+    action: Literal["create"] = "create"
+
+
+class FileOpenParams(FileOpenInput):
+    """Open an existing JSON scene file."""
+
+    action: Literal["open"] = "open"
+
+
+class FileSaveParams(FileSaveInput):
+    """Save a document to disk."""
+
+    action: Literal["save"] = "save"
+
+
+class FileCloseParams(FileCloseInput):
+    """Close a document."""
+
+    action: Literal["close"] = "close"
+
+
+class FileDeleteParams(FileDeleteInput):
+    """Delete a document from the session."""
+
+    action: Literal["delete"] = "delete"
+
+
+class FileListParams(FileListInput):
+    """List the open files."""
+
+    action: Literal["list"] = "list"
+
+
+class FileImportParams(BaseModel):
+    """Import a file as a new document."""
+
+    action: Literal["import"] = "import"
+    path: str = Field(..., description="File path to import (.json / .dxf / .step)")
+
+
+class FileExportParams(BaseModel):
+    """Export the current document to a file."""
+
+    action: Literal["export"] = "export"
+    format: str = Field(
+        ...,
+        description="Export format: step (recommended), dxf, stl, dwg, json",
+        examples=["step"],
+    )
+    path: str = Field(..., description="Target file path")
+
+
+FileActionParams = Annotated[
+    FileCreateParams
+    | FileOpenParams
+    | FileSaveParams
+    | FileCloseParams
+    | FileDeleteParams
+    | FileListParams
+    | FileImportParams
+    | FileExportParams,
+    Field(discriminator="action"),
+]
+
+
+class FileInput(BaseModel):
+    """Input for the aggregate file tool.
+
+    聚合文件工具。``action`` 决定操作：create / open / save / close / delete /
+    list / import / export。
+    """
+
+    file: FileActionParams = Field(
+        ...,
+        description=(
+            "File action to perform, discriminated by `action`: create, open, "
+            "save, close, delete, list, import or export."
+        ),
+    )
+
+
+class FileOutput(BaseModel):
+    """Output of the aggregate file tool."""
+
+    action: str = Field(..., description="File action executed")
+    file_id: str = Field("", description="File unique identifier")
+    filename: str = Field("", description="File name")
+    path: str = Field("", description="Saved / exported path")
+    files: list[dict[str, Any]] = Field(default_factory=list, description="Open files")
+    object_count: int = Field(0, description="Number of imported objects")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+class ObjectCreateParams(ObjectCreateInput):
+    """Create a geometry object."""
+
+    action: Literal["create"] = "create"
+
+
+class ObjectReadParams(ObjectReadInput):
+    """Read an object's details."""
+
+    action: Literal["read"] = "read"
+
+
+class ObjectUpdateParams(ObjectUpdateInput):
+    """Update an object."""
+
+    action: Literal["update"] = "update"
+
+
+class ObjectDeleteParams(ObjectDeleteInput):
+    """Delete an object."""
+
+    action: Literal["delete"] = "delete"
+
+
+class ObjectCopyParams(ObjectCopyInput):
+    """Copy an object."""
+
+    action: Literal["copy"] = "copy"
+
+
+class ObjectTransformParams(ObjectTransformInput):
+    """Apply a 4x4 matrix to an object."""
+
+    action: Literal["transform"] = "transform"
+
+
+class ObjectListParams(ObjectListInput):
+    """List objects, optionally filtered by layer."""
+
+    action: Literal["list"] = "list"
+
+
+class ObjectBooleanParams(BaseModel):
+    """Combine several objects with a boolean operation."""
+
+    action: Literal["boolean"] = "boolean"
+    operation: Literal["union", "subtract", "intersect"] = Field(
+        ..., description="Boolean operation", examples=["subtract"]
+    )
+    target_id: str = Field(..., description="Target object id")
+    tool_ids: list[str] = Field(..., description="Tool object ids to combine")
+    new_id: str | None = Field(None, description="Optional id for the result object")
+    layer: str = Field("0", description="Layer for the result object")
+
+
+ObjectActionParams = Annotated[
+    ObjectCreateParams
+    | ObjectReadParams
+    | ObjectUpdateParams
+    | ObjectDeleteParams
+    | ObjectCopyParams
+    | ObjectTransformParams
+    | ObjectListParams
+    | ObjectBooleanParams,
+    Field(discriminator="action"),
+]
+
+
+class ObjectInput(BaseModel):
+    """Input for the aggregate object tool.
+
+    聚合对象工具。``action`` 决定操作：create / read / update / delete / copy /
+    transform / list / boolean。
+    """
+
+    object: ObjectActionParams = Field(
+        ...,
+        description=(
+            "Object action to perform, discriminated by `action`: create, read, "
+            "update, delete, copy, transform, list or boolean."
+        ),
+    )
+
+
+class ObjectOutput(BaseModel):
+    """Output of the aggregate object tool."""
+
+    action: str = Field(..., description="Object action executed")
+    object_id: str = Field("", description="Object unique identifier")
+    result_id: str = Field("", description="Result object id (boolean / copy)")
+    type: str = Field("", description="Object type")
+    layer: str = Field("", description="Layer name")
+    geometry: dict[str, Any] = Field(default_factory=dict, description="Geometry parameters")
+    properties: dict[str, Any] = Field(default_factory=dict, description="Object properties")
+    bbox: dict[str, list[float]] = Field(
+        default_factory=lambda: {"min": [0.0, 0.0, 0.0], "max": [0.0, 0.0, 0.0]},
+        description="Bounding box",
+    )
+    objects: list[dict[str, Any]] = Field(default_factory=list, description="Object summaries")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+class LayerCreateParams(LayerCreateInput):
+    """Create a layer."""
+
+    action: Literal["create"] = "create"
+
+
+class LayerReadParams(LayerReadInput):
+    """Read a layer's definition."""
+
+    action: Literal["read"] = "read"
+
+
+class LayerUpdateParams(LayerUpdateInput):
+    """Update a layer's attributes."""
+
+    action: Literal["update"] = "update"
+
+
+class LayerDeleteParams(LayerDeleteInput):
+    """Delete a layer."""
+
+    action: Literal["delete"] = "delete"
+
+
+class LayerListParams(LayerListInput):
+    """List the layers of the current document."""
+
+    action: Literal["list"] = "list"
+
+
+LayerActionParams = Annotated[
+    LayerCreateParams
+    | LayerReadParams
+    | LayerUpdateParams
+    | LayerDeleteParams
+    | LayerListParams,
+    Field(discriminator="action"),
+]
+
+
+class LayerInput(BaseModel):
+    """Input for the aggregate layer tool.
+
+    聚合图层工具。``action`` 决定操作：create / read / update / delete / list。
+    """
+
+    layer: LayerActionParams = Field(
+        ...,
+        description=(
+            "Layer action to perform, discriminated by `action`: create, read, "
+            "update, delete or list."
+        ),
+    )
+
+
+class LayerOutput(BaseModel):
+    """Output of the aggregate layer tool."""
+
+    action: str = Field(..., description="Layer action executed")
+    name: str = Field("", description="Layer name")
+    color: str = Field("", description="Layer color")
+    linetype: str = Field("", description="Line type")
+    linewidth: float = Field(0.0, description="Line width")
+    visible: bool = Field(False, description="Visibility")
+    locked: bool = Field(False, description="Lock state")
+    layers: list[dict[str, Any]] = Field(default_factory=list, description="Layer definitions")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _file_result(action: str, result: BaseModel) -> FileOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return FileOutput(**data)
+
+
+def cad_file(input: FileInput) -> FileOutput:
+    """Create, open, save, close, delete, list, import or export files.
+
+    聚合文件操作。按 ``action`` 派发：create / open / save / close / delete /
+    list / import / export。
+    - ``create`` / ``open`` / ``save`` / ``close`` / ``delete`` / ``list``:
+      manage in-memory documents. ``open`` and ``save`` read/write the JSON
+      scene format; ``create`` starts a new document (optional ``template`` /
+      ``unit``).
+    - ``export``: write the current document to an interop format — step
+      (recommended), dxf, stl, dwg or json — at ``path``.
+    - ``import``: load an interop file (.json / .dxf / .step / .dwg) as a new
+      document.
+
+    When not to use: ``cad_file`` handles whole files/documents. For
+    per-object geometry edits use ``cad_object``; to import/export raw JSON
+    scene data (not files) use ``cad_json`` (import_scene/export_scene).
+    """
+    params = input.file
+    if params.action == "create":
+        return _file_result("create", cad_file_create(params))
+    if params.action == "open":
+        return _file_result("open", cad_file_open(params))
+    if params.action == "save":
+        return _file_result("save", cad_file_save(params))
+    if params.action == "close":
+        return _file_result("close", cad_file_close(params))
+    if params.action == "delete":
+        return _file_result("delete", cad_file_delete(params))
+    if params.action == "list":
+        return _file_result("list", cad_file_list(FileListInput()))
+    if params.action == "import":
+        from tianshangcad.mcp.tools.file_io import FileImportInput, cad_file_import
+
+        return _file_result("import", cad_file_import(FileImportInput(path=params.path)))
+    if params.action == "export":
+        from tianshangcad.mcp.tools.file_io import FileExportInput, cad_file_export
+
+        return _file_result(
+            "export",
+            cad_file_export(FileExportInput(format=params.format, path=params.path)),
+        )
+    return FileOutput(action=params.action, status="error", message="Unknown action")
+
+
+def _object_result(action: str, result: BaseModel) -> ObjectOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return ObjectOutput(**data)
+
+
+def cad_object(input: ObjectInput) -> ObjectOutput:
+    """Create, read, update, delete, copy, transform, list or boolean objects.
+
+    聚合对象操作。按 ``action`` 派发：create / read / update / delete / copy /
+    transform / list / boolean。
+    - ``create``: add an entity by ``type`` (line, circle, arc, rectangle,
+      polygon, polyline, box, cylinder, sphere, cone) with ``params``;
+      returns the new ``object_id`` and bounding box.
+    - ``read`` / ``update`` / ``delete`` / ``copy``: inspect, edit (geometry /
+      layer / properties), remove, or duplicate an object by ``object_id``.
+    - ``transform``: apply a 4x4 matrix (column-major, translation in the
+      fourth column) for translate / rotate / scale.
+    - ``list``: enumerate objects, optionally filtered by ``layer``.
+    - ``boolean``: combine objects (union / subtract / intersect) into a new
+      mesh; requires the optional ``boolean`` extra.
+
+    When not to use: ``cad_object`` edits the current document's geometry.
+    For interop file formats use ``cad_file`` (import/export); for JSON
+    scene round-trips use ``cad_json``; for measurements on existing objects
+    use ``cad_measure``; for geometric validation use ``cad_validate``.
+    """
+    params = input.object
+    if params.action == "create":
+        return _object_result("create", cad_object_create(params))
+    if params.action == "read":
+        return _object_result("read", cad_object_read(params))
+    if params.action == "update":
+        return _object_result("update", cad_object_update(params))
+    if params.action == "delete":
+        return _object_result("delete", cad_object_delete(params))
+    if params.action == "copy":
+        return _object_result("copy", cad_object_copy(params))
+    if params.action == "transform":
+        return _object_result("transform", cad_object_transform(params))
+    if params.action == "list":
+        return _object_result("list", cad_object_list(ObjectListInput(layer=params.layer)))
+    if params.action == "boolean":
+        from tianshangcad.mcp.tools.boolean import ObjectBooleanInput, cad_object_boolean
+
+        return _object_result(
+            "boolean",
+            cad_object_boolean(
+                ObjectBooleanInput(
+                    operation=params.operation,
+                    target_id=params.target_id,
+                    tool_ids=params.tool_ids,
+                    new_id=params.new_id,
+                    layer=params.layer,
+                )
+            ),
+        )
+    return ObjectOutput(action=params.action, status="error", message="Unknown action")
+
+
+def _layer_result(action: str, result: BaseModel) -> LayerOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return LayerOutput(**data)
+
+
+def cad_layer(input: LayerInput) -> LayerOutput:
+    """Create, read, update, delete or list layers.
+
+    聚合图层操作。按 ``action`` 派发：create / read / update / delete / list。
+    Layers group objects for display and selection. ``create`` accepts
+    color / linetype / linewidth; ``update`` can also toggle ``visible`` /
+    ``locked``; ``delete`` removes the layer *and* the objects on it.
+
+    When not to use: for per-object layer membership use ``cad_object``
+    (create/update with a ``layer``); for per-layer object counts use
+    ``cad_status`` (target=layer). To hide objects without deleting them
+    prefer ``cad_layer`` (update visible=false).
+    """
+    params = input.layer
+    if params.action == "create":
+        return _layer_result("create", cad_layer_create(params))
+    if params.action == "read":
+        return _layer_result("read", cad_layer_read(params))
+    if params.action == "update":
+        return _layer_result("update", cad_layer_update(params))
+    if params.action == "delete":
+        return _layer_result("delete", cad_layer_delete(params))
+    if params.action == "list":
+        return _layer_result("list", cad_layer_list(LayerListInput()))
+    return LayerOutput(action=params.action, status="error", message="Unknown action")
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_file_create", cad_file_create),
-    ("cad_file_open", cad_file_open),
-    ("cad_file_save", cad_file_save),
-    ("cad_file_close", cad_file_close),
-    ("cad_file_delete", cad_file_delete),
-    ("cad_file_list", cad_file_list),
-    ("cad_object_create", cad_object_create),
-    ("cad_object_read", cad_object_read),
-    ("cad_object_update", cad_object_update),
-    ("cad_object_delete", cad_object_delete),
-    ("cad_object_copy", cad_object_copy),
-    ("cad_object_transform", cad_object_transform),
-    ("cad_object_list", cad_object_list),
-    ("cad_layer_create", cad_layer_create),
-    ("cad_layer_read", cad_layer_read),
-    ("cad_layer_update", cad_layer_update),
-    ("cad_layer_delete", cad_layer_delete),
-    ("cad_layer_list", cad_layer_list),
+    ("cad_file", cad_file),
+    ("cad_object", cad_object),
+    ("cad_layer", cad_layer),
 ]

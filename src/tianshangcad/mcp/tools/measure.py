@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -108,11 +108,89 @@ def cad_measure_area(input: MeasureAreaInput) -> MeasureAreaOutput:
 
 
 # ---------------------------------------------------------------------------
+# Aggregate cad_measure tool
+# ---------------------------------------------------------------------------
+
+
+class MeasureDistanceParams(MeasureDistanceInput):
+    """Measure the distance between two points."""
+
+    action: Literal["distance"] = "distance"
+
+
+class MeasureAreaParams(MeasureAreaInput):
+    """Measure an object's area (or volume)."""
+
+    action: Literal["area"] = "area"
+
+
+MeasureActionParams = Annotated[
+    MeasureDistanceParams | MeasureAreaParams,
+    Field(discriminator="action"),
+]
+
+
+class MeasureInput(BaseModel):
+    """Input for the aggregate measurement tool.
+
+    聚合测量工具。``action`` 决定操作：distance / area。
+    """
+
+    measure: MeasureActionParams = Field(
+        ...,
+        description=(
+            "Measurement to perform, discriminated by `action`: distance or area."
+        ),
+    )
+
+
+class MeasureOutput(BaseModel):
+    """Output of the aggregate measurement tool."""
+
+    action: str = Field(..., description="Measurement action executed")
+    distance: float = Field(0.0, description="Distance between the two points")
+    value: float = Field(0.0, description="Measured value")
+    unit: str = Field("", description="mm^2 for area, mm^3 for volume")
+    kind: str = Field("", description="Measurement kind: area / volume")
+    status: str = Field(..., description="Operation status")
+    message: str | None = Field(None, description="Status description")
+
+
+def _measure_result(action: str, result: BaseModel) -> MeasureOutput:
+    data = result.model_dump()
+    data["action"] = action
+    return MeasureOutput(**data)
+
+
+def cad_measure(input: MeasureInput) -> MeasureOutput:
+    """Measure a distance or an object's area/volume.
+
+    聚合测量操作。按 ``action`` 派发：distance / area。
+    - ``distance``: Euclidean distance between ``point_a`` and ``point_b``
+      (2D ``[x, y]`` or 3D ``[x, y, z]``), returns ``distance``.
+    - ``area``: measure an existing object by ``object_id`` — 2D kinds
+      (circle / rectangle / polygon) return area (``mm^2``), 3D kinds
+      (box / cylinder / sphere / cone) return volume (``mm^3``); ``kind``
+      in the output reports which.
+
+    When not to use: ``cad_measure`` reads existing geometry. To query
+    object position / bounding box use ``cad_object`` (action=read) or
+    ``cad_status`` (target=object); to validate mesh validity use
+    ``cad_validate`` (action=geometry).
+    """
+    params = input.measure
+    if params.action == "distance":
+        return _measure_result("distance", cad_measure_distance(params))
+    if params.action == "area":
+        return _measure_result("area", cad_measure_area(params))
+    return MeasureOutput(action=params.action, status="error", message="Unknown action")
+
+
+# ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
 
 #: Ordered (name, callable) pairs registered with the MCP server.
 TOOLS: list[tuple[str, Any]] = [
-    ("cad_measure_distance", cad_measure_distance),
-    ("cad_measure_area", cad_measure_area),
+    ("cad_measure", cad_measure),
 ]

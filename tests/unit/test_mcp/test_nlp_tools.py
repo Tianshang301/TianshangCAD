@@ -17,54 +17,57 @@ class TestNLPCommand:
         result = cad_nlp_command(NLPCommandInput(text="new file design.dwg"))
         assert result.status == "success"
         assert result.intent == "create_file"
-        assert result.tool == "cad_file_create"
-        assert result.arguments["filename"] == "design.dwg"
+        assert result.tool == "cad_file"
+        assert result.arguments["file"]["action"] == "create"
+        assert result.arguments["file"]["filename"] == "design.dwg"
         assert result.confidence > 0.8
 
     def test_create_file_chinese(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="新建文件 project.json"))
         assert result.status == "success"
         assert result.intent == "create_file"
-        assert result.arguments["filename"] == "project.json"
+        assert result.arguments["file"]["filename"] == "project.json"
 
     def test_open_file(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="open C:/tmp/part.json"))
         assert result.status == "success"
         assert result.intent == "open_file"
-        assert result.arguments["path"] == "C:/tmp/part.json"
+        assert result.arguments["file"]["path"] == "C:/tmp/part.json"
 
     def test_draw_line(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="draw a line from 0,0 to 10,10"))
         assert result.status == "success"
         assert result.intent == "draw_line"
-        assert result.tool == "cad_object_create"
-        assert result.arguments["type"] == "line"
-        assert result.arguments["params"]["start"] == [0.0, 0.0, 0.0]
-        assert result.arguments["params"]["end"] == [10.0, 10.0, 0.0]
+        assert result.tool == "cad_object"
+        assert result.arguments["object"]["action"] == "create"
+        assert result.arguments["object"]["type"] == "line"
+        assert result.arguments["object"]["params"]["start"] == [0.0, 0.0, 0.0]
+        assert result.arguments["object"]["params"]["end"] == [10.0, 10.0, 0.0]
 
     def test_draw_circle(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="画一个圆 中心 5,5 半径 3"))
         assert result.status == "success"
         assert result.intent == "draw_circle"
-        assert result.arguments["params"]["radius"] == 3.0
+        assert result.arguments["object"]["params"]["radius"] == 3.0
 
     def test_draw_box(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="create a box"))
         assert result.status == "success"
         assert result.intent == "draw_box"
-        assert result.arguments["type"] == "box"
+        assert result.arguments["object"]["type"] == "box"
 
     def test_delete_object(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="delete object obj_1234"))
         assert result.status == "success"
         assert result.intent == "delete_object"
-        assert result.arguments["object_id"] == "obj_1234"
+        assert result.arguments["object"]["action"] == "delete"
+        assert result.arguments["object"]["object_id"] == "obj_1234"
 
     def test_list_objects(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="list objects"))
         assert result.status == "success"
         assert result.intent == "list_objects"
-        assert result.arguments == {}
+        assert result.arguments == {"object": {"action": "list"}}
 
     def test_check_status_chinese(self) -> None:
         result = cad_nlp_command(NLPCommandInput(text="查看状态"))
@@ -111,7 +114,7 @@ class TestNLPCommand:
         result = cad_nlp_command(
             NLPCommandInput(
                 text="draw a circle at 1,2 radius 4",
-                tool_whitelist=["cad_file_create"],
+                tool_whitelist=["cad_file"],
             )
         )
         assert result.status == "error"
@@ -135,7 +138,7 @@ class TestNLPChat:
         assert second.object_id == first.object_id
         assert second.resolved is True
         assert second.turn == 2
-        assert second.arguments["params"]["center"] == [10.0, 10.0, 0.0]
+        assert second.arguments["object"]["params"]["center"] == [10.0, 10.0, 0.0]
 
     def test_chat_chinese_anaphora(self, document) -> None:
         """Chinese dialogue: draw a circle, then move '它' (it)."""
@@ -147,7 +150,7 @@ class TestNLPChat:
         assert second.intent == "move_object"
         assert second.resolved is True
         assert second.object_id == first.object_id
-        assert second.arguments["params"]["center"] == [4.0, 4.0, 0.0]
+        assert second.arguments["object"]["params"]["center"] == [4.0, 4.0, 0.0]
 
     def test_move_explicit_reference(self, document) -> None:
         """'the circle I just drew' resolves to the previously created object."""
@@ -157,7 +160,7 @@ class TestNLPChat:
         )
         assert second.intent == "move_object"
         assert second.object_id == first.object_id
-        assert second.arguments["params"]["center"] == [3.0, 3.0, 0.0]
+        assert second.arguments["object"]["params"]["center"] == [3.0, 3.0, 0.0]
 
     def test_delete_anaphora(self, document) -> None:
         """Delete the object created in a previous turn."""
@@ -189,6 +192,6 @@ class TestNLPChat:
             ChatInput(session_id="s4", text="draw a line from 0,0 to 10,0")
         )
         second = cad_nlp_chat(ChatInput(session_id="s4", text="move it to 5,5"))
-        updated_params = second.arguments["params"]
+        updated_params = second.arguments["object"]["params"]
         assert updated_params["start"] == [5.0, 5.0, 0.0]
         assert updated_params["end"] == [15.0, 5.0, 0.0]
