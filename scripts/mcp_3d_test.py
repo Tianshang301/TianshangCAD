@@ -36,14 +36,15 @@ async def main() -> None:
 
         await call(
             session,
-            "cad_file_create",
-            {"input": {"filename": "3d_test.json", "unit": "mm"}},
+            "cad_file",
+            {"file": {"action": "create", "filename": "3d_test.json", "unit": "mm"}},
         )
         await call(
             session,
-            "cad_object_create",
+            "cad_object",
             {
-                "input": {
+                "object": {
+                    "action": "create",
                     "type": "box",
                     "params": {"origin": [0, 0, 0], "dimensions": [100, 60, 20]},
                     "layer": "Body",
@@ -53,9 +54,10 @@ async def main() -> None:
         )
         await call(
             session,
-            "cad_object_create",
+            "cad_object",
             {
-                "input": {
+                "object": {
+                    "action": "create",
                     "type": "cylinder",
                     "params": {"origin": [50, 30, 20], "radius": 25, "height": 40},
                     "layer": "Shaft",
@@ -64,9 +66,10 @@ async def main() -> None:
         )
         await call(
             session,
-            "cad_object_create",
+            "cad_object",
             {
-                "input": {
+                "object": {
+                    "action": "create",
                     "type": "sphere",
                     "params": {"center": [0, 0, 0], "radius": 15},
                     "layer": "Decor",
@@ -74,12 +77,12 @@ async def main() -> None:
             },
         )
 
-        exported = await call(session, "cad_json_export_scene", {"input": {}})
+        exported = await call(session, "cad_json", {"params": {"action": "export_scene"}})
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(exported["json_string"], encoding="utf-8")
+        output.write_text(exported["content"], encoding="utf-8")
         print(f"[saved] {output} ({output.stat().st_size} bytes)")
 
-        await call(session, "cad_file_save", {"input": {"path": str(output)}})
+        await call(session, "cad_file", {"file": {"action": "save", "path": str(output)}})
 
 
 if __name__ == "__main__":

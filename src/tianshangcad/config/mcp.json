@@ -10,13 +10,10 @@
       },
       "disabled": false,
       "autoApprove": [
-        "cad_object_read",
-        "cad_status",
-        "cad_logs",
-        "cad_json_load",
-        "cad_json_validate",
-        "cad_validate_geometry",
-        "cad_metrics_get"
+        "cad_json",
+        "cad_measure",
+        "cad_render",
+        "cad_validate"
       ]
     }
   }
