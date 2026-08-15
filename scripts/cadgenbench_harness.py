@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import copy
 import json
 import sys
 from dataclasses import dataclass, field
@@ -62,30 +63,42 @@ SAMPLES: list[Sample] = [
             "through-hole of radius 5 mm"
         ),
         calls=[
-            {"tool": "cad_file_create", "args": {"filename": "101.json", "unit": "mm"}},
             {
-                "tool": "cad_object_create",
+                "tool": "cad_file",
+                "args": {"file": {"action": "create", "filename": "101.json", "unit": "mm"}},
+            },
+            {
+                "tool": "cad_object",
                 "args": {
-                    "type": "box",
-                    "params": {"origin": [0, 0, 0], "dimensions": [60, 40, 8]},
-                    "layer": "Body",
+                    "object": {
+                        "action": "create",
+                        "type": "box",
+                        "params": {"origin": [0, 0, 0], "dimensions": [60, 40, 8]},
+                        "layer": "Body",
+                    }
                 },
             },
             {
-                "tool": "cad_object_create",
+                "tool": "cad_object",
                 "args": {
-                    "type": "cylinder",
-                    "params": {"origin": [30, 20, 0], "radius": 5, "height": 8},
-                    "layer": "Hole",
+                    "object": {
+                        "action": "create",
+                        "type": "cylinder",
+                        "params": {"origin": [30, 20, 0], "radius": 5, "height": 8},
+                        "layer": "Hole",
+                    }
                 },
             },
             {
-                "tool": "cad_object_boolean",
+                "tool": "cad_object",
                 "args": {
-                    "operation": "subtract",
-                    "target_id": "__0__",
-                    "tool_ids": ["__1__"],
-                    "layer": "Body",
+                    "object": {
+                        "action": "boolean",
+                        "operation": "subtract",
+                        "target_id": "__0__",
+                        "tool_ids": ["__1__"],
+                        "layer": "Body",
+                    }
                 },
             },
         ],
@@ -99,30 +112,42 @@ SAMPLES: list[Sample] = [
             "radius 12 mm extruded 20 mm above the top face"
         ),
         calls=[
-            {"tool": "cad_file_create", "args": {"filename": "102.json", "unit": "mm"}},
             {
-                "tool": "cad_object_create",
+                "tool": "cad_file",
+                "args": {"file": {"action": "create", "filename": "102.json", "unit": "mm"}},
+            },
+            {
+                "tool": "cad_object",
                 "args": {
-                    "type": "box",
-                    "params": {"origin": [0, 0, 0], "dimensions": [80, 50, 12]},
-                    "layer": "Body",
+                    "object": {
+                        "action": "create",
+                        "type": "box",
+                        "params": {"origin": [0, 0, 0], "dimensions": [80, 50, 12]},
+                        "layer": "Body",
+                    }
                 },
             },
             {
-                "tool": "cad_object_create",
+                "tool": "cad_object",
                 "args": {
-                    "type": "cylinder",
-                    "params": {"origin": [40, 25, 12], "radius": 12, "height": 20},
-                    "layer": "Boss",
+                    "object": {
+                        "action": "create",
+                        "type": "cylinder",
+                        "params": {"origin": [40, 25, 12], "radius": 12, "height": 20},
+                        "layer": "Boss",
+                    }
                 },
             },
             {
-                "tool": "cad_object_boolean",
+                "tool": "cad_object",
                 "args": {
-                    "operation": "union",
-                    "target_id": "__0__",
-                    "tool_ids": ["__1__"],
-                    "layer": "Body",
+                    "object": {
+                        "action": "boolean",
+                        "operation": "union",
+                        "target_id": "__0__",
+                        "tool_ids": ["__1__"],
+                        "layer": "Body",
+                    }
                 },
             },
         ],
@@ -133,13 +158,19 @@ SAMPLES: list[Sample] = [
         difficulty="easy",
         description="a solid cube 30 x 30 x 30 mm",
         calls=[
-            {"tool": "cad_file_create", "args": {"filename": "103.json", "unit": "mm"}},
             {
-                "tool": "cad_object_create",
+                "tool": "cad_file",
+                "args": {"file": {"action": "create", "filename": "103.json", "unit": "mm"}},
+            },
+            {
+                "tool": "cad_object",
                 "args": {
-                    "type": "box",
-                    "params": {"origin": [0, 0, 0], "dimensions": [30, 30, 30]},
-                    "layer": "Body",
+                    "object": {
+                        "action": "create",
+                        "type": "box",
+                        "params": {"origin": [0, 0, 0], "dimensions": [30, 30, 30]},
+                        "layer": "Body",
+                    }
                 },
             },
         ],
@@ -175,7 +206,7 @@ def load_ground_truth(gt_path: Path) -> dict[str, list[dict[str, Any]]]:
 # -----------------------------------------------------------------------
 
 async def call_tool(session: ClientSession, tool: str, args: dict[str, Any]) -> dict[str, Any]:
-    """Call an MCP tool with the (flattened) top-level args and return JSON."""
+    """Call an MCP tool and return the JSON-decoded result text."""
     result = await session.call_tool(tool, args)
     text = result.content[0].text
     try:
@@ -244,11 +275,15 @@ async def build_one(
     type_of: dict[int, str] = {}
 
     for step in sample.calls:
-        args = dict(step["args"])
-        if "target_id" in args:
-            args["target_id"] = _resolve(args["target_id"], id_stack, type_of)
-        if "tool_ids" in args:
-            args["tool_ids"] = [_resolve(t, id_stack, type_of) for t in args["tool_ids"]]
+        args = copy.deepcopy(step["args"])
+        # Resolve sentinels inside the aggregate discriminator object
+        # (e.g. cad_object -> object.action=boolean -> target_id/tool_ids).
+        obj = args.get("object")
+        if isinstance(obj, dict):
+            if "target_id" in obj:
+                obj["target_id"] = _resolve(obj["target_id"], id_stack, type_of)
+            if "tool_ids" in obj:
+                obj["tool_ids"] = [_resolve(t, id_stack, type_of) for t in obj["tool_ids"]]
 
         out = await call_tool(session, step["tool"], args)
 
@@ -257,21 +292,22 @@ async def build_one(
             report["error"] = out.get("message", "unknown")
             return report
 
-        if step["tool"] == "cad_object_create":
-            oid = out.get("object_id")
-            if oid:
-                idx = len(id_stack)
-                id_stack.append(oid)
-                obj_type = args.get("type") or out.get("type")
-                if obj_type:
-                    type_of[idx] = obj_type
+        if step["tool"] == "cad_object":
+            action = obj.get("action") if isinstance(obj, dict) else None
+            if action == "create":
+                oid = out.get("object_id")
+                if oid:
+                    idx = len(id_stack)
+                    id_stack.append(oid)
+                    obj_type = obj.get("type") or out.get("type")
+                    if obj_type:
+                        type_of[idx] = obj_type
+            elif action == "boolean":
+                oid = out.get("result_id")
+                if oid:
+                    id_stack.append(oid)
 
-        if step["tool"] == "cad_object_boolean":
-            oid = out.get("result_id")
-            if oid:
-                id_stack.append(oid)
-
-        if step["tool"].startswith("cad_feature_pattern_") and out.get("object_ids"):
+        if step["tool"] == "cad_feature" and out.get("object_ids"):
             id_stack.extend(out["object_ids"])
 
     return report
@@ -384,7 +420,7 @@ async def run_all(
             step_path = out_dir / f"{sample.sample_id}.step"
             try:
                 export_out = await call_tool(
-                    session, "cad_file_io",
+                    session, "cad_file",
                     {"file": {"action": "export", "format": "step", "path": str(step_path)}}
                 )
                 if export_out.get("status") == "error":

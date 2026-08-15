@@ -89,3 +89,7 @@ class SimulationError(CADError):
 
 class CollabError(CADError):
     """Raised for collaboration session / sync errors."""
+
+
+class PluginError(CADError):
+    """Raised for plugin lifecycle / permission errors."""

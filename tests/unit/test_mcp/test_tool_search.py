@@ -68,7 +68,7 @@ class TestToolSearchHandler:
 
     def test_no_query_returns_all(self) -> None:
         names = self._names(None)
-        assert len(names) == 19
+        assert len(names) == 22
         assert "cad_object" in names
 
     def test_measure_filter(self) -> None:
@@ -89,7 +89,7 @@ class TestToolSearchHandler:
         assert self._names("sim run") == ["cad_sim"]
 
     def test_empty_query_is_all(self) -> None:
-        assert len(self._names("")) == 19
+        assert len(self._names("")) == 22
         assert len(self._names("cad tool")) == 0
 
 

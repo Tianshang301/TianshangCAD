@@ -162,7 +162,6 @@ class LogsClearOutput(BaseModel):
 # Tool implementations
 # ---------------------------------------------------------------------------
 
-_SERVER_VERSION = "0.5.0"
 _start_time = time.monotonic()
 
 _LEVEL_ORDER = {"DEBUG": 0, "INFO": 1, "WARNING": 2, "ERROR": 3, "CRITICAL": 4}
@@ -259,12 +258,13 @@ def cad_status_layer(input: StatusLayerInput) -> StatusLayerOutput:
 def cad_status_health(input: StatusHealthInput) -> StatusHealthOutput:
     """Return the server health report."""
     # Deprecated, merged into cad_status (target=health)
+    from tianshangcad import __version__
     from tianshangcad.mcp.tools._registry import get_registry
 
     tool_count = len(get_registry())
     return StatusHealthOutput(
         ok=True,
-        version=_SERVER_VERSION,
+        version=__version__,
         uptime_seconds=round(time.monotonic() - _start_time, 3),
         tool_count=tool_count,
         status="success",
@@ -411,12 +411,9 @@ class StatusOutput(BaseModel):
 
 
 def _health_report() -> dict[str, Any]:
+    from tianshangcad import __version__
     from tianshangcad.mcp.tools._registry import get_registry
 
-    try:
-        from tianshangcad import __version__
-    except Exception:  # pragma: no cover - defensive
-        __version__ = _SERVER_VERSION
     return {
         "ok": True,
         "version": __version__,

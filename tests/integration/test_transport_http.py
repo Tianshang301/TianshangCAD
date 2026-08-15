@@ -66,7 +66,7 @@ class TestHTTPTransport:
             import asyncio
 
             count, text, has_file = asyncio.run(run())
-            assert count == 19
+            assert count == 22
             assert has_file
             assert '"action": "metrics"' in text
             assert '"files": 0' in text

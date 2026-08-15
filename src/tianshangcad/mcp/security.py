@@ -123,6 +123,14 @@ ACTION_PERMISSIONS: dict[str, dict[str, PermissionLevel]] = {
         "permission": PermissionLevel.STANDARD,
         "sync": PermissionLevel.STANDARD,
     },
+    "cad_plugin": {
+        "install": PermissionLevel.ADMIN,
+        "uninstall": PermissionLevel.ADMIN,
+        "enable": PermissionLevel.ADMIN,
+        "disable": PermissionLevel.ADMIN,
+        "list": PermissionLevel.READ_ONLY,
+        "manifest": PermissionLevel.READ_ONLY,
+    },
     "cad_status": {
         "check": PermissionLevel.READ_ONLY,
         "file": PermissionLevel.READ_ONLY,

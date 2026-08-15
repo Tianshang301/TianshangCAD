@@ -133,6 +133,7 @@ _NON_IDEMPOTENT = frozenset(
         "cad_version",
         "cad_constraint",
         "cad_nlp",
+        "cad_plugin",
     }
 )
 
@@ -165,14 +166,32 @@ def _tool_annotations(name: str) -> ToolAnnotations:
     )
 
 
-def build_server(version: str = "0.9.0") -> MCPServer:
+def _discover_plugins() -> None:
+    """Discover entry-point plugins (best effort, before building the registry).
+
+    A broken plugin must not prevent the server from starting, so discovery
+    failures are logged rather than raised.
+    """
+    from tianshangcad.core.plugins import PluginManager
+    from tianshangcad.utils.logger import get_logger
+
+    try:
+        PluginManager().discover()
+    except Exception as exc:
+        get_logger(__name__).warning("plugin discovery failed", error=str(exc))
+
+
+def build_server(version: str | None = None) -> MCPServer:
     """Create an :class:`MCPServer` with every registered CAD tool."""
+    from tianshangcad import __version__
+
     server = MCPServer(
         name=SERVER_NAME,
         title=SERVER_TITLE,
         description=SERVER_DESCRIPTION,
-        version=version,
+        version=version or __version__,
     )
+    _discover_plugins()
     for name, fn in get_registry().items():
         server.add_tool(
             _instrumented(_flatten_tool(fn, name), name),

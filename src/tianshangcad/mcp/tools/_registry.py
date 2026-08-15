@@ -25,6 +25,7 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         json_ops,
         measure,
         nlp,
+        plugin,
         render,
         simulation,
         status,
@@ -55,6 +56,11 @@ def get_registry() -> dict[str, Callable[..., Any]]:
         simulation,
         collab,
         measure,
+        plugin,
     ):
         tools.extend(module.TOOLS)
+    # Tools contributed by enabled plugins declaring the "tools" permission.
+    from tianshangcad.core.plugins import PluginManager
+
+    tools.extend(PluginManager().tools())
     return dict(tools)

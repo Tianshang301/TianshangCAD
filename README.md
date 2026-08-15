@@ -11,11 +11,12 @@ command line and as standardized tools callable by any MCP client (AI agent).
 [![Python](https://img.shields.io/pypi/pyversions/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![Version](https://img.shields.io/pypi/v/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![License](https://img.shields.io/github/license/Tianshang301/TianshangCAD)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-1065%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 
-> **Status**: v0.12.0 — consolidated MCP surface (19 aggregate tools) + Tool Search.
-> 990 tests passing, ~87% coverage (measured with optional extras
+> **Status**: v0.13.0 — plugin SDK + gltf/cam example plugins; 20 core
+> aggregate tools (+ 2 plugin tools).
+> 1065 tests passing, ~85% coverage (measured with optional extras
 > installed), `ruff` and `mypy` clean.
 
 **中文文档**: [readme/README.zh-CN.md](readme/README.zh-CN.md)
@@ -26,10 +27,14 @@ command line and as standardized tools callable by any MCP client (AI agent).
 
 - **CAD CLI** — `file`, `draw`, `edit`, `view`, `measure`, `layer`, `batch`
   command groups with short aliases (`l` = `draw line`, `c` = `draw circle`, ...)
-- **MCP Server** — 19 JSON-RPC aggregate tools (each with an `action`
+- **MCP Server** — 20 core JSON-RPC aggregate tools (each with an `action`
   discriminator) over stdio, streamable HTTP or
   WebSocket (collaboration), callable
   from Claude, Cursor and other MCP clients
+- **Plugin ecosystem** — plugin SDK (manifest + permissions + lifecycle +
+  entry-point discovery) with two official plugins: `plugin-gltf` (glTF 2.0
+  import/export) and `plugin-cam` (2.5-axis toolpaths → G-code), exposing
+  `cad_gltf` / `cad_cam`
 - **3D views** — JSON-defined `View3DDefinition` with spherical camera pose,
   named views (iso / top / front / side / back / bottom), perspective /
   orthographic projection, plane sections (XY / YZ / XZ), exploded views and
@@ -44,7 +49,7 @@ command line and as standardized tools callable by any MCP client (AI agent).
   3D preview and Three.js WebGL export with a bundled browser viewer
 - **Versioning** — full document snapshots with `deepdiff`-based
   save / list / diff / restore
-- **Natural language** — `cad_nlp_command` maps English / Chinese requests to
+- **Natural language** — `cad_nlp` maps English / Chinese requests to
   tool calls with ambiguity handling
 - **JSON-driven** — scenes and geometry defined and validated with Pydantic
   schemas; full import/export round-trip
@@ -156,13 +161,13 @@ right tool before calling it:
 ```
 tools/list  {"query": "measure"}   -> [cad_measure, cad_object, cad_status, cad_validate]  (cad_measure first)
 tools/list  {"query": "layer"}     -> [cad_layer, cad_status]  (cad_layer first)
-tools/list  {}                     -> all 19 tools
+tools/list  {}                     -> all 22 tools (20 core + cad_gltf + cad_cam)
 ```
 
 Name matches rank highest, then description matches; multi-word queries
 require every token to match; stopword-only queries match nothing.
 
-### Tools (19 aggregate)
+### Tools (20 core aggregate + 2 plugin)
 
 | Group | Tools |
 |-------|-------|
@@ -185,6 +190,9 @@ require every token to match; stopword-only queries match nothing.
 | Features | `cad_feature` (action: sweep/loft/fillet/chamfer/pattern_linear/pattern_circular/pattern_mirror) |
 | Simulation | `cad_sim` (action: mesh/setup/run/result/list/delete) |
 | Collaboration | `cad_collab` (tool: session/branch/annotation/presence/history/resolve/permission/sync) |
+| Plugins | `cad_plugin` (action: install/uninstall/list/enable/disable/manifest) |
+| glTF (plugin) | `cad_gltf` (action: export/import/preview) |
+| CAM (plugin) | `cad_cam` (action: toolpath/simulate/export_gcode) |
 
 ### Validation, rendering, 3D views & NLP
 
@@ -205,23 +213,23 @@ tianshangcad render explode --scale 1.5 --output explode.png
 tianshangcad render gif --frames 48 --output orbit.gif
 tianshangcad render views
 
-# NLP examples (via the MCP tool cad_nlp_command)
-"new file design.dwg"        -> cad_file_create  {filename: design.dwg}
-"draw a line from 0,0 to 10,10" -> cad_object_create (line)
-"render the side view"       -> cad_render_view  {view: side}
+# NLP examples (via the MCP tool cad_nlp)
+"new file design.dwg"        -> cad_file  {file: {action: create, filename: design.dwg}}
+"draw a line from 0,0 to 10,10" -> cad_object  {object: {action: create, type: line, params: {...}}}
+"render the side view"       -> cad_render  {render: {mode: ortho, view: side}}
 "save a version"             -> cad_version  {version: {action: save}}
 ```
 
-`cad_nlp_chat` adds multi-turn dialogue with anaphora resolution: each
+`cad_nlp` (action=`chat`) adds multi-turn dialogue with anaphora resolution: each
 `session_id` remembers the last created object so later turns can refer to
 it with pronouns or descriptions. Create intents are executed against the
 current document, so "it" / "它" resolves to the real object id.
 
 ```bash
 # Turn 1: draw a circle (creates the object, records it in the session)
-"draw a circle at 5,5 radius 3"   -> cad_object_create, object_id tracked
+"draw a circle at 5,5 radius 3"   -> cad_object, object_id tracked
 # Turn 2: move the referenced circle (same session_id)
-"move it to 10,10"                -> cad_object_update {object_id, params}
+"move it to 10,10"                -> cad_object {object: {action: update, object_id, params}}
 "move the circle I just drew to 3,3" -> same, explicit anaphora
 "把它移到 4,4"                     -> same, Chinese pronoun
 ```
@@ -230,9 +238,8 @@ Version diffing uses `deepdiff` and reports changed fields, added/removed
 items and the raw result. The WebGL export writes Three.js `BufferGeometry`
 JSON consumable by `examples/threejs_viewer.html`. View definitions
 (camera pose, projection, section/explode parameters) are persisted with the
-document and are also exposed as MCP tools (`cad_view_3d_*`,
-`cad_view_section`, `cad_view_explode`, `cad_view_animation`,
-`cad_webgl_sync`).
+document and are also exposed as MCP tools (`cad_view` for view definitions,
+`cad_render` for section / explode / animation / webgl modes).
 
 ### Real-time collaboration
 
@@ -290,6 +297,31 @@ Scripts run in an isolated subprocess (`python -I`) with an import whitelist
 (`os`, `subprocess`, `socket`, ... are blocked), a runtime `sys.modules`
 guard and a hard timeout.
 
+## Plugins
+
+Plugins extend the server with new MCP tools and CLI commands. The SDK
+(`core/plugins/`) provides a manifest + permission declaration, a
+`load → initialize → run → shutdown` lifecycle and four extension points
+(tools / commands / kernel / solver). Plugins are discovered from the
+`tianshangcad.plugins` entry-point group of installed distributions.
+
+```bash
+tianshangcad plugin list                    # discover + list
+tianshangcad plugin enable <name>           # enable / disable
+tianshangcad plugin manifest <name>         # inspect the manifest
+```
+
+Two official plugins ship with the package:
+
+- `plugin-gltf` — glTF 2.0 import/export (PBR materials); `cad_gltf`, `gltf` CLI.
+- `plugin-cam` — 2.5-axis contour + drilling toolpaths to G-code; `cad_cam`, `cam` CLI.
+
+> **Security**: plugins run in-process, in the same trust domain as the
+> server, and are **not sandboxed**. The MCP `cad_plugin` `install` action
+> only loads plugins from installed distributions' entry-points (it never
+> imports an arbitrary `module:attr` path); only install plugins from
+> trusted sources. Process-level sandboxing is a future hardening step.
+
 ## Docker
 
 A multi-stage image (< 500 MB, `python:3.12-slim`) is provided in
@@ -313,14 +345,10 @@ Example MCP client configuration (Claude Desktop `~/.config/claude/mcp.json`):
       "command": "python",
       "args": ["-m", "tianshangcad", "--transport", "stdio"],
       "autoApprove": [
-        "cad_object_read",
-        "cad_object_list",
-        "cad_status",
-        "cad_logs",
-        "cad_json_load",
-        "cad_json_validate",
-        "cad_validate_geometry",
-        "cad_metrics_get"
+        "cad_json",
+        "cad_measure",
+        "cad_render",
+        "cad_validate"
       ]
     }
   }
@@ -367,7 +395,7 @@ Space.
 src/tianshangcad/
 |-- cli/            # typer CLI: commands + alias expansion
 |-- mcp/            # MCP server, transports, security and tool registry
-|   |-- server.py       # MCPServer wiring (19 tools)
+|   |-- server.py       # MCPServer wiring (20 core tools + plugin discovery)
 |   |-- transport.py    # stdio / streamable HTTP (+ auth, rate limiting)
 |   |-- security.py     # tool permission whitelist
 |   |-- auth.py         # API-key authentication
@@ -378,7 +406,8 @@ src/tianshangcad/
 |-- core/           # document, entity, layer, kernel, session, history,
 |                   # variables, scheduler, script_runner, batch_templates,
 |                   # validation, versioning, view_manager, features, simulation,
-|                   # assembly, drawing, constraint
+|                   # assembly, drawing, constraint, plugins (SDK + manager)
+|-- plugins/        # official example plugins: gltf (glTF 2.0), cam (2.5-axis)
 |-- io/             # JSON / DXF / STL importers and exporters
 |-- schemas/        # Pydantic geometry, scene and view3d schemas
 |-- render/         # 2D / 3D PNG rendering, WebGL export, section, explode,
