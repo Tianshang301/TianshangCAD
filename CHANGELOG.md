@@ -2,6 +2,40 @@
 
 Notable changes to TianshangCAD (tianshangcad on PyPI), newest first.
 
+## v0.13.0 - 2026-08-16
+
+Phase 10: plugin ecosystem. A plugin SDK plus the first two official example
+plugins (glTF and CAM), delivered end-to-end through the plugin system.
+
+### Added
+- **Plugin SDK** (`core/plugins/sdk.py` + `manager.py`): `PluginManifest`
+  (identity + permission declaration), `CADPlugin` base class with a
+  `load → initialize → run → shutdown` lifecycle and four extension points
+  (`register_tools` / `register_commands` / `register_kernel` /
+  `register_solver`), entry-point discovery (`tianshangcad.plugins` group),
+  permission-policy validation, dependency resolution and enable/disable.
+- **`cad_plugin` aggregate tool** (install / uninstall / list / enable /
+  disable / manifest) and a `plugin` CLI group. The MCP server now
+  auto-discovers entry-point plugins at startup (best-effort; a broken
+  plugin logs a warning instead of failing startup).
+- **`plugin-gltf`**: bidirectional glTF 2.0 import/export with per-entity PBR
+  material mapping; `cad_gltf` tool (export / import / preview) + `gltf` CLI.
+- **`plugin-cam`**: 2.5-axis contour + drilling toolpath generation and
+  G-code export; `cad_cam` tool (toolpath / simulate / export_gcode) + `cam`
+  CLI.
+- **Built-in plugin fallback**: frozen executables (PyInstaller) ship no
+  distribution metadata, so discovery falls back to importing the official
+  plugins directly; the PyInstaller specs bundle the plugin modules.
+
+### Breaking
+- The core MCP surface is now **20 aggregate tools** (adds `cad_plugin`);
+  with the two official plugins auto-discovered the default server exposes
+  **22 tools** (`cad_gltf`, `cad_cam`).
+
+### Changed
+- Version bumped to 0.13.0; the MCP server now reports the package version
+  (previously hardcoded `0.9.0`) and the health report uses `__version__`.
+
 ## v0.12.0 - 2026-08-08
 
 Full MCP tool-surface consolidation (77 → **19** aggregate tools) plus

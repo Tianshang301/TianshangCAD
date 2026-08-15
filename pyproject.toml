@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tianshangcad"
-version = "0.12.0"
+version = "0.13.0"
 description = "Modern CAD CLI + MCP Server system (2D/3D drawing, editing, measurement, rendering, JSON-driven)"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -58,6 +58,10 @@ dev = [
 tianshangcad = "tianshangcad.cli.main:main"
 tianshangcad-server = "tianshangcad.__main__:main"
 
+[project.entry-points."tianshangcad.plugins"]
+gltf = "tianshangcad.plugins.gltf.plugin:GLTFPlugin"
+cam = "tianshangcad.plugins.cam.plugin:CAMPlugin"
+
 [project.urls]
 Homepage = "https://github.com/Tianshang301/TianshangCAD"
 
@@ -79,6 +83,7 @@ ignore = ["D203", "D213", "D415"]
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "D"]
 "src/tianshangcad/mcp/tools/**" = ["A002", "RUF001", "RUF002"]
+"src/tianshangcad/plugins/**" = ["A002", "RUF001", "RUF002"]
 
 [tool.mypy]
 python_version = "3.12"

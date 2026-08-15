@@ -22,7 +22,10 @@ a = Analysis(
         (str(_PKG / "config"), "tianshangcad/config"),
         (str(_PKG / "py.typed"), "tianshangcad"),
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        "tianshangcad.plugins.gltf.plugin",
+        "tianshangcad.plugins.cam.plugin",
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

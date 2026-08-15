@@ -97,9 +97,12 @@ class TestMCPServer:
             "cad_constraint",
             "cad_variable",
             "cad_version",
+            "cad_plugin",
+            "cad_gltf",
+            "cad_cam",
         }
         assert set(names) == expected
-        assert len(names) == 19
+        assert len(names) == 22
 
     def test_flat_tool_schemas(self) -> None:
         """Tools expose flat input schemas (no nested ``input`` wrapper)."""
@@ -249,7 +252,7 @@ class TestMCPServer:
             )
 
         all_names, measure_names, layer_names, none_count = asyncio.run(run())
-        assert len(all_names) == 19
+        assert len(all_names) == 22
         assert measure_names[0] == "cad_measure"
         assert "cad_measure" in measure_names
         assert layer_names[0] == "cad_layer"

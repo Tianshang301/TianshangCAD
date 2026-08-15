@@ -139,6 +139,16 @@ class CADKernel(ABC):
     def copy_shape(self, shape: Shape) -> Shape:
         """Return a deep copy of ``shape``."""
 
+    def outline_points(self, shape: Shape) -> list[list[float]]:
+        """Return the 2D polyline outline of a planar shape.
+
+        The analytic kernel implements this for rectangle / polygon /
+        polyline; other backends raise :class:`CADNotImplementedError`.
+        """
+        raise CADNotImplementedError(
+            f"outline_points unsupported for {shape['kind']}", code="unsupported_kind"
+        )
+
 
 class AnalyticKernel(CADKernel):
     """Pure-Python analytic geometry kernel.
@@ -1008,6 +1018,12 @@ def get_kernel(runtime: str | None = None) -> CADKernel:
         return _load_backend("tianshangcad.core.backends.occt", "OCCTKernel", "cadquery")
     if selected == "freecad":
         return _load_backend("tianshangcad.core.backends.freecad", "FreeCADKernel", "FreeCAD")
+    # Plugin-registered kernel backends (name -> factory).
+    from tianshangcad.core.plugins import PluginManager
+
+    factory = PluginManager().kernels().get(selected)
+    if factory is not None:
+        return cast(CADKernel, factory())
     raise CADValidationError(
         f"Unknown TIANSHANGCAD_RUNTIME {selected!r}. Supported: analytic, ocp, freecad",
         code="invalid_runtime",

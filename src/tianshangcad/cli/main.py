@@ -21,6 +21,7 @@ from tianshangcad.cli.commands import (
     file,
     layer,
     measure,
+    plugin,
     render,
     simulation,
     view,
@@ -49,6 +50,7 @@ app.add_typer(drawing.app, name="drawing", help="Engineering drawings")
 app.add_typer(features.app, name="feature", help="Parametric features")
 app.add_typer(simulation.app, name="sim", help="Simulation interface")
 app.add_typer(collab.app, name="collab", help="Real-time collaboration")
+app.add_typer(plugin.app, name="plugin", help="Plugin lifecycle management")
 
 
 @app.callback()
@@ -69,6 +71,20 @@ def global_options(
         configure_logging(level="DEBUG")
 
 
+def _register_plugin_commands() -> None:
+    """Discover plugins and register their CLI sub-apps (best effort)."""
+    from tianshangcad.core.plugins import PluginManager
+
+    manager = PluginManager()
+    try:
+        manager.discover()
+    except Exception as exc:
+        typer.echo(f"Warning: plugin discovery failed: {exc}", err=True)
+        return
+    for name, sub_app in manager.commands():
+        app.add_typer(sub_app, name=name)
+
+
 def main() -> None:
     """Entry point that expands short command aliases then runs the app."""
     args = list(sys.argv[1:])
@@ -78,6 +94,7 @@ def main() -> None:
     if args and args[0] in COMMAND_ALIASES:
         args = COMMAND_ALIASES[args[0]].split() + args[1:]
         sys.argv = [sys.argv[0], *args]
+    _register_plugin_commands()
     app()
 
 

@@ -11,11 +11,11 @@ MCP 客户端（AI 智能体）直接调用。
 [![Python](https://img.shields.io/pypi/pyversions/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![Version](https://img.shields.io/pypi/v/tianshangcad)](https://pypi.org/project/tianshangcad/)
 [![License](https://img.shields.io/github/license/Tianshang301/TianshangCAD)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-994%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-87%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-1065%20passed-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen)](https://github.com/Tianshang301/TianshangCAD/actions/workflows/ci.yml)
 
-> **当前状态**：v0.12.0 — MCP 工具面收敛为 19 个聚合工具，并新增 Tool Search。
-> 990 个测试通过，覆盖率约 87%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
+> **当前状态**：v0.13.0 — 插件 SDK + gltf/cam 示例插件；20 个核心聚合工具（+ 2 个插件工具）。
+> 1065 个测试通过，覆盖率约 85%（装齐可选依赖时实测），`ruff` 与 `mypy` 全部通过。
 
 **English**: [README.md](../README.md)
 
@@ -23,9 +23,12 @@ MCP 客户端（AI 智能体）直接调用。
 
 - **CAD CLI** — `file`、`draw`、`edit`、`view`、`measure`、`layer`、`batch`
   等命令组，支持短命令别名（`l` = `draw line`、`c` = `draw circle` ……）
-- **MCP Server** — 19 个 JSON-RPC 聚合工具（每个带 `action` 判别参数），支持
+- **MCP Server** — 20 个核心 JSON-RPC 聚合工具（每个带 `action` 判别参数），支持
   stdio、streamable HTTP 与 WebSocket（协作）传输方式，可供 Claude、Cursor
   等 MCP 客户端调用
+- **插件生态** — 插件 SDK（manifest + 权限 + 生命周期 + entry-point 发现）与两个
+  官方示例插件：`plugin-gltf`（glTF 2.0 导入/导出）与 `plugin-cam`（2.5 轴刀轨 →
+  G-code），暴露 `cad_gltf` / `cad_cam`
 - **3D 视图** — JSON 定义的 `View3DDefinition`，支持球面相机位姿、命名视图
   （iso / top / front / side / back / bottom）、透视 / 正交投影、平面剖切
   （XY / YZ / XZ）、爆炸视图与轨道 GIF 动画；支持面向浏览器客户端的增量
@@ -37,7 +40,7 @@ MCP 客户端（AI 智能体）直接调用。
 - **渲染** — 2D 正交投影 PNG（俯视 / 前视 / 侧视，DPI 72–300）、3D 着色预览
   与 Three.js WebGL 导出（含浏览器查看器）
 - **版本管理** — 基于 `deepdiff` 的文档快照 保存 / 列表 / 对比 / 恢复
-- **自然语言** — `cad_nlp_command` 将中英文请求映射为工具调用，并支持歧义澄清
+- **自然语言** — `cad_nlp` 将中英文请求映射为工具调用，并支持歧义澄清
 - **JSON 驱动** — 场景与几何对象通过 Pydantic Schema 定义和校验，支持完整的
   导入/导出往返
 - **可插拔内核** — 解析内核（默认，无原生依赖）/ OCC（`cadquery`）/ FreeCAD
@@ -123,7 +126,7 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 `TIANSHANGCAD_RATE_LIMIT_MAX` 与 `TIANSHANGCAD_RATE_LIMIT_WINDOW` 调整），超限返回 `429`。
 `/health` 与 `/metrics` 始终公开。stdio 模式不受影响。
 
-### 工具列表（共 19 个聚合工具）
+### 工具列表（共 20 个核心聚合工具 + 2 个插件工具）
 
 | 分组 | 工具 |
 |------|------|
@@ -146,6 +149,9 @@ python -m tianshangcad --transport http --host 127.0.0.1 --port 8081
 | 特征 | `cad_feature`（action: sweep/loft/fillet/chamfer/pattern_linear/pattern_circular/pattern_mirror） |
 | 仿真 | `cad_sim`（action: mesh/setup/run/result/list/delete） |
 | 协作 | `cad_collab`（tool: session/branch/annotation/presence/history/resolve/permission/sync） |
+| 插件 | `cad_plugin`（action: install/uninstall/list/enable/disable/manifest） |
+| glTF（插件） | `cad_gltf`（action: export/import/preview） |
+| CAM（插件） | `cad_cam`（action: toolpath/simulate/export_gcode） |
 
 ### 校验、渲染、3D 视图与自然语言
 
@@ -174,8 +180,7 @@ tianshangcad render views
 版本对比使用 `deepdiff`，返回变更字段、新增/删除项与原始结果；WebGL 导出
 生成 Three.js `BufferGeometry` JSON，可用 `examples/threejs_viewer.html` 预览。
 视图定义（相机位姿、投影、剖切/爆炸参数）随文档持久化，并同样以 MCP 工具
-（`cad_view_3d_*`、`cad_view_section`、`cad_view_explode`、
-`cad_view_animation`、`cad_webgl_sync`）暴露。
+（`cad_view` 视图定义、`cad_render` 的 section / explode / animation / webgl 模式）暴露。
 
 ### 批处理与自动化
 
@@ -223,14 +228,10 @@ MCP 客户端配置示例（Claude Desktop `~/.config/claude/mcp.json`）：
       "command": "python",
       "args": ["-m", "tianshangcad", "--transport", "stdio"],
       "autoApprove": [
-        "cad_object_read",
-        "cad_object_list",
-        "cad_status",
-        "cad_logs",
-        "cad_json_load",
-        "cad_json_validate",
-        "cad_validate_geometry",
-        "cad_metrics_get"
+        "cad_json",
+        "cad_measure",
+        "cad_render",
+        "cad_validate"
       ]
     }
   }
@@ -259,7 +260,7 @@ pytest         # 测试（覆盖率门禁 >= 80%）
 src/tianshangcad/
 |-- cli/            # typer CLI：命令组 + 别名展开
 |-- mcp/            # MCP 服务器、传输层、安全与工具注册表
-|   |-- server.py       # MCPServer 装配（57 个工具）
+|   |-- server.py       # MCPServer 装配（20 个核心工具 + 插件发现）
 |   |-- transport.py    # stdio / streamable HTTP（含认证、限流）
 |   |-- security.py     # 工具权限白名单
 |   |-- auth.py         # API Key 认证
@@ -268,7 +269,8 @@ src/tianshangcad/
 |                       # render、versioning、nlp、view3d
 |-- core/           # document、entity、layer、kernel、session、history、
 |                   # scheduler、script_runner、batch_templates、validation、
-|                   # versioning、view_manager
+|                   # versioning、view_manager、plugins（SDK + manager）
+|-- plugins/        # 官方示例插件：gltf（glTF 2.0）、cam（2.5 轴刀轨）
 |-- io/             # JSON / DXF / STL 导入导出
 |-- schemas/        # Pydantic 几何、场景与 view3d Schema
 |-- render/         # 2D / 3D PNG 渲染、WebGL 导出、剖切、爆炸、动画
