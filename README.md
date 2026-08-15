@@ -297,6 +297,31 @@ Scripts run in an isolated subprocess (`python -I`) with an import whitelist
 (`os`, `subprocess`, `socket`, ... are blocked), a runtime `sys.modules`
 guard and a hard timeout.
 
+## Plugins
+
+Plugins extend the server with new MCP tools and CLI commands. The SDK
+(`core/plugins/`) provides a manifest + permission declaration, a
+`load → initialize → run → shutdown` lifecycle and four extension points
+(tools / commands / kernel / solver). Plugins are discovered from the
+`tianshangcad.plugins` entry-point group of installed distributions.
+
+```bash
+tianshangcad plugin list                    # discover + list
+tianshangcad plugin enable <name>           # enable / disable
+tianshangcad plugin manifest <name>         # inspect the manifest
+```
+
+Two official plugins ship with the package:
+
+- `plugin-gltf` — glTF 2.0 import/export (PBR materials); `cad_gltf`, `gltf` CLI.
+- `plugin-cam` — 2.5-axis contour + drilling toolpaths to G-code; `cad_cam`, `cam` CLI.
+
+> **Security**: plugins run in-process, in the same trust domain as the
+> server, and are **not sandboxed**. The MCP `cad_plugin` `install` action
+> only loads plugins from installed distributions' entry-points (it never
+> imports an arbitrary `module:attr` path); only install plugins from
+> trusted sources. Process-level sandboxing is a future hardening step.
+
 ## Docker
 
 A multi-stage image (< 500 MB, `python:3.12-slim`) is provided in

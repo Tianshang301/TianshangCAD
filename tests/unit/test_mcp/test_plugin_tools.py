@@ -6,8 +6,10 @@ from typing import Any
 
 import pytest
 
-from tianshangcad.core.plugins import CADPlugin, PluginManager, PluginManifest, PluginPermission
+from tianshangcad.core.plugins import PluginManager
 from tianshangcad.mcp.tools.plugin import (
+    PluginDisableParams,
+    PluginEnableParams,
     PluginInput,
     PluginInstallParams,
     PluginListParams,
@@ -17,18 +19,6 @@ from tianshangcad.mcp.tools.plugin import (
 )
 
 
-class _TestPlugin(CADPlugin):
-    manifest = PluginManifest(
-        name="mcp_test",
-        version="1.0.0",
-        description="MCP test plugin",
-        permissions=[PluginPermission.TOOLS],
-    )
-
-    def register_tools(self, registry: dict[str, Any]) -> None:
-        registry["mcp_test_ping"] = lambda: {"ok": True}
-
-
 @pytest.fixture(autouse=True)
 def _reset_manager() -> Any:
     PluginManager.reset()
@@ -36,64 +26,50 @@ def _reset_manager() -> Any:
     PluginManager.reset()
 
 
-def _install() -> str:
-    return cad_plugin(
-        PluginInput(
-            plugin=PluginInstallParams(entry_point=f"{__name__}:_TestPlugin")
-        )
-    ).name
+def _install() -> None:
+    cad_plugin(PluginInput(plugin=PluginInstallParams()))
 
 
 class TestInstall:
-    def test_install_success(self) -> None:
-        result = cad_plugin(
-            PluginInput(plugin=PluginInstallParams(entry_point=f"{__name__}:_TestPlugin"))
-        )
+    def test_install_discovers_official_plugins(self) -> None:
+        result = cad_plugin(PluginInput(plugin=PluginInstallParams()))
         assert result.status == "success"
-        assert result.name == "mcp_test"
+        names = {plugin["name"] for plugin in result.plugins}
+        assert names >= {"gltf", "cam"}
 
-    def test_install_invalid_reference_returns_error(self) -> None:
-        result = cad_plugin(
-            PluginInput(plugin=PluginInstallParams(entry_point="no_such_module:NoAttr"))
-        )
-        assert result.status == "error"
-        assert result.message
+    def test_install_is_idempotent(self) -> None:
+        _install()
+        result = cad_plugin(PluginInput(plugin=PluginInstallParams()))
+        assert result.status == "success"
+        assert len(result.plugins) == 2
 
 
 class TestLifecycleActions:
     def test_uninstall(self) -> None:
         _install()
-        result = cad_plugin(
-            PluginInput(plugin=PluginUninstallParams(name="mcp_test"))
-        )
+        result = cad_plugin(PluginInput(plugin=PluginUninstallParams(name="gltf")))
         assert result.status == "success"
-        assert PluginManager().get_manifest("mcp_test") is None
+        assert PluginManager().get_manifest("gltf") is None
 
     def test_uninstall_unknown_returns_error(self) -> None:
-        result = cad_plugin(
-            PluginInput(plugin=PluginUninstallParams(name="nope"))
-        )
+        result = cad_plugin(PluginInput(plugin=PluginUninstallParams(name="nope")))
         assert result.status == "error"
 
     def test_disable_then_enable(self) -> None:
-        from tianshangcad.mcp.tools.plugin import (
-            PluginDisableParams,
-            PluginEnableParams,
-        )
-
         _install()
-        disabled = cad_plugin(PluginInput(plugin=PluginDisableParams(name="mcp_test")))
+        disabled = cad_plugin(PluginInput(plugin=PluginDisableParams(name="gltf")))
         assert disabled.status == "success"
-        enabled = cad_plugin(PluginInput(plugin=PluginEnableParams(name="mcp_test")))
+        enabled = cad_plugin(PluginInput(plugin=PluginEnableParams(name="gltf")))
         assert enabled.status == "success"
 
 
 class TestListAndManifest:
-    def test_list(self) -> None:
+    def test_list_after_install(self) -> None:
         _install()
         result = cad_plugin(PluginInput(plugin=PluginListParams()))
         assert result.status == "success"
-        assert result.plugins[0]["name"] == "mcp_test"
+        names = {plugin["name"] for plugin in result.plugins}
+        assert names >= {"gltf", "cam"}
 
     def test_list_discovers_official_plugins(self) -> None:
         result = cad_plugin(PluginInput(plugin=PluginListParams()))
@@ -103,15 +79,11 @@ class TestListAndManifest:
 
     def test_manifest(self) -> None:
         _install()
-        result = cad_plugin(
-            PluginInput(plugin=PluginManifestParams(name="mcp_test"))
-        )
+        result = cad_plugin(PluginInput(plugin=PluginManifestParams(name="gltf")))
         assert result.status == "success"
         assert result.manifest is not None
-        assert result.manifest["version"] == "1.0.0"
+        assert result.manifest["version"] == "0.1.0"
 
     def test_manifest_unknown_returns_error(self) -> None:
-        result = cad_plugin(
-            PluginInput(plugin=PluginManifestParams(name="nope"))
-        )
+        result = cad_plugin(PluginInput(plugin=PluginManifestParams(name="nope")))
         assert result.status == "error"

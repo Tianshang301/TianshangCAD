@@ -11,15 +11,15 @@ from tianshangcad.utils.errors import PluginError
 
 
 class PluginInstallParams(BaseModel):
-    """Install a plugin from a ``module:attr`` reference."""
+    """Discover and install plugins from the entry-point group.
+
+    Only plugins shipped in installed distributions (via the
+    ``tianshangcad.plugins`` entry-point group) are loaded — no arbitrary
+    ``module:attr`` import is accepted, so this never executes untrusted
+    import paths.
+    """
 
     action: Literal["install"] = "install"
-    entry_point: str = Field(
-        ...,
-        description="module:attr reference to the CADPlugin subclass",
-        examples=["tianshangcad.plugins.gltf:GLTFPlugin"],
-    )
-    enable: bool = Field(True, description="Enable the plugin after install")
 
 
 class PluginUninstallParams(BaseModel):
@@ -102,10 +102,16 @@ def cad_plugin(input: PluginInput) -> PluginOutput:
 
     聚合插件工具。按 ``action`` 派发：install / uninstall / list / enable /
     disable / manifest。
-    - ``install``: 从 ``module:attr`` 引用加载并安装一个 ``CADPlugin``。
+    - ``install``: 触发 entry-point 发现，只从已安装发行版加载插件（不接收
+      任意模块路径）。
     - ``uninstall`` / ``enable`` / ``disable``: 按名字管理插件生命周期。
     - ``list``: 触发 entry-point 发现并列出已安装插件。
     - ``manifest``: 返回指定插件的静态声明（名称/版本/权限/依赖）。
+
+    Security: 插件与服务器运行在同一进程 / 信任域，未做进程级沙箱。
+    ``install`` 只加载已安装发行版的 entry-point 插件（等价于 ``pip
+    install`` 的信任边界），不接受 ``module:attr`` 导入。仅从可信来源安装
+    插件；进程级沙箱是后续硬化项。
 
     When not to use: 插件提供的实际建模能力应通过其注册的 MCP 工具直接调用；
     ``cad_plugin`` 只管理插件生命周期。
@@ -114,9 +120,12 @@ def cad_plugin(input: PluginInput) -> PluginOutput:
     params = input.plugin
     try:
         if params.action == "install":
-            name = manager.install_reference(params.entry_point, enable=params.enable)
+            names = manager.discover()
             return PluginOutput(
-                action="install", name=name, status="success", message=f"Installed {name}"
+                action="install",
+                plugins=manager.list_plugins(),
+                status="success",
+                message=f"Installed {len(names)} plugin(s)",
             )
         if params.action == "uninstall":
             manager.uninstall(params.name)

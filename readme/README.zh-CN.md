@@ -206,6 +206,29 @@ tianshangcad batch logs --source batch --job-id <job_id>
 脚本在隔离子进程中运行（`python -I`），带有导入白名单（`os`、`subprocess`、
 `socket` 等被拦截）、运行时 `sys.modules` 防护与硬超时。
 
+## 插件
+
+插件通过新的 MCP 工具与 CLI 命令扩展服务器。SDK（`core/plugins/`）提供
+manifest + 权限声明、`load → initialize → run → shutdown` 生命周期与四个
+扩展点（tools / commands / kernel / solver）。插件从已安装发行版的
+`tianshangcad.plugins` entry-point 组被发现。
+
+```bash
+tianshangcad plugin list                    # 发现并列出
+tianshangcad plugin enable <name>           # 启用 / 禁用
+tianshangcad plugin manifest <name>         # 查看 manifest
+```
+
+随包附带的两个官方插件：
+
+- `plugin-gltf` —— glTF 2.0 导入/导出（PBR 材质）；`cad_gltf`、`gltf` CLI。
+- `plugin-cam` —— 2.5 轴轮廓 + 钻孔刀轨到 G-code；`cad_cam`、`cam` CLI。
+
+> **安全说明**：插件在服务器进程内运行，与服务器处于同一信任域，**未做
+> 沙箱**。MCP 的 `cad_plugin` `install` 动作只从已安装发行版的 entry-point
+> 加载插件（不会导入任意 `module:attr` 路径）；请仅从可信来源安装插件。
+> 进程级沙箱是后续硬化项。
+
 ## Docker
 
 `docker/` 提供了多阶段镜像（< 500 MB，`python:3.12-slim`），用于无头部署：
